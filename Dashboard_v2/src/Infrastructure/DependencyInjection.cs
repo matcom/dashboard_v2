@@ -3,6 +3,7 @@ using Dashboard_v2.Domain.Constants;
 using Dashboard_v2.Infrastructure.Data;
 using Dashboard_v2.Infrastructure.Data.Interceptors;
 using Dashboard_v2.Infrastructure.Identity;
+using Dashboard_v2.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -40,6 +41,7 @@ public static class DependencyInjection
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();
+        builder.Services.AddScoped<IPermissionService, PermissionService>();
 
         builder.Services.AddAuthorization(options =>
             options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));

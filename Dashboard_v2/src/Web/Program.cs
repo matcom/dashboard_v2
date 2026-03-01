@@ -25,6 +25,9 @@ app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseSwaggerUi(settings =>
 {
     settings.Path = "/api";

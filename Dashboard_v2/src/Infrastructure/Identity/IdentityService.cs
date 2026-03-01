@@ -9,15 +9,18 @@ namespace Dashboard_v2.Infrastructure.Identity;
 public class IdentityService : IIdentityService
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
     private readonly IAuthorizationService _authorizationService;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
         IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
         IAuthorizationService authorizationService)
     {
         _userManager = userManager;
+        _signInManager = signInManager;
         _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         _authorizationService = authorizationService;
     }
@@ -40,6 +43,50 @@ public class IdentityService : IIdentityService
         var result = await _userManager.CreateAsync(user, password);
 
         return (result.ToApplicationResult(), user.Id);
+    }
+
+    public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string email, string password)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = userName,
+            Email = email,
+        };
+
+        var result = await _userManager.CreateAsync(user, password);
+
+        return (result.ToApplicationResult(), user.Id);
+    }
+
+    public async Task<Result> LoginAsync(string email, string password)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user == null)
+        {
+            return Result.Failure(new[] { "Credenciales inválidas." });
+        }
+
+        var result = await _signInManager.PasswordSignInAsync(user, password, isPersistent: true, lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            return Result.Success();
+        }
+
+        return Result.Failure(new[] { "Credenciales inválidas." });
+    }
+
+    public async Task LogoutAsync()
+    {
+        await _signInManager.SignOutAsync();
+    }
+
+    public async Task<(string? UserId, string? UserName, string? Email)> GetUserDetailsAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+
+        return (user?.Id, user?.UserName, user?.Email);
     }
 
     public async Task<bool> IsInRoleAsync(string userId, string role)
