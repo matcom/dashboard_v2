@@ -1,15 +1,17 @@
+import DashboardHome from "./pages/DashboardHome";
 import { Counter } from "./components/Counter";
-import { Home } from "./components/Home";
 
 const AppRoutes = [
   {
     index: true,
-    element: <Home />
+    element: <DashboardHome />,
+    pageTitle: 'Inicio',
   },
   {
     path: '/counter',
-    element: <Counter />
-  }
+    element: <Counter />,
+    pageTitle: 'Contador',
+  },
 ];
 
 export default AppRoutes;
