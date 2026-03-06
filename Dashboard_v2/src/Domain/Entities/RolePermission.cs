@@ -33,4 +33,5 @@ public class RolePermission : BaseAuditableEntity
     
     // Navigation properties
     public Permission Permission { get; set; } = default!;
+    public Role Role { get; set; } = default!;
 }

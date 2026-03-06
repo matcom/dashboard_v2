@@ -30,9 +30,9 @@ public class ResourceConfiguration : IEntityTypeConfiguration<Resource>
         builder.HasIndex(r => r.OwnerId);
         builder.HasIndex(r => new { r.Type, r.OwnerId });
 
-        // Relación con AspNetUsers (Owner)
-        builder.HasOne<Infrastructure.Identity.ApplicationUser>()
-            .WithMany()
+        // Relación con Users (Owner)
+        builder.HasOne<User>()
+            .WithMany(u => u.OwnedResources)
             .HasForeignKey(r => r.OwnerId)
             .OnDelete(DeleteBehavior.Cascade);
     }

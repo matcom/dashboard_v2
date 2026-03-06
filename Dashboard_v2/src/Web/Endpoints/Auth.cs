@@ -44,21 +44,33 @@ public class Auth : EndpointGroupBase
         return Results.Ok(new { message = "Usuario registrado exitosamente." });
     }
 
-    private async Task<IResult> Login(ISender sender, LoginCommand command)
+    private async Task<IResult> Login(ISender sender, LoginCommand command, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var (result, token) = await sender.Send(command);
 
         if (!result.Succeeded)
         {
             return Results.BadRequest(new { errors = result.Errors });
         }
 
-        return Results.Ok(new { message = "Inicio de sesión exitoso." });
+        // Guardar el token en una cookie HttpOnly para que no sea accesible desde JavaScript.
+        // Secure = true en HTTPS, SameSite=Strict evita ataques CSRF de otros orígenes.
+        httpContext.Response.Cookies.Append("access_token", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = httpContext.Request.IsHttps,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddHours(8)
+        });
+
+        return Results.Ok(new { message = "Login exitoso." });
     }
 
-    private async Task<IResult> Logout(ISender sender)
+    private async Task<IResult> Logout(ISender sender, HttpContext httpContext)
     {
         await sender.Send(new LogoutCommand());
+
+        httpContext.Response.Cookies.Delete("access_token");
 
         return Results.Ok(new { message = "Sesión cerrada exitosamente." });
     }

@@ -2,7 +2,10 @@
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Infrastructure.Data;
 using Dashboard_v2.Web.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -22,6 +25,35 @@ public static class DependencyInjection
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
         builder.Services.AddRazorPages();
+
+        builder.Services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                var config = builder.Configuration;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = config["Jwt:Issuer"],
+                    ValidAudience = config["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(config["Jwt:Secret"]!))
+                };
+
+                // Leer el token desde la cookie HttpOnly en lugar del header Authorization.
+                // Esto evita que el token sea accesible desde JavaScript (protección XSS).
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        context.Token = context.Request.Cookies["access_token"];
+                        return Task.CompletedTask;
+                    }
+                };
+            });
 
         // Customise default API behaviour
         builder.Services.Configure<ApiBehaviorOptions>(options =>

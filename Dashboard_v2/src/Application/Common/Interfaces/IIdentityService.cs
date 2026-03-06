@@ -14,9 +14,8 @@ public interface IIdentityService
 
     Task<(Result Result, string UserId)> CreateUserAsync(string userName, string email, string password);
 
-    Task<Result> LoginAsync(string email, string password);
-
-    Task LogoutAsync();
+    /// <summary>Autentica al usuario y devuelve un JWT si las credenciales son válidas.</summary>
+    Task<(Result Result, string? Token)> LoginAsync(string email, string password);
 
     Task<(string? UserId, string? UserName, string? Email)> GetUserDetailsAsync(string userId);
 

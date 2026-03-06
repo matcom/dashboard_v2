@@ -13,7 +13,7 @@
       "msBuildOutputPath": null,
       "verbose": false,
       "workingDirectory": null,
-      "aspNetCoreEnvironment": "Development",
+      "aspNetCoreEnvironment": "NSwagGeneration",
       "output": "wwwroot/api/specification.json",
       "newLineBehavior": "Auto"
     }

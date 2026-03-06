@@ -58,14 +58,14 @@ public class ResourceGrantConfiguration : IEntityTypeConfiguration<ResourceGrant
             .HasForeignKey(g => g.PermissionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Relación con AspNetUsers (User que recibe el grant)
-        builder.HasOne<Infrastructure.Identity.ApplicationUser>()
+        // Relación con Users (User que recibe el grant)
+        builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(g => g.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Relación con AspNetUsers (User que otorgó el grant)
-        builder.HasOne<Infrastructure.Identity.ApplicationUser>()
+        // Relación con Users (User que otorgó el grant)
+        builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(g => g.GrantedBy)
             .OnDelete(DeleteBehavior.SetNull);

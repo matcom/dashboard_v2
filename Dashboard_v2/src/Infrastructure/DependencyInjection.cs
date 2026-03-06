@@ -4,7 +4,6 @@ using Dashboard_v2.Infrastructure.Data;
 using Dashboard_v2.Infrastructure.Data.Interceptors;
 using Dashboard_v2.Infrastructure.Identity;
 using Dashboard_v2.Infrastructure.Services;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -29,18 +28,13 @@ public static class DependencyInjection
             options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
-
         builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
-        builder.Services
-            .AddDefaultIdentity<ApplicationUser>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
-
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddTransient<IIdentityService, IdentityService>();
+        builder.Services.AddTransient<IIdentityService, AuthService>();
+        builder.Services.AddSingleton<IJwtService, JwtService>();
         builder.Services.AddScoped<IPermissionService, PermissionService>();
 
         builder.Services.AddAuthorization(options =>

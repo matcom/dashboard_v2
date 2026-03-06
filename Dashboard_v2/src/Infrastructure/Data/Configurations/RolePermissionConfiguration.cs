@@ -36,9 +36,9 @@ public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermissi
             .HasForeignKey(rp => rp.PermissionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Relación con AspNetRoles (configurada solo con FK, no navegación porque IdentityRole no es nuestra)
-        builder.HasOne<Microsoft.AspNetCore.Identity.IdentityRole>()
-            .WithMany()
+        // Relación con Roles
+        builder.HasOne(rp => rp.Role)
+            .WithMany(r => r.RolePermissions)
             .HasForeignKey(rp => rp.RoleId)
             .OnDelete(DeleteBehavior.Cascade);
     }

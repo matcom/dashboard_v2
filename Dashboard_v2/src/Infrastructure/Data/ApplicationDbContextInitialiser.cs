@@ -1,8 +1,6 @@
 ﻿using Dashboard_v2.Domain.Constants;
 using Dashboard_v2.Domain.Entities;
-using Dashboard_v2.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,15 +24,13 @@ public class ApplicationDbContextInitialiser
 {
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
 
-    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    public ApplicationDbContextInitialiser(
+        ILogger<ApplicationDbContextInitialiser> logger,
+        ApplicationDbContext context)
     {
         _logger = logger;
         _context = context;
-        _userManager = userManager;
-        _roleManager = roleManager;
     }
 
     public async Task InitialiseAsync()
@@ -68,35 +64,50 @@ public class ApplicationDbContextInitialiser
     public async Task TrySeedAsync()
     {
         // Default roles
-        var administratorRole = new IdentityRole(Roles.Administrator);
-
-        if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
+        var adminRoleName = Roles.Administrator;
+        var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == adminRoleName);
+        if (adminRole == null)
         {
-            await _roleManager.CreateAsync(administratorRole);
+            adminRole = new Role { Id = Guid.NewGuid().ToString(), Name = adminRoleName };
+            _context.Roles.Add(adminRole);
+            await _context.SaveChangesAsync();
         }
 
         // Default users
-        var administrator = new ApplicationUser 
-        { 
-            UserName = "administrator", 
-            Email = "administrator@localhost" 
-        };
+        const string adminUserName = "administrator";
+        const string adminEmail = "administrator@localhost";
+        const string adminPassword = "Administrator1!";
 
-        if (_userManager.Users.All(u => u.UserName != administrator.UserName && u.Email != administrator.Email))
+        var adminUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == adminUserName);
+        if (adminUser == null)
         {
-            await _userManager.CreateAsync(administrator, "Administrator1!");
-            if (!string.IsNullOrWhiteSpace(administratorRole.Name))
+            adminUser = new User
             {
-                await _userManager.AddToRolesAsync(administrator, new [] { administratorRole.Name });
-            }
+                Id = Guid.NewGuid().ToString(),
+                UserName = adminUserName,
+                Email = adminEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
+                IsActive = true,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+            _context.Users.Add(adminUser);
+            await _context.SaveChangesAsync();
+        }
+
+        // Assign admin role to admin user
+        var hasRole = await _context.UserRoles.AnyAsync(ur => ur.UserId == adminUser.Id && ur.RoleId == adminRole.Id);
+        if (!hasRole)
+        {
+            _context.UserRoles.Add(new UserRole { UserId = adminUser.Id, RoleId = adminRole.Id });
+            await _context.SaveChangesAsync();
         }
 
         // Default data
         // Seed default permissions
         await SeedPermissionsAsync();
-        
+
         // Seed role permissions
-        await SeedRolePermissionsAsync();
+        await SeedRolePermissionsAsync(adminRole.Id);
     }
 
     private async Task SeedPermissionsAsync()
@@ -129,13 +140,9 @@ public class ApplicationDbContextInitialiser
         await _context.SaveChangesAsync();
     }
 
-    private async Task SeedRolePermissionsAsync()
+    private async Task SeedRolePermissionsAsync(string adminRoleId)
     {
         // Asignar todos los permisos al rol Administrator
-        var adminRole = await _roleManager.FindByNameAsync(Roles.Administrator);
-        if (adminRole == null)
-            return;
-
         var allPermissions = await _context.Permissions.ToListAsync();
         
         foreach (var permission in allPermissions)
@@ -143,7 +150,7 @@ public class ApplicationDbContextInitialiser
             // Verificar si ya existe el permiso para el rol (sin tipo de recurso específico = aplica a todos)
             var exists = await _context.RolePermissions
                 .AnyAsync(rp => 
-                    rp.RoleId == adminRole.Id && 
+                    rp.RoleId == adminRoleId && 
                     rp.PermissionId == permission.Id && 
                     rp.ResourceType == null);
 
@@ -151,7 +158,7 @@ public class ApplicationDbContextInitialiser
             {
                 var rolePermission = new RolePermission
                 {
-                    RoleId = adminRole.Id,
+                    RoleId = adminRoleId,
                     PermissionId = permission.Id,
                     ResourceType = null, // Aplica a todos los tipos de recursos
                     IsActive = true

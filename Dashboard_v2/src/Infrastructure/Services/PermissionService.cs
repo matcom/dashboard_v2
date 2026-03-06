@@ -2,8 +2,6 @@ using System.Text.Json;
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Domain.Entities;
 using Dashboard_v2.Infrastructure.Data;
-using Dashboard_v2.Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -12,16 +10,13 @@ namespace Dashboard_v2.Infrastructure.Services;
 public class PermissionService : IPermissionService
 {
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<PermissionService> _logger;
 
     public PermissionService(
-        ApplicationDbContext context, 
-        UserManager<ApplicationUser> userManager,
+        ApplicationDbContext context,
         ILogger<PermissionService> logger)
     {
         _context = context;
-        _userManager = userManager;
         _logger = logger;
     }
 
@@ -56,19 +51,14 @@ public class PermissionService : IPermissionService
             return true;
 
         // 3. Verificar permisos de rol sobre el tipo de recurso
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-            return false;
-
-        var userRoles = await _userManager.GetRolesAsync(user);
-        if (!userRoles.Any())
-            return false;
-
-        // Obtener los IDs de los roles del usuario
-        var roleIds = await _context.Roles
-            .Where(r => userRoles.Contains(r.Name!))
-            .Select(r => r.Id)
+        // Obtener los IDs de los roles del usuario directamente
+        var roleIds = await _context.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.RoleId)
             .ToListAsync(cancellationToken);
+
+        if (!roleIds.Any())
+            return false;
 
         // Verificar si algún rol tiene el permiso para el tipo de recurso específico o para todos los tipos
         var hasRolePermission = await _context.RolePermissions
@@ -346,30 +336,25 @@ public class PermissionService : IPermissionService
             allPermissions.Add(perm);
 
         // 2. Obtener permisos heredados de roles
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user != null)
+        var roleIds = await _context.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.RoleId)
+            .ToListAsync(cancellationToken);
+
+        if (roleIds.Any())
         {
-            var userRoles = await _userManager.GetRolesAsync(user);
-            if (userRoles.Any())
-            {
-                var roleIds = await _context.Roles
-                    .Where(r => userRoles.Contains(r.Name!))
-                    .Select(r => r.Id)
-                    .ToListAsync(cancellationToken);
+            var rolePermissions = await _context.RolePermissions
+                .AsNoTracking()
+                .Include(rp => rp.Permission)
+                .Where(rp =>
+                    roleIds.Contains(rp.RoleId) &&
+                    rp.IsActive &&
+                    (rp.ResourceType == null || rp.ResourceType == resource.Type))
+                .Select(rp => rp.Permission.Name)
+                .ToListAsync(cancellationToken);
 
-                var rolePermissions = await _context.RolePermissions
-                    .AsNoTracking()
-                    .Include(rp => rp.Permission)
-                    .Where(rp =>
-                        roleIds.Contains(rp.RoleId) &&
-                        rp.IsActive &&
-                        (rp.ResourceType == null || rp.ResourceType == resource.Type))
-                    .Select(rp => rp.Permission.Name)
-                    .ToListAsync(cancellationToken);
-
-                foreach (var perm in rolePermissions)
-                    allPermissions.Add(perm);
-            }
+            foreach (var perm in rolePermissions)
+                allPermissions.Add(perm);
         }
 
         return allPermissions.ToList();
