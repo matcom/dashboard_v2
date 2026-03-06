@@ -12,6 +12,10 @@ public interface IApplicationDbContext
     DbSet<Permission> Permissions { get; }
     DbSet<ResourceGrant> ResourceGrants { get; }
     DbSet<RolePermission> RolePermissions { get; }
+    DbSet<PublicationType> PublicationTypes { get; }
+    DbSet<Publication> Publications { get; }
+    DbSet<Journal> Journals { get; }
+    DbSet<IndexedPublication> IndexedPublications { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

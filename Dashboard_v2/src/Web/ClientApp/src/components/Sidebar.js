@@ -9,6 +9,12 @@ const navGroups = [
     ],
   },
   {
+    heading: 'Investigación',
+    items: [
+      { to: '/publications', icon: 'bi-journals', label: 'Publicaciones' },
+    ],
+  },
+  {
     heading: 'Administración',
     items: [
       { to: '/users', icon: 'bi-people', label: 'Usuarios' },

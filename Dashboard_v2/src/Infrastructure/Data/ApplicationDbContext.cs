@@ -16,6 +16,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<ResourceGrant> ResourceGrants => Set<ResourceGrant>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<PublicationType> PublicationTypes => Set<PublicationType>();
+    public DbSet<Publication> Publications => Set<Publication>();
+    public DbSet<Journal> Journals => Set<Journal>();
+    public DbSet<IndexedPublication> IndexedPublications => Set<IndexedPublication>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

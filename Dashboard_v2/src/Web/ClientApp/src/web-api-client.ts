@@ -177,6 +177,698 @@ export class AuthClient {
     }
 }
 
+export class PublicationsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getPublicationTypes(): Promise<PublicationTypeDto[]> {
+        let url_ = this.baseUrl + "/api/Publications/types";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetPublicationTypes(_response);
+        });
+    }
+
+    protected processGetPublicationTypes(response: Response): Promise<PublicationTypeDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PublicationTypeDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PublicationTypeDto[]>(null as any);
+    }
+
+    getPublications(pageNumber: number | undefined, pageSize: number | undefined, search: string | null | undefined): Promise<PaginatedListOfPublicationDto> {
+        let url_ = this.baseUrl + "/api/Publications?";
+        if (pageNumber === null)
+            throw new globalThis.Error("The parameter 'pageNumber' cannot be null.");
+        else if (pageNumber !== undefined)
+            url_ += "pageNumber=" + encodeURIComponent("" + pageNumber) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (search !== undefined && search !== null)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetPublications(_response);
+        });
+    }
+
+    protected processGetPublications(response: Response): Promise<PaginatedListOfPublicationDto> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PaginatedListOfPublicationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PaginatedListOfPublicationDto>(null as any);
+    }
+
+    createPublication(command: CreatePublicationCommand): Promise<number> {
+        let url_ = this.baseUrl + "/api/Publications";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreatePublication(_response);
+        });
+    }
+
+    protected processCreatePublication(response: Response): Promise<number> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : null as any;
+    
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
+    }
+
+    getPublicationById(id: number): Promise<PublicationDetailDto> {
+        let url_ = this.baseUrl + "/api/Publications/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetPublicationById(_response);
+        });
+    }
+
+    protected processGetPublicationById(response: Response): Promise<PublicationDetailDto> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PublicationDetailDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PublicationDetailDto>(null as any);
+    }
+
+    updatePublication(id: number, command: UpdatePublicationCommand): Promise<void> {
+        let url_ = this.baseUrl + "/api/Publications/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdatePublication(_response);
+        });
+    }
+
+    protected processUpdatePublication(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    deletePublication(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Publications/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeletePublication(_response);
+        });
+    }
+
+    protected processDeletePublication(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
+export class UsersClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getUsers(): Promise<UserListDto[]> {
+        let url_ = this.baseUrl + "/api/Users";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetUsers(_response);
+        });
+    }
+
+    protected processGetUsers(response: Response): Promise<UserListDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(UserListDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UserListDto[]>(null as any);
+    }
+
+    createUser(command: CreateUserCommand): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateUser(_response);
+        });
+    }
+
+    protected processCreateUser(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getRoles(): Promise<RoleDto[]> {
+        let url_ = this.baseUrl + "/api/Users/roles";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoles(_response);
+        });
+    }
+
+    protected processGetRoles(response: Response): Promise<RoleDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(RoleDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoleDto[]>(null as any);
+    }
+
+    getUserGrants(userId: string): Promise<ResourceGrantDto[]> {
+        let url_ = this.baseUrl + "/api/Users/{userId}/grants";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetUserGrants(_response);
+        });
+    }
+
+    protected processGetUserGrants(response: Response): Promise<ResourceGrantDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ResourceGrantDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ResourceGrantDto[]>(null as any);
+    }
+
+    updateUserRoles(userId: string, command: UpdateUserRolesCommand): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/{userId}/roles";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateUserRoles(_response);
+        });
+    }
+
+    protected processUpdateUserRoles(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    toggleUserActive(userId: string, body: ToggleActiveRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/{userId}/active";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processToggleUserActive(_response);
+        });
+    }
+
+    protected processToggleUserActive(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    grantPermission(command: GrantPermissionCommand): Promise<number> {
+        let url_ = this.baseUrl + "/api/Users/grants";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGrantPermission(_response);
+        });
+    }
+
+    protected processGrantPermission(response: Response): Promise<number> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : null as any;
+    
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
+    }
+
+    revokePermission(grantId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/grants/{grantId}";
+        if (grantId === undefined || grantId === null)
+            throw new globalThis.Error("The parameter 'grantId' must be defined.");
+        url_ = url_.replace("{grantId}", encodeURIComponent("" + grantId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevokePermission(_response);
+        });
+    }
+
+    protected processRevokePermission(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class ProblemDetails implements IProblemDetails {
     type?: string | undefined;
     title?: string | undefined;
@@ -367,6 +1059,848 @@ export interface IUserDto {
     id?: string;
     userName?: string;
     email?: string;
+}
+
+export class PublicationTypeDto implements IPublicationTypeDto {
+    id?: number;
+    name?: string;
+
+    constructor(data?: IPublicationTypeDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): PublicationTypeDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicationTypeDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IPublicationTypeDto {
+    id?: number;
+    name?: string;
+}
+
+export class PaginatedListOfPublicationDto implements IPaginatedListOfPublicationDto {
+    items?: PublicationDto[];
+    pageNumber?: number;
+    totalPages?: number;
+    totalCount?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+
+    constructor(data?: IPaginatedListOfPublicationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(PublicationDto.fromJS(item));
+            }
+            this.pageNumber = _data["pageNumber"];
+            this.totalPages = _data["totalPages"];
+            this.totalCount = _data["totalCount"];
+            this.hasPreviousPage = _data["hasPreviousPage"];
+            this.hasNextPage = _data["hasNextPage"];
+        }
+    }
+
+    static fromJS(data: any): PaginatedListOfPublicationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PaginatedListOfPublicationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["pageNumber"] = this.pageNumber;
+        data["totalPages"] = this.totalPages;
+        data["totalCount"] = this.totalCount;
+        data["hasPreviousPage"] = this.hasPreviousPage;
+        data["hasNextPage"] = this.hasNextPage;
+        return data;
+    }
+}
+
+export interface IPaginatedListOfPublicationDto {
+    items?: PublicationDto[];
+    pageNumber?: number;
+    totalPages?: number;
+    totalCount?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+}
+
+export class PublicationDto implements IPublicationDto {
+    id?: number;
+    resourceId?: number;
+    title?: string;
+    authorRelation?: string | undefined;
+    publicationDate?: Date | undefined;
+    publicationTypeId?: number;
+    publicationTypeName?: string;
+    isJournal?: boolean;
+    isIndexedPublication?: boolean;
+    ownerId?: string;
+    created?: Date;
+
+    constructor(data?: IPublicationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.resourceId = _data["resourceId"];
+            this.title = _data["title"];
+            this.authorRelation = _data["authorRelation"];
+            this.publicationDate = _data["publicationDate"] ? new Date(_data["publicationDate"].toString()) : undefined as any;
+            this.publicationTypeId = _data["publicationTypeId"];
+            this.publicationTypeName = _data["publicationTypeName"];
+            this.isJournal = _data["isJournal"];
+            this.isIndexedPublication = _data["isIndexedPublication"];
+            this.ownerId = _data["ownerId"];
+            this.created = _data["created"] ? new Date(_data["created"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): PublicationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["resourceId"] = this.resourceId;
+        data["title"] = this.title;
+        data["authorRelation"] = this.authorRelation;
+        data["publicationDate"] = this.publicationDate ? formatDate(this.publicationDate) : undefined as any;
+        data["publicationTypeId"] = this.publicationTypeId;
+        data["publicationTypeName"] = this.publicationTypeName;
+        data["isJournal"] = this.isJournal;
+        data["isIndexedPublication"] = this.isIndexedPublication;
+        data["ownerId"] = this.ownerId;
+        data["created"] = this.created ? this.created.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IPublicationDto {
+    id?: number;
+    resourceId?: number;
+    title?: string;
+    authorRelation?: string | undefined;
+    publicationDate?: Date | undefined;
+    publicationTypeId?: number;
+    publicationTypeName?: string;
+    isJournal?: boolean;
+    isIndexedPublication?: boolean;
+    ownerId?: string;
+    created?: Date;
+}
+
+export class PublicationDetailDto implements IPublicationDetailDto {
+    id?: number;
+    resourceId?: number;
+    title?: string;
+    authorRelation?: string | undefined;
+    publicationDate?: Date | undefined;
+    publicationTypeId?: number;
+    publicationTypeName?: string;
+    ownerId?: string;
+    journal?: JournalDetailDto | undefined;
+    indexedPublication?: IndexedPublicationDetailDto | undefined;
+
+    constructor(data?: IPublicationDetailDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.resourceId = _data["resourceId"];
+            this.title = _data["title"];
+            this.authorRelation = _data["authorRelation"];
+            this.publicationDate = _data["publicationDate"] ? new Date(_data["publicationDate"].toString()) : undefined as any;
+            this.publicationTypeId = _data["publicationTypeId"];
+            this.publicationTypeName = _data["publicationTypeName"];
+            this.ownerId = _data["ownerId"];
+            this.journal = _data["journal"] ? JournalDetailDto.fromJS(_data["journal"]) : undefined as any;
+            this.indexedPublication = _data["indexedPublication"] ? IndexedPublicationDetailDto.fromJS(_data["indexedPublication"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): PublicationDetailDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicationDetailDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["resourceId"] = this.resourceId;
+        data["title"] = this.title;
+        data["authorRelation"] = this.authorRelation;
+        data["publicationDate"] = this.publicationDate ? formatDate(this.publicationDate) : undefined as any;
+        data["publicationTypeId"] = this.publicationTypeId;
+        data["publicationTypeName"] = this.publicationTypeName;
+        data["ownerId"] = this.ownerId;
+        data["journal"] = this.journal ? this.journal.toJSON() : undefined as any;
+        data["indexedPublication"] = this.indexedPublication ? this.indexedPublication.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IPublicationDetailDto {
+    id?: number;
+    resourceId?: number;
+    title?: string;
+    authorRelation?: string | undefined;
+    publicationDate?: Date | undefined;
+    publicationTypeId?: number;
+    publicationTypeName?: string;
+    ownerId?: string;
+    journal?: JournalDetailDto | undefined;
+    indexedPublication?: IndexedPublicationDetailDto | undefined;
+}
+
+export class JournalDetailDto implements IJournalDetailDto {
+    database?: string | undefined;
+    groupName?: string | undefined;
+    quartile?: string | undefined;
+
+    constructor(data?: IJournalDetailDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.database = _data["database"];
+            this.groupName = _data["groupName"];
+            this.quartile = _data["quartile"];
+        }
+    }
+
+    static fromJS(data: any): JournalDetailDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new JournalDetailDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["database"] = this.database;
+        data["groupName"] = this.groupName;
+        data["quartile"] = this.quartile;
+        return data;
+    }
+}
+
+export interface IJournalDetailDto {
+    database?: string | undefined;
+    groupName?: string | undefined;
+    quartile?: string | undefined;
+}
+
+export class IndexedPublicationDetailDto implements IIndexedPublicationDetailDto {
+    indexName?: string | undefined;
+
+    constructor(data?: IIndexedPublicationDetailDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.indexName = _data["indexName"];
+        }
+    }
+
+    static fromJS(data: any): IndexedPublicationDetailDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new IndexedPublicationDetailDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["indexName"] = this.indexName;
+        return data;
+    }
+}
+
+export interface IIndexedPublicationDetailDto {
+    indexName?: string | undefined;
+}
+
+export class CreatePublicationCommand implements ICreatePublicationCommand {
+    title?: string;
+    authorRelation?: string | undefined;
+    publicationDate?: Date | undefined;
+    publicationTypeId?: number;
+    isJournal?: boolean;
+    journalDatabase?: string | undefined;
+    journalGroupName?: string | undefined;
+    journalQuartile?: string | undefined;
+    isIndexedPublication?: boolean;
+    indexName?: string | undefined;
+
+    constructor(data?: ICreatePublicationCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.title = _data["title"];
+            this.authorRelation = _data["authorRelation"];
+            this.publicationDate = _data["publicationDate"] ? new Date(_data["publicationDate"].toString()) : undefined as any;
+            this.publicationTypeId = _data["publicationTypeId"];
+            this.isJournal = _data["isJournal"];
+            this.journalDatabase = _data["journalDatabase"];
+            this.journalGroupName = _data["journalGroupName"];
+            this.journalQuartile = _data["journalQuartile"];
+            this.isIndexedPublication = _data["isIndexedPublication"];
+            this.indexName = _data["indexName"];
+        }
+    }
+
+    static fromJS(data: any): CreatePublicationCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreatePublicationCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["title"] = this.title;
+        data["authorRelation"] = this.authorRelation;
+        data["publicationDate"] = this.publicationDate ? formatDate(this.publicationDate) : undefined as any;
+        data["publicationTypeId"] = this.publicationTypeId;
+        data["isJournal"] = this.isJournal;
+        data["journalDatabase"] = this.journalDatabase;
+        data["journalGroupName"] = this.journalGroupName;
+        data["journalQuartile"] = this.journalQuartile;
+        data["isIndexedPublication"] = this.isIndexedPublication;
+        data["indexName"] = this.indexName;
+        return data;
+    }
+}
+
+export interface ICreatePublicationCommand {
+    title?: string;
+    authorRelation?: string | undefined;
+    publicationDate?: Date | undefined;
+    publicationTypeId?: number;
+    isJournal?: boolean;
+    journalDatabase?: string | undefined;
+    journalGroupName?: string | undefined;
+    journalQuartile?: string | undefined;
+    isIndexedPublication?: boolean;
+    indexName?: string | undefined;
+}
+
+export class UpdatePublicationCommand implements IUpdatePublicationCommand {
+    id?: number;
+    title?: string;
+    authorRelation?: string | undefined;
+    publicationDate?: Date | undefined;
+    publicationTypeId?: number;
+    isJournal?: boolean;
+    journalDatabase?: string | undefined;
+    journalGroupName?: string | undefined;
+    journalQuartile?: string | undefined;
+    isIndexedPublication?: boolean;
+    indexName?: string | undefined;
+
+    constructor(data?: IUpdatePublicationCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.title = _data["title"];
+            this.authorRelation = _data["authorRelation"];
+            this.publicationDate = _data["publicationDate"] ? new Date(_data["publicationDate"].toString()) : undefined as any;
+            this.publicationTypeId = _data["publicationTypeId"];
+            this.isJournal = _data["isJournal"];
+            this.journalDatabase = _data["journalDatabase"];
+            this.journalGroupName = _data["journalGroupName"];
+            this.journalQuartile = _data["journalQuartile"];
+            this.isIndexedPublication = _data["isIndexedPublication"];
+            this.indexName = _data["indexName"];
+        }
+    }
+
+    static fromJS(data: any): UpdatePublicationCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdatePublicationCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["title"] = this.title;
+        data["authorRelation"] = this.authorRelation;
+        data["publicationDate"] = this.publicationDate ? formatDate(this.publicationDate) : undefined as any;
+        data["publicationTypeId"] = this.publicationTypeId;
+        data["isJournal"] = this.isJournal;
+        data["journalDatabase"] = this.journalDatabase;
+        data["journalGroupName"] = this.journalGroupName;
+        data["journalQuartile"] = this.journalQuartile;
+        data["isIndexedPublication"] = this.isIndexedPublication;
+        data["indexName"] = this.indexName;
+        return data;
+    }
+}
+
+export interface IUpdatePublicationCommand {
+    id?: number;
+    title?: string;
+    authorRelation?: string | undefined;
+    publicationDate?: Date | undefined;
+    publicationTypeId?: number;
+    isJournal?: boolean;
+    journalDatabase?: string | undefined;
+    journalGroupName?: string | undefined;
+    journalQuartile?: string | undefined;
+    isIndexedPublication?: boolean;
+    indexName?: string | undefined;
+}
+
+export class UserListDto implements IUserListDto {
+    id?: string;
+    userName?: string;
+    email?: string;
+    isActive?: boolean;
+    createdAt?: Date;
+    roles?: string[];
+
+    constructor(data?: IUserListDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.userName = _data["userName"];
+            this.email = _data["email"];
+            this.isActive = _data["isActive"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            if (Array.isArray(_data["roles"])) {
+                this.roles = [] as any;
+                for (let item of _data["roles"])
+                    this.roles!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): UserListDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new UserListDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["userName"] = this.userName;
+        data["email"] = this.email;
+        data["isActive"] = this.isActive;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        if (Array.isArray(this.roles)) {
+            data["roles"] = [];
+            for (let item of this.roles)
+                data["roles"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IUserListDto {
+    id?: string;
+    userName?: string;
+    email?: string;
+    isActive?: boolean;
+    createdAt?: Date;
+    roles?: string[];
+}
+
+export class RoleDto implements IRoleDto {
+    id?: string;
+    name?: string;
+
+    constructor(data?: IRoleDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): RoleDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoleDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IRoleDto {
+    id?: string;
+    name?: string;
+}
+
+export class ResourceGrantDto implements IResourceGrantDto {
+    grantId?: number;
+    resourceId?: number;
+    resourceType?: string;
+    resourceTitle?: string;
+    permissionName?: string;
+    isActive?: boolean;
+    expiresAt?: Date | undefined;
+    grantedAt?: Date;
+
+    constructor(data?: IResourceGrantDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.grantId = _data["grantId"];
+            this.resourceId = _data["resourceId"];
+            this.resourceType = _data["resourceType"];
+            this.resourceTitle = _data["resourceTitle"];
+            this.permissionName = _data["permissionName"];
+            this.isActive = _data["isActive"];
+            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
+            this.grantedAt = _data["grantedAt"] ? new Date(_data["grantedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ResourceGrantDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ResourceGrantDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["grantId"] = this.grantId;
+        data["resourceId"] = this.resourceId;
+        data["resourceType"] = this.resourceType;
+        data["resourceTitle"] = this.resourceTitle;
+        data["permissionName"] = this.permissionName;
+        data["isActive"] = this.isActive;
+        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
+        data["grantedAt"] = this.grantedAt ? this.grantedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IResourceGrantDto {
+    grantId?: number;
+    resourceId?: number;
+    resourceType?: string;
+    resourceTitle?: string;
+    permissionName?: string;
+    isActive?: boolean;
+    expiresAt?: Date | undefined;
+    grantedAt?: Date;
+}
+
+export class CreateUserCommand implements ICreateUserCommand {
+    userName?: string;
+    email?: string;
+    password?: string;
+    roleIds?: string[];
+
+    constructor(data?: ICreateUserCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.userName = _data["userName"];
+            this.email = _data["email"];
+            this.password = _data["password"];
+            if (Array.isArray(_data["roleIds"])) {
+                this.roleIds = [] as any;
+                for (let item of _data["roleIds"])
+                    this.roleIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateUserCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateUserCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["userName"] = this.userName;
+        data["email"] = this.email;
+        data["password"] = this.password;
+        if (Array.isArray(this.roleIds)) {
+            data["roleIds"] = [];
+            for (let item of this.roleIds)
+                data["roleIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface ICreateUserCommand {
+    userName?: string;
+    email?: string;
+    password?: string;
+    roleIds?: string[];
+}
+
+export class UpdateUserRolesCommand implements IUpdateUserRolesCommand {
+    userId?: string;
+    roleIds?: string[];
+
+    constructor(data?: IUpdateUserRolesCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.userId = _data["userId"];
+            if (Array.isArray(_data["roleIds"])) {
+                this.roleIds = [] as any;
+                for (let item of _data["roleIds"])
+                    this.roleIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): UpdateUserRolesCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateUserRolesCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["userId"] = this.userId;
+        if (Array.isArray(this.roleIds)) {
+            data["roleIds"] = [];
+            for (let item of this.roleIds)
+                data["roleIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IUpdateUserRolesCommand {
+    userId?: string;
+    roleIds?: string[];
+}
+
+export class ToggleActiveRequest implements IToggleActiveRequest {
+    isActive?: boolean;
+
+    constructor(data?: IToggleActiveRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.isActive = _data["isActive"];
+        }
+    }
+
+    static fromJS(data: any): ToggleActiveRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ToggleActiveRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["isActive"] = this.isActive;
+        return data;
+    }
+}
+
+export interface IToggleActiveRequest {
+    isActive?: boolean;
+}
+
+export class GrantPermissionCommand implements IGrantPermissionCommand {
+    targetUserId?: string;
+    resourceId?: number;
+    permissionName?: string;
+    expiresAt?: Date | undefined;
+
+    constructor(data?: IGrantPermissionCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.targetUserId = _data["targetUserId"];
+            this.resourceId = _data["resourceId"];
+            this.permissionName = _data["permissionName"];
+            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): GrantPermissionCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new GrantPermissionCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["targetUserId"] = this.targetUserId;
+        data["resourceId"] = this.resourceId;
+        data["permissionName"] = this.permissionName;
+        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IGrantPermissionCommand {
+    targetUserId?: string;
+    resourceId?: number;
+    permissionName?: string;
+    expiresAt?: Date | undefined;
+}
+
+function formatDate(d: Date) {
+    return d.getFullYear() + '-' + 
+        (d.getMonth() < 9 ? ('0' + (d.getMonth()+1)) : (d.getMonth()+1)) + '-' +
+        (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate());
 }
 
 export class SwaggerException extends Error {

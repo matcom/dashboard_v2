@@ -3,32 +3,25 @@ using Dashboard_v2.Domain.Common;
 namespace Dashboard_v2.Domain.Entities;
 
 /// <summary>
-/// Representa un recurso genérico del sistema (documento, proyecto, reporte, etc.)
+/// Base de indexación para el sistema de permisos.
+/// Cada entidad de negocio (Publicación, Proyecto, etc.) referencia una fila de esta tabla.
+/// No almacena datos de negocio — solo la etiqueta de tipo y el propietario.
 /// </summary>
 public class Resource : BaseAuditableEntity
 {
     // Id is inherited from BaseEntity as int
-    
+
     /// <summary>
-    /// Tipo de recurso: 'Document', 'Project', 'Report', 'ClientRecord', etc.
+    /// Tipo de recurso: 'Publication', 'Project', 'Patent', etc.
+    /// Etiqueta técnica inmutable — se asigna al crear el recurso y nunca cambia.
     /// </summary>
     public string Type { get; set; } = default!;
-    
+
     /// <summary>
-    /// ID del usuario propietario del recurso (referencia a AspNetUsers)
+    /// ID del usuario propietario del recurso.
     /// </summary>
     public string OwnerId { get; set; } = default!;
-    
-    /// <summary>
-    /// Nombre descriptivo del recurso
-    /// </summary>
-    public string Name { get; set; } = default!;
-    
-    /// <summary>
-    /// Metadatos adicionales en formato JSON
-    /// </summary>
-    public string? Metadata { get; set; }
-    
+
     // Navigation properties
     public ICollection<ResourceGrant> Grants { get; set; } = new List<ResourceGrant>();
 }

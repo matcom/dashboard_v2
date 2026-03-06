@@ -16,16 +16,9 @@ public class ResourceConfiguration : IEntityTypeConfiguration<Resource>
 
         builder.Property(r => r.OwnerId)
             .IsRequired()
-            .HasMaxLength(450); // Same as AspNetUsers.Id
+            .HasMaxLength(450);
 
-        builder.Property(r => r.Name)
-            .IsRequired()
-            .HasMaxLength(200);
-
-        builder.Property(r => r.Metadata)
-            .HasColumnType("jsonb"); // PostgreSQL JSON type
-
-        // Índices para búsquedas comunes
+        // Índices para búsquedas comunes del sistema de permisos
         builder.HasIndex(r => r.Type);
         builder.HasIndex(r => r.OwnerId);
         builder.HasIndex(r => new { r.Type, r.OwnerId });

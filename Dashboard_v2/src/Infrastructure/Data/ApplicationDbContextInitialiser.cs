@@ -103,11 +103,9 @@ public class ApplicationDbContextInitialiser
         }
 
         // Default data
-        // Seed default permissions
         await SeedPermissionsAsync();
-
-        // Seed role permissions
         await SeedRolePermissionsAsync(adminRole.Id);
+        await SeedPublicationTypesAsync();
     }
 
     private async Task SeedPermissionsAsync()
@@ -164,6 +162,33 @@ public class ApplicationDbContextInitialiser
                     IsActive = true
                 };
                 _context.RolePermissions.Add(rolePermission);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task SeedPublicationTypesAsync()
+    {
+        var types = new[]
+        {
+            "Artículo científico",
+            "Artículo de revisión",
+            "Libro",
+            "Capítulo de libro",
+            "Tesis doctoral",
+            "Tesis de maestría",
+            "Informe técnico",
+            "Ponencia en congreso",
+            "Póster científico",
+            "Preprint"
+        };
+
+        foreach (var typeName in types)
+        {
+            if (!_context.PublicationTypes.Any(t => t.Name == typeName))
+            {
+                _context.PublicationTypes.Add(new Domain.Entities.PublicationType { Name = typeName });
             }
         }
 
