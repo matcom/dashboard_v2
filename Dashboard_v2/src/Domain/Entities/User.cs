@@ -12,4 +12,5 @@ public class User
     // Navegación
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     public ICollection<Resource> OwnedResources { get; set; } = new List<Resource>();
+    public ICollection<SystemGrant> SystemGrants { get; set; } = new List<SystemGrant>();
 }

@@ -16,13 +16,13 @@ export default function App() {
 
         {/* Protected routes — wrapped in dashboard layout */}
         {AppRoutes.map((route, index) => {
-          const { element, pageTitle, ...rest } = route;
+          const { element, pageTitle, permission, ...rest } = route;
           return (
             <Route
               key={index}
               {...rest}
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredPermission={permission}>
                   <Layout pageTitle={pageTitle}>
                     {element}
                   </Layout>

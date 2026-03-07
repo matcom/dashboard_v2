@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const navGroups = [
   {
@@ -11,14 +12,14 @@ const navGroups = [
   {
     heading: 'Investigación',
     items: [
-      { to: '/publications', icon: 'bi-journals', label: 'Publicaciones' },
+      { to: '/publications', icon: 'bi-journals', label: 'Publicaciones', permission: 'publications.access' },
     ],
   },
   {
     heading: 'Administración',
     items: [
-      { to: '/users', icon: 'bi-people', label: 'Usuarios' },
-      { to: '/roles', icon: 'bi-shield-lock', label: 'Roles y permisos' },
+      { to: '/users', icon: 'bi-people', label: 'Usuarios', permission: 'users.view' },
+      { to: '/roles', icon: 'bi-shield-lock', label: 'Roles y permisos', permission: 'users.manage' },
     ],
   },
   {
@@ -30,6 +31,16 @@ const navGroups = [
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
+  const { hasPermission } = useAuth();
+
+  // Only show groups that have at least one visible item
+  const visibleGroups = navGroups
+    .map(group => ({
+      ...group,
+      items: group.items.filter(item => !item.permission || hasPermission(item.permission)),
+    }))
+    .filter(group => group.items.length > 0);
+
   return (
     <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
       <div className="sidebar__brand">
@@ -46,7 +57,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       </div>
 
       <nav className="sidebar__nav">
-        {navGroups.map((group) => (
+        {visibleGroups.map((group) => (
           <div key={group.heading} className="sidebar__group">
             {!collapsed && (
               <span className="sidebar__group-heading">{group.heading}</span>

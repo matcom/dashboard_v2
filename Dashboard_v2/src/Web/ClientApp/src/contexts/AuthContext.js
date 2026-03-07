@@ -62,8 +62,17 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  /**
+   * Verifica si el usuario actual tiene un permiso de sistema.
+   * Los administradores tienen "system.all", que concede acceso a todo.
+   */
+  const hasPermission = useCallback((permission) => {
+    if (!user?.permissions) return false;
+    return user.permissions.includes('system.all') || user.permissions.includes(permission);
+  }, [user]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refetch: fetchCurrentUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refetch: fetchCurrentUser, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

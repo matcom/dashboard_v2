@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Publication> Publications => Set<Publication>();
     public DbSet<Journal> Journals => Set<Journal>();
     public DbSet<IndexedPublication> IndexedPublications => Set<IndexedPublication>();
+    public DbSet<SystemGrant> SystemGrants => Set<SystemGrant>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

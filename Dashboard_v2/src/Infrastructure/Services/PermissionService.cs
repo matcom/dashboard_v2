@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Dashboard_v2.Application.Common.Interfaces;
+using Dashboard_v2.Domain.Constants;
 using Dashboard_v2.Domain.Entities;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -444,5 +445,115 @@ public class PermissionService : IPermissionService
         _logger.LogInformation("Cleaned up {Count} expired grants", expiredGrants.Count);
 
         return expiredGrants.Count;
+    }
+
+    // ============ Permisos de Sistema ============
+
+    public async Task<bool> HasSystemPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default)
+    {
+        // Los usuarios con rol Administrator tienen acceso completo sin necesitar un grant explícito
+        var isAdmin = await _context.UserRoles
+            .AsNoTracking()
+            .Include(ur => ur.Role)
+            .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == Roles.Administrator, cancellationToken);
+
+        if (isAdmin) return true;
+
+        // system.all concede acceso a cualquier permiso
+        var hasAll = await _context.SystemGrants
+            .AsNoTracking()
+            .AnyAsync(g =>
+                g.UserId == userId &&
+                g.Permission == SystemPermissions.All &&
+                g.IsActive &&
+                (g.ExpiresAt == null || g.ExpiresAt > DateTimeOffset.UtcNow),
+                cancellationToken);
+
+        if (hasAll) return true;
+
+        // Permiso específico
+        return await _context.SystemGrants
+            .AsNoTracking()
+            .AnyAsync(g =>
+                g.UserId == userId &&
+                g.Permission == permission &&
+                g.IsActive &&
+                (g.ExpiresAt == null || g.ExpiresAt > DateTimeOffset.UtcNow),
+                cancellationToken);
+    }
+
+    public async Task<int> GrantSystemPermissionAsync(
+        string userId,
+        string permission,
+        string grantedBy,
+        DateTimeOffset? expiresAt = null,
+        CancellationToken cancellationToken = default)
+    {
+        // Si ya existe un grant activo para ese permiso, actualizar
+        var existing = await _context.SystemGrants
+            .FirstOrDefaultAsync(g =>
+                g.UserId == userId &&
+                g.Permission == permission &&
+                g.IsActive,
+                cancellationToken);
+
+        if (existing != null)
+        {
+            existing.ExpiresAt = expiresAt;
+            existing.GrantedBy = grantedBy;
+            existing.GrantedAt = DateTimeOffset.UtcNow;
+            existing.LastModified = DateTimeOffset.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            return existing.Id;
+        }
+
+        var grant = new SystemGrant
+        {
+            UserId    = userId,
+            Permission = permission,
+            GrantedBy = grantedBy,
+            GrantedAt = DateTimeOffset.UtcNow,
+            ExpiresAt = expiresAt,
+            IsActive  = true
+        };
+
+        _context.SystemGrants.Add(grant);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "System permission '{Permission}' granted to user {UserId} by {GrantedBy}",
+            permission, userId, grantedBy);
+
+        return grant.Id;
+    }
+
+    public async Task<bool> RevokeSystemGrantAsync(int grantId, CancellationToken cancellationToken = default)
+    {
+        var grant = await _context.SystemGrants
+            .FirstOrDefaultAsync(g => g.Id == grantId, cancellationToken);
+
+        if (grant == null) return false;
+
+        grant.IsActive = false;
+        grant.LastModified = DateTimeOffset.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("System grant {GrantId} revoked", grantId);
+        return true;
+    }
+
+    public async Task<List<(int GrantId, string Permission, DateTimeOffset? ExpiresAt, DateTimeOffset GrantedAt)>>
+        GetUserSystemGrantsAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var grants = await _context.SystemGrants
+            .AsNoTracking()
+            .Where(g => g.UserId == userId && g.IsActive &&
+                        (g.ExpiresAt == null || g.ExpiresAt > DateTimeOffset.UtcNow))
+            .Select(g => new { g.Id, g.Permission, g.ExpiresAt, g.GrantedAt })
+            .ToListAsync(cancellationToken);
+
+        return grants
+            .Select(g => (g.Id, g.Permission, g.ExpiresAt, g.GrantedAt))
+            .ToList();
     }
 }

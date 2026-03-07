@@ -1,8 +1,11 @@
 using Dashboard_v2.Application.Common.Interfaces;
+using Dashboard_v2.Application.Common.Security;
+using Dashboard_v2.Domain.Constants;
 using Dashboard_v2.Domain.Entities;
 
 namespace Dashboard_v2.Application.Publications.Commands.CreatePublication;
 
+[Authorize(SystemPermission = SystemPermissions.CreatePublications)]
 public record CreatePublicationCommand : IRequest<int>
 {
     public string Title { get; init; } = default!;

@@ -624,6 +624,48 @@ export class UsersClient {
         return Promise.resolve<RoleDto[]>(null as any);
     }
 
+    getSystemPermissions(): Promise<any[]> {
+        let url_ = this.baseUrl + "/api/Users/system-permissions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetSystemPermissions(_response);
+        });
+    }
+
+    protected processGetSystemPermissions(response: Response): Promise<any[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(item);
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<any[]>(null as any);
+    }
+
     getUserGrants(userId: string): Promise<ResourceGrantDto[]> {
         let url_ = this.baseUrl + "/api/Users/{userId}/grants";
         if (userId === undefined || userId === null)
@@ -667,6 +709,51 @@ export class UsersClient {
             });
         }
         return Promise.resolve<ResourceGrantDto[]>(null as any);
+    }
+
+    getUserSystemGrants(userId: string): Promise<SystemGrantDto[]> {
+        let url_ = this.baseUrl + "/api/Users/{userId}/system-grants";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetUserSystemGrants(_response);
+        });
+    }
+
+    protected processGetUserSystemGrants(response: Response): Promise<SystemGrantDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(SystemGrantDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SystemGrantDto[]>(null as any);
     }
 
     updateUserRoles(userId: string, command: UpdateUserRolesCommand): Promise<void> {
@@ -867,6 +954,101 @@ export class UsersClient {
         }
         return Promise.resolve<void>(null as any);
     }
+
+    grantSystemPermission(command: GrantSystemPermissionCommand): Promise<number> {
+        let url_ = this.baseUrl + "/api/Users/system-grants";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGrantSystemPermission(_response);
+        });
+    }
+
+    protected processGrantSystemPermission(response: Response): Promise<number> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : null as any;
+    
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
+    }
+
+    revokeSystemGrant(grantId: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/system-grants/{grantId}";
+        if (grantId === undefined || grantId === null)
+            throw new globalThis.Error("The parameter 'grantId' must be defined.");
+        url_ = url_.replace("{grantId}", encodeURIComponent("" + grantId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevokeSystemGrant(_response);
+        });
+    }
+
+    protected processRevokeSystemGrant(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 }
 
 export class ProblemDetails implements IProblemDetails {
@@ -1021,6 +1203,7 @@ export class UserDto implements IUserDto {
     id?: string;
     userName?: string;
     email?: string;
+    permissions?: string[];
 
     constructor(data?: IUserDto) {
         if (data) {
@@ -1036,6 +1219,11 @@ export class UserDto implements IUserDto {
             this.id = _data["id"];
             this.userName = _data["userName"];
             this.email = _data["email"];
+            if (Array.isArray(_data["permissions"])) {
+                this.permissions = [] as any;
+                for (let item of _data["permissions"])
+                    this.permissions!.push(item);
+            }
         }
     }
 
@@ -1051,6 +1239,11 @@ export class UserDto implements IUserDto {
         data["id"] = this.id;
         data["userName"] = this.userName;
         data["email"] = this.email;
+        if (Array.isArray(this.permissions)) {
+            data["permissions"] = [];
+            for (let item of this.permissions)
+                data["permissions"].push(item);
+        }
         return data;
     }
 }
@@ -1059,6 +1252,7 @@ export interface IUserDto {
     id?: string;
     userName?: string;
     email?: string;
+    permissions?: string[];
 }
 
 export class PublicationTypeDto implements IPublicationTypeDto {
@@ -1177,6 +1371,8 @@ export class PublicationDto implements IPublicationDto {
     isIndexedPublication?: boolean;
     ownerId?: string;
     created?: Date;
+    canEdit?: boolean;
+    canDelete?: boolean;
 
     constructor(data?: IPublicationDto) {
         if (data) {
@@ -1200,6 +1396,8 @@ export class PublicationDto implements IPublicationDto {
             this.isIndexedPublication = _data["isIndexedPublication"];
             this.ownerId = _data["ownerId"];
             this.created = _data["created"] ? new Date(_data["created"].toString()) : undefined as any;
+            this.canEdit = _data["canEdit"];
+            this.canDelete = _data["canDelete"];
         }
     }
 
@@ -1223,6 +1421,8 @@ export class PublicationDto implements IPublicationDto {
         data["isIndexedPublication"] = this.isIndexedPublication;
         data["ownerId"] = this.ownerId;
         data["created"] = this.created ? this.created.toISOString() : undefined as any;
+        data["canEdit"] = this.canEdit;
+        data["canDelete"] = this.canDelete;
         return data;
     }
 }
@@ -1239,6 +1439,8 @@ export interface IPublicationDto {
     isIndexedPublication?: boolean;
     ownerId?: string;
     created?: Date;
+    canEdit?: boolean;
+    canDelete?: boolean;
 }
 
 export class PublicationDetailDto implements IPublicationDetailDto {
@@ -1709,6 +1911,58 @@ export interface IResourceGrantDto {
     grantedAt?: Date;
 }
 
+export class SystemGrantDto implements ISystemGrantDto {
+    grantId?: number;
+    permission?: string;
+    permissionLabel?: string | undefined;
+    expiresAt?: Date | undefined;
+    grantedAt?: Date;
+
+    constructor(data?: ISystemGrantDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.grantId = _data["grantId"];
+            this.permission = _data["permission"];
+            this.permissionLabel = _data["permissionLabel"];
+            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
+            this.grantedAt = _data["grantedAt"] ? new Date(_data["grantedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): SystemGrantDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new SystemGrantDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["grantId"] = this.grantId;
+        data["permission"] = this.permission;
+        data["permissionLabel"] = this.permissionLabel;
+        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
+        data["grantedAt"] = this.grantedAt ? this.grantedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ISystemGrantDto {
+    grantId?: number;
+    permission?: string;
+    permissionLabel?: string | undefined;
+    expiresAt?: Date | undefined;
+    grantedAt?: Date;
+}
+
 export class CreateUserCommand implements ICreateUserCommand {
     userName?: string;
     email?: string;
@@ -1894,6 +2148,50 @@ export interface IGrantPermissionCommand {
     targetUserId?: string;
     resourceId?: number;
     permissionName?: string;
+    expiresAt?: Date | undefined;
+}
+
+export class GrantSystemPermissionCommand implements IGrantSystemPermissionCommand {
+    targetUserId?: string;
+    permission?: string;
+    expiresAt?: Date | undefined;
+
+    constructor(data?: IGrantSystemPermissionCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.targetUserId = _data["targetUserId"];
+            this.permission = _data["permission"];
+            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): GrantSystemPermissionCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new GrantSystemPermissionCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["targetUserId"] = this.targetUserId;
+        data["permission"] = this.permission;
+        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IGrantSystemPermissionCommand {
+    targetUserId?: string;
+    permission?: string;
     expiresAt?: Date | undefined;
 }
 

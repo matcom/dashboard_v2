@@ -105,6 +105,7 @@ public class ApplicationDbContextInitialiser
         // Default data
         await SeedPermissionsAsync();
         await SeedRolePermissionsAsync(adminRole.Id);
+        await SeedSystemGrantsAsync(adminUser.Id);
         await SeedPublicationTypesAsync();
     }
 
@@ -162,6 +163,30 @@ public class ApplicationDbContextInitialiser
                     IsActive = true
                 };
                 _context.RolePermissions.Add(rolePermission);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task SeedSystemGrantsAsync(string adminUserId)
+    {
+        // El administrador obtiene automáticamente todos los permisos de sistema
+        foreach (var perm in SystemPermissions.AllPermissions)
+        {
+            var exists = await _context.SystemGrants
+                .AnyAsync(g => g.UserId == adminUserId && g.Permission == perm && g.IsActive);
+
+            if (!exists)
+            {
+                _context.SystemGrants.Add(new SystemGrant
+                {
+                    UserId    = adminUserId,
+                    Permission = perm,
+                    GrantedBy = adminUserId,
+                    GrantedAt = DateTimeOffset.UtcNow,
+                    IsActive  = true
+                });
             }
         }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../utils/apiFetch';
+import { useAuth } from '../contexts/AuthContext';
 
 /* ─────────────────────────────────────────────
    Helpers
@@ -28,6 +29,7 @@ function badgeType(pub) {
    PublicationsPage
 ───────────────────────────────────────────── */
 export default function PublicationsPage() {
+  const { hasPermission } = useAuth();
   const [publications, setPublications] = useState([]);
   const [types, setTypes]               = useState([]);
   const [pagination, setPagination]     = useState({ pageNumber: 1, totalPages: 1, totalCount: 0 });
@@ -186,9 +188,11 @@ export default function PublicationsPage() {
           <h2 className="page-title">Publicaciones</h2>
           <p className="page-subtitle">Gestión de publicaciones científicas y académicas</p>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}>
-          <i className="bi bi-plus-lg me-1"></i> Nueva publicación
-        </button>
+        {hasPermission('publications.create') && (
+          <button className="btn btn-primary" onClick={openCreate}>
+            <i className="bi bi-plus-lg me-1"></i> Nueva publicación
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -238,20 +242,24 @@ export default function PublicationsPage() {
                   <td>{pub.publicationDate ?? '—'}</td>
                   <td>{badgeType(pub)}</td>
                   <td className="col-actions">
-                    <button
-                      className="btn-icon btn-icon--edit"
-                      title="Editar"
-                      onClick={() => openEdit(pub.id)}
-                    >
-                      <i className="bi bi-pencil"></i>
-                    </button>
-                    <button
-                      className="btn-icon btn-icon--delete"
-                      title="Eliminar"
-                      onClick={() => setDeleteId(pub.id)}
-                    >
-                      <i className="bi bi-trash"></i>
-                    </button>
+                    {pub.canEdit && (
+                      <button
+                        className="btn-icon btn-icon--edit"
+                        title="Editar"
+                        onClick={() => openEdit(pub.id)}
+                      >
+                        <i className="bi bi-pencil"></i>
+                      </button>
+                    )}
+                    {pub.canDelete && (
+                      <button
+                        className="btn-icon btn-icon--delete"
+                        title="Eliminar"
+                        onClick={() => setDeleteId(pub.id)}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -314,12 +322,14 @@ export default function PublicationsPage() {
               {/* Tipo */}
               <div className="form-group">
                 <label className="form-label">Tipo de publicación <span className="required">*</span></label>
-                <select className="form-control" value={form.publicationTypeId} onChange={set('publicationTypeId')}>
-                  <option value="">— Seleccionar —</option>
-                  {types.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
+                <div className="select-wrapper">
+                  <select className="form-control" value={form.publicationTypeId} onChange={set('publicationTypeId')}>
+                    <option value="">— Seleccionar —</option>
+                    {types.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Autor */}
@@ -353,13 +363,15 @@ export default function PublicationsPage() {
                       </div>
                       <div className="form-group" style={{width: '140px'}}>
                         <label className="form-label">Cuartil</label>
-                        <select className="form-control" value={form.journalQuartile} onChange={set('journalQuartile')}>
-                          <option value="">—</option>
-                          <option value="Q1">Q1</option>
-                          <option value="Q2">Q2</option>
-                          <option value="Q3">Q3</option>
-                          <option value="Q4">Q4</option>
-                        </select>
+                        <div className="select-wrapper">
+                          <select className="form-control" value={form.journalQuartile} onChange={set('journalQuartile')}>
+                            <option value="">—</option>
+                            <option value="Q1">Q1</option>
+                            <option value="Q2">Q2</option>
+                            <option value="Q3">Q3</option>
+                            <option value="Q4">Q4</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </div>

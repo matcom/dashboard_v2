@@ -61,7 +61,7 @@ public class AuthService : IIdentityService
             UserName = userName,
             Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-            IsActive = true,
+            IsActive = false,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

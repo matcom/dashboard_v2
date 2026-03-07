@@ -10,13 +10,16 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
 {
     private readonly IUser _user;
     private readonly IIdentityService _identityService;
+    private readonly IPermissionService _permissionService;
 
     public AuthorizationBehaviour(
         IUser user,
-        IIdentityService identityService)
+        IIdentityService identityService,
+        IPermissionService permissionService)
     {
         _user = user;
         _identityService = identityService;
+        _permissionService = permissionService;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -42,7 +45,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
                 {
                     foreach (var role in roles)
                     {
-                        var isInRole = _user.Roles?.Any(x => role == x)??false;
+                        var isInRole = _user.Roles?.Any(x => role.Trim() == x) ?? false;
                         if (isInRole)
                         {
                             authorized = true;
@@ -51,7 +54,6 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
                     }
                 }
 
-                // Must be a member of at least one role in roles
                 if (!authorized)
                 {
                     throw new ForbiddenAccessException();
@@ -70,6 +72,33 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
                     {
                         throw new ForbiddenAccessException();
                     }
+                }
+            }
+
+            // System-permission-based authorization
+            // Each attribute with SystemPermission is checked independently (AND logic across attributes).
+            // Within a single attribute, comma-separated permissions are OR logic.
+            var attributesWithSystemPerms = authorizeAttributes
+                .Where(a => !string.IsNullOrWhiteSpace(a.SystemPermission));
+
+            foreach (var attr in attributesWithSystemPerms)
+            {
+                var permissionsInAttr = attr.SystemPermission
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                var authorized = false;
+                foreach (var perm in permissionsInAttr)
+                {
+                    if (await _permissionService.HasSystemPermissionAsync(_user.Id, perm, cancellationToken))
+                    {
+                        authorized = true;
+                        break;
+                    }
+                }
+
+                if (!authorized)
+                {
+                    throw new ForbiddenAccessException();
                 }
             }
         }

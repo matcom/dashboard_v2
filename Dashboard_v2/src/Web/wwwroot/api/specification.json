@@ -483,6 +483,27 @@
         }
       }
     },
+    "/api/Users/system-permissions": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "GetSystemPermissions",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Users/{userId}/grants": {
       "get": {
         "tags": [
@@ -509,6 +530,40 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/ResourceGrantDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Users/{userId}/system-grants": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "GetUserSystemGrants",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SystemGrantDto"
                   }
                 }
               }
@@ -716,6 +771,94 @@
           }
         }
       }
+    },
+    "/api/Users/system-grants": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "GrantSystemPermission",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantSystemPermissionCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Users/system-grants/{grantId}": {
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "RevokeSystemGrant",
+        "parameters": [
+          {
+            "name": "grantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -788,6 +931,12 @@
           },
           "email": {
             "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -877,6 +1026,12 @@
           "created": {
             "type": "string",
             "format": "date-time"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canDelete": {
+            "type": "boolean"
           }
         }
       },
@@ -1127,6 +1282,32 @@
           }
         }
       },
+      "SystemGrantDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "grantId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "permission": {
+            "type": "string"
+          },
+          "permissionLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "grantedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CreateUserCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -1184,6 +1365,23 @@
             "format": "int32"
           },
           "permissionName": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "GrantSystemPermissionCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "targetUserId": {
+            "type": "string"
+          },
+          "permission": {
             "type": "string"
           },
           "expiresAt": {

@@ -80,4 +80,34 @@ public interface IPermissionService
     /// Elimina todos los grants expirados
     /// </summary>
     Task<int> CleanupExpiredGrantsAsync(CancellationToken cancellationToken = default);
+
+    // ============ Permisos de Sistema ============
+
+    /// <summary>
+    /// Verifica si un usuario tiene un permiso de sistema activo (ver <see cref="Dashboard_v2.Domain.Constants.SystemPermissions"/>).
+    /// Un usuario con <c>system.all</c> tiene acceso a todo. Los usuarios con rol Administrator
+    /// también tienen acceso completo sin necesitar un grant explícito.
+    /// </summary>
+    Task<bool> HasSystemPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asigna un permiso de sistema a un usuario.
+    /// </summary>
+    Task<int> GrantSystemPermissionAsync(
+        string userId,
+        string permission,
+        string grantedBy,
+        DateTimeOffset? expiresAt = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revoca (desactiva) un SystemGrant por ID.
+    /// </summary>
+    Task<bool> RevokeSystemGrantAsync(int grantId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Devuelve todos los system grants activos de un usuario.
+    /// </summary>
+    Task<List<(int GrantId, string Permission, DateTimeOffset? ExpiresAt, DateTimeOffset GrantedAt)>>
+        GetUserSystemGrantsAsync(string userId, CancellationToken cancellationToken = default);
 }

@@ -1,10 +1,13 @@
 using Dashboard_v2.Application.Common.Exceptions;
 using Dashboard_v2.Application.Common.Interfaces;
+using Dashboard_v2.Application.Common.Security;
+using Dashboard_v2.Domain.Constants;
 using Dashboard_v2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard_v2.Application.Publications.Commands.UpdatePublication;
 
+[Authorize]
 public record UpdatePublicationCommand : IRequest
 {
     public int Id { get; init; }
@@ -27,10 +30,17 @@ public record UpdatePublicationCommand : IRequest
 public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublicationCommand>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _currentUser;
+    private readonly IPermissionService _permissionService;
 
-    public UpdatePublicationCommandHandler(IApplicationDbContext context)
+    public UpdatePublicationCommandHandler(
+        IApplicationDbContext context,
+        IUser currentUser,
+        IPermissionService permissionService)
     {
         _context = context;
+        _currentUser = currentUser;
+        _permissionService = permissionService;
     }
 
     public async Task Handle(UpdatePublicationCommand request, CancellationToken cancellationToken)
@@ -40,6 +50,13 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
             .Include(p => p.IndexedPublication)
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Publication), request.Id.ToString());
+
+        // Verificar permiso: edit_any de sistema, O ser dueño del recurso, O grant "write"/"admin"
+        var canEdit = await _permissionService.HasSystemPermissionAsync(_currentUser.Id!, SystemPermissions.EditAnyPublication, cancellationToken)
+                      || await _permissionService.HasPermissionAsync(_currentUser.Id!, publication.ResourceId, "write", cancellationToken)
+                      || await _permissionService.HasPermissionAsync(_currentUser.Id!, publication.ResourceId, "admin", cancellationToken);
+        if (!canEdit)
+            throw new ForbiddenAccessException();
 
         publication.Title = request.Title;
         publication.AuthorRelation = request.AuthorRelation;
