@@ -1,20 +1,31 @@
+import DashboardHome from "./pages/DashboardHome";
+import PublicationsPage from "./pages/PublicationsPage";
+import UsersPage from "./pages/UsersPage";
 import { Counter } from "./components/Counter";
-import { FetchData } from "./components/FetchData";
-import { Home } from "./components/Home";
 
 const AppRoutes = [
   {
     index: true,
-    element: <Home />
+    element: <DashboardHome />,
+    pageTitle: 'Inicio',
+  },
+  {
+    path: '/publications',
+    element: <PublicationsPage />,
+    pageTitle: 'Publicaciones',
+    permission: 'publications.access',
+  },
+  {
+    path: '/users',
+    element: <UsersPage />,
+    pageTitle: 'Usuarios',
+    permission: 'users.view',
   },
   {
     path: '/counter',
-    element: <Counter />
+    element: <Counter />,
+    pageTitle: 'Contador',
   },
-  {
-    path: '/fetch-data',
-    element: <FetchData />
-  }
 ];
 
 export default AppRoutes;
