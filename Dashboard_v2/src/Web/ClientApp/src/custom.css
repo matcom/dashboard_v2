@@ -1179,6 +1179,30 @@ a:hover { color: var(--primary-hover); }
   color: #be123c;
 }
 
+.alert-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE CARD
+════════════════════════════════════════════════ */
+.page-card {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.page-card__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin: 0 0 0.75rem;
+}
+
 /* ═══════════════════════════════════════════════
    MODAL
 ════════════════════════════════════════════════ */

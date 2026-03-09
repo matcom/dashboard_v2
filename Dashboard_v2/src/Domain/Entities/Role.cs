@@ -8,4 +8,5 @@ public class Role
     // Navegación
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+    public ICollection<RoleSystemPermission> SystemPermissions { get; set; } = new List<RoleSystemPermission>();
 }

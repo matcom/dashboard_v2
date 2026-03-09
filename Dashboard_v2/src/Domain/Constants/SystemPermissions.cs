@@ -14,6 +14,16 @@ public abstract class SystemPermissions
     /// <summary>Editar roles y estado de usuarios</summary>
     public const string ManageUsers         = "users.manage";
 
+    // ——— Roles ———
+    /// <summary>Ver la lista de roles</summary>
+    public const string ViewRoles           = "roles.view";
+    /// <summary>Crear nuevos roles</summary>
+    public const string CreateRoles         = "roles.create";
+    /// <summary>Eliminar roles existentes</summary>
+    public const string DeleteRoles         = "roles.delete";
+    /// <summary>Asignar/revocar permisos de sistema a roles</summary>
+    public const string ManageRolePerms     = "roles.manage_perms";
+
     // ——— Permisos ———
     /// <summary>Ver los grants de cualquier usuario</summary>
     public const string ViewGrants          = "grants.view";
@@ -46,8 +56,37 @@ public abstract class SystemPermissions
     public static readonly IReadOnlyList<string> AllPermissions =
     [
         ViewUsers, CreateUsers, ManageUsers,
+        ViewRoles, CreateRoles, DeleteRoles, ManageRolePerms,
         ViewGrants, GrantSystemPerms, GrantResourcePerms, RevokeSystemPerms, RevokeResourcePerms,
         ViewAllPublications, CreatePublications, EditAnyPublication, DeleteAnyPublication,
         All
+    ];
+
+    /// <summary>
+    /// Etiquetas legibles por módulo, usadas en la UI para mostrar los permisos agrupados.
+    /// </summary>
+    public static readonly IReadOnlyList<(string Key, string Label, string Module)> PermissionDescriptions =
+    [
+        (ViewUsers,           "Ver lista de usuarios",              "Usuarios"),
+        (CreateUsers,         "Crear usuarios",                     "Usuarios"),
+        (ManageUsers,         "Gestionar usuarios (roles/estado)",  "Usuarios"),
+
+        (ViewRoles,           "Ver lista de roles",                 "Roles"),
+        (CreateRoles,         "Crear roles",                        "Roles"),
+        (DeleteRoles,         "Eliminar roles",                     "Roles"),
+        (ManageRolePerms,     "Gestionar permisos de roles",        "Roles"),
+
+        (ViewGrants,          "Ver permisos de cualquier usuario",  "Permisos"),
+        (GrantSystemPerms,    "Asignar permisos de sistema",        "Permisos"),
+        (GrantResourcePerms,  "Asignar permisos de recurso",        "Permisos"),
+        (RevokeSystemPerms,   "Revocar permisos de sistema",        "Permisos"),
+        (RevokeResourcePerms, "Revocar permisos de recurso",        "Permisos"),
+
+        (ViewAllPublications, "Ver todas las publicaciones",        "Publicaciones"),
+        (CreatePublications,  "Crear publicaciones",                "Publicaciones"),
+        (EditAnyPublication,  "Editar cualquier publicación",       "Publicaciones"),
+        (DeleteAnyPublication,"Eliminar cualquier publicación",     "Publicaciones"),
+
+        (All,                 "Acceso total al sistema (super-admin)", "Sistema"),
     ];
 }

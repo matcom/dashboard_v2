@@ -19,7 +19,7 @@ const navGroups = [
     heading: 'Administración',
     items: [
       { to: '/users', icon: 'bi-people', label: 'Usuarios', permission: 'users.view' },
-      { to: '/roles', icon: 'bi-shield-lock', label: 'Roles y permisos', permission: 'users.manage' },
+      { to: '/roles', icon: 'bi-shield-lock', label: 'Roles y permisos', permission: 'roles.view' },
     ],
   },
   {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../utils/apiFetch';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -47,6 +47,31 @@ export default function PublicationsPage() {
   // Delete confirm
   const [deleteId, setDeleteId]         = useState(null);
   const [deleting, setDeleting]         = useState(false);
+
+  // Row actions dropdown
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPos, setMenuPos]       = useState({ top: 0, right: 0 });
+  const menuRef                     = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuId(null);
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('scroll', () => setOpenMenuId(null), true);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('scroll', () => setOpenMenuId(null), true);
+    };
+  }, []);
+
+  const toggleMenu = (pubId, e) => {
+    e.stopPropagation();
+    if (openMenuId === pubId) { setOpenMenuId(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    setOpenMenuId(pubId);
+  };
 
   /* ── Cargar datos ── */
   const loadPublications = useCallback(async (page = 1, term = search) => {
@@ -242,23 +267,32 @@ export default function PublicationsPage() {
                   <td>{pub.publicationDate ?? '—'}</td>
                   <td>{badgeType(pub)}</td>
                   <td className="col-actions">
-                    {pub.canEdit && (
-                      <button
-                        className="btn-icon btn-icon--edit"
-                        title="Editar"
-                        onClick={() => openEdit(pub.id)}
-                      >
-                        <i className="bi bi-pencil"></i>
+                    {(pub.canEdit || pub.canDelete) && (
+                    <div className="row-actions" ref={openMenuId === pub.id ? menuRef : null}>
+                      <button className="btn-actions-trigger" onClick={(e) => toggleMenu(pub.id, e)}>
+                        Acciones <i className={`bi bi-chevron-${openMenuId === pub.id ? 'up' : 'down'}`}></i>
                       </button>
-                    )}
-                    {pub.canDelete && (
-                      <button
-                        className="btn-icon btn-icon--delete"
-                        title="Eliminar"
-                        onClick={() => setDeleteId(pub.id)}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
+                      {openMenuId === pub.id && (
+                        <div className="row-actions__menu" style={{ top: menuPos.top, right: menuPos.right }}>
+                          {pub.canEdit && (
+                            <button className="row-actions__item" onClick={() => { setOpenMenuId(null); openEdit(pub.id); }}>
+                              <i className="bi bi-pencil"></i> Editar
+                            </button>
+                          )}
+                          {pub.canDelete && (
+                            <>
+                              {pub.canEdit && <div className="row-actions__divider" />}
+                              <button
+                                className="row-actions__item row-actions__item--danger"
+                                onClick={() => { setOpenMenuId(null); setDeleteId(pub.id); }}
+                              >
+                                <i className="bi bi-trash"></i> Eliminar
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     )}
                   </td>
                 </tr>

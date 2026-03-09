@@ -9,9 +9,17 @@ public record RoleDto
 {
     public string Id { get; init; } = default!;
     public string Name { get; init; } = default!;
+    public int UserCount { get; init; }
+    public List<RolePermGrantDto> SystemPermissions { get; init; } = [];
 }
 
-[Authorize(SystemPermission = SystemPermissions.ViewUsers)]
+public record RolePermGrantDto
+{
+    public int GrantId { get; init; }
+    public string Permission { get; init; } = default!;
+}
+
+[Authorize(SystemPermission = SystemPermissions.ViewRoles)]
 public record GetRolesQuery : IRequest<List<RoleDto>>;
 
 public class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, List<RoleDto>>
@@ -28,7 +36,16 @@ public class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, List<RoleDto>
         return await _context.Roles
             .AsNoTracking()
             .OrderBy(r => r.Name)
-            .Select(r => new RoleDto { Id = r.Id, Name = r.Name })
+            .Select(r => new RoleDto
+            {
+                Id   = r.Id,
+                Name = r.Name,
+                UserCount = r.UserRoles.Count,
+                SystemPermissions = r.SystemPermissions
+                    .Where(sp => sp.IsActive)
+                    .Select(sp => new RolePermGrantDto { GrantId = sp.Id, Permission = sp.Permission })
+                    .ToList()
+            })
             .ToListAsync(cancellationToken);
     }
 }

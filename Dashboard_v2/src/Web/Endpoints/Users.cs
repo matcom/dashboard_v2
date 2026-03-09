@@ -1,8 +1,12 @@
+using Dashboard_v2.Application.Users.Commands.AssignSystemPermToRole;
+using Dashboard_v2.Application.Users.Commands.CreateRole;
 using Dashboard_v2.Application.Users.Commands.CreateUser;
+using Dashboard_v2.Application.Users.Commands.DeleteRole;
 using Dashboard_v2.Application.Users.Commands.GrantPermission;
 using Dashboard_v2.Application.Users.Commands.GrantSystemPermission;
 using Dashboard_v2.Application.Users.Commands.RevokePermission;
 using Dashboard_v2.Application.Users.Commands.RevokeSystemGrant;
+using Dashboard_v2.Application.Users.Commands.RevokeSystemPermFromRole;
 using Dashboard_v2.Application.Users.Commands.ToggleUserActive;
 using Dashboard_v2.Application.Users.Commands.UpdateUserRoles;
 using Dashboard_v2.Application.Users.Queries.GetRoles;
@@ -24,6 +28,29 @@ public class Users : EndpointGroupBase
         groupBuilder.MapGet("roles", GetRoles)
             .WithName("GetRoles")
             .Produces<List<RoleDto>>(200);
+
+        groupBuilder.MapPost("roles", CreateRole)
+            .WithName("CreateRole")
+            .Produces<string>(201)
+            .ProducesProblem(400)
+            .ProducesProblem(401);
+
+        groupBuilder.MapDelete("roles/{roleId}", DeleteRole)
+            .WithName("DeleteRole")
+            .Produces(204)
+            .ProducesProblem(404)
+            .ProducesProblem(403);
+
+        groupBuilder.MapPost("roles/{roleId}/system-permissions", AssignSystemPermToRole)
+            .WithName("AssignSystemPermToRole")
+            .Produces<int>(201)
+            .ProducesProblem(400)
+            .ProducesProblem(401);
+
+        groupBuilder.MapDelete("roles/system-permissions/{grantId}", RevokeSystemPermFromRole)
+            .WithName("RevokeSystemPermFromRole")
+            .Produces(204)
+            .ProducesProblem(401);
 
         groupBuilder.MapGet("system-permissions", GetSystemPermissions)
             .WithName("GetSystemPermissions")
@@ -84,11 +111,35 @@ public class Users : EndpointGroupBase
     private async Task<IResult> GetRoles(ISender sender)
         => Results.Ok(await sender.Send(new GetRolesQuery()));
 
+    private async Task<IResult> CreateRole(ISender sender, CreateRoleCommand command)
+    {
+        var id = await sender.Send(command);
+        return Results.Created($"/api/Users/roles/{id}", id);
+    }
+
+    private async Task<IResult> DeleteRole(ISender sender, string roleId)
+    {
+        await sender.Send(new DeleteRoleCommand(roleId));
+        return Results.NoContent();
+    }
+
+    private async Task<IResult> AssignSystemPermToRole(ISender sender, string roleId, AssignPermBody body)
+    {
+        var grantId = await sender.Send(new AssignSystemPermToRoleCommand(roleId, body.Permission));
+        return Results.Created($"/api/Users/roles/system-permissions/{grantId}", grantId);
+    }
+
+    private async Task<IResult> RevokeSystemPermFromRole(ISender sender, int grantId)
+    {
+        await sender.Send(new RevokeSystemPermFromRoleCommand(grantId));
+        return Results.NoContent();
+    }
+
     /// <summary>Devuelve la lista de todos los permisos de sistema disponibles con su etiqueta legible.</summary>
     private IResult GetSystemPermissions()
     {
-        var perms = Dashboard_v2.Domain.Constants.SystemPermissions.AllPermissions
-            .Select(p => new { key = p })
+        var perms = Dashboard_v2.Domain.Constants.SystemPermissions.PermissionDescriptions
+            .Select(p => new { key = p.Key, label = p.Label, module = p.Module })
             .ToList();
         return Results.Ok(perms);
     }
@@ -147,3 +198,4 @@ public class Users : EndpointGroupBase
 }
 
 public record ToggleActiveRequest(bool IsActive);
+public record AssignPermBody(string Permission);

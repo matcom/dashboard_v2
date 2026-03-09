@@ -376,6 +376,7 @@ export default function UsersPage() {
                   </td>
                   <td className="col-author">{new Date(u.createdAt).toLocaleDateString('es-ES')}</td>
                   <td className="col-actions">
+                    {(hasPermission('users.manage') || hasPermission('grants.view') || hasPermission('grants.resource.grant')) && (
                     <div className="row-actions" ref={openMenuId === u.id ? menuRef : null}>
                       <button
                         className="btn-actions-trigger"
@@ -423,8 +424,7 @@ export default function UsersPage() {
                           )}
                         </div>
                       )}
-                    </div>
-                  </td>
+                    </div>                    )}                  </td>
                 </tr>
               ))}
             </tbody>

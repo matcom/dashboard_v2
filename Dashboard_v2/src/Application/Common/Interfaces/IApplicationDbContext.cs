@@ -17,6 +17,7 @@ public interface IApplicationDbContext
     DbSet<Journal> Journals { get; }
     DbSet<IndexedPublication> IndexedPublications { get; }
     DbSet<SystemGrant> SystemGrants { get; }
+    DbSet<RoleSystemPermission> RoleSystemPermissions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

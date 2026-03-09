@@ -57,30 +57,60 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, U
         {
             var grants = await _permissionService.GetUserSystemGrantsAsync(_currentUser.Id, cancellationToken);
             permissions = grants.Select(g => g.Permission).ToList();
+
+            // Incluir permisos heredados por roles
+            var userRoleIds = await _context.UserRoles
+                .AsNoTracking()
+                .Where(ur => ur.UserId == _currentUser.Id)
+                .Select(ur => ur.RoleId)
+                .ToListAsync(cancellationToken);
+
+            if (userRoleIds.Count > 0)
+            {
+                var rolePerms = await _context.RoleSystemPermissions
+                    .AsNoTracking()
+                    .Where(rsp => userRoleIds.Contains(rsp.RoleId) && rsp.IsActive)
+                    .Select(rsp => rsp.Permission)
+                    .Distinct()
+                    .ToListAsync(cancellationToken);
+
+                foreach (var p in rolePerms.Where(p => !permissions.Contains(p)))
+                    permissions.Add(p);
+            }
         }
 
         // "publications.access" — permiso sintético que indica si el usuario puede ver la sección.
-        // Lo tienen: usuarios con system.all / view_all, y usuarios con al menos un ResourceGrant sobre alguna publicación.
-        if (!permissions.Contains(SystemPermissions.All) && !permissions.Contains(SystemPermissions.ViewAllPublications))
+        // Lo tienen: usuarios con cualquier permiso de publicaciones (directo o por rol), y usuarios con al menos un ResourceGrant sobre alguna publicación.
+        if (!permissions.Contains("publications.access"))
         {
-            var now = DateTimeOffset.UtcNow;
-            var hasPublicationGrants = await _context.ResourceGrants
-                .AsNoTracking()
-                .Join(_context.Publications, rg => rg.ResourceId, p => p.ResourceId, (rg, _) => rg)
-                .AnyAsync(rg =>
-                    rg.UserId == _currentUser.Id &&
-                    rg.IsActive &&
-                    (rg.ExpiresAt == null || rg.ExpiresAt > now),
-                    cancellationToken);
+            var publicationSystemPerms = new[]
+            {
+                SystemPermissions.All,
+                SystemPermissions.ViewAllPublications,
+                SystemPermissions.CreatePublications,
+                SystemPermissions.EditAnyPublication,
+                SystemPermissions.DeleteAnyPublication,
+            };
 
-            if (hasPublicationGrants)
+            if (permissions.Any(p => publicationSystemPerms.Contains(p)))
+            {
                 permissions.Add("publications.access");
-        }
-        else
-        {
-            // Tiene view_all o system.all: puede acceder a la sección
-            if (!permissions.Contains("publications.access"))
-                permissions.Add("publications.access");
+            }
+            else
+            {
+                var now = DateTimeOffset.UtcNow;
+                var hasPublicationGrants = await _context.ResourceGrants
+                    .AsNoTracking()
+                    .Join(_context.Publications, rg => rg.ResourceId, p => p.ResourceId, (rg, _) => rg)
+                    .AnyAsync(rg =>
+                        rg.UserId == _currentUser.Id &&
+                        rg.IsActive &&
+                        (rg.ExpiresAt == null || rg.ExpiresAt > now),
+                        cancellationToken);
+
+                if (hasPublicationGrants)
+                    permissions.Add("publications.access");
+            }
         }
 
         return new UserDto

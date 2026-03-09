@@ -459,7 +459,7 @@ public class PermissionService : IPermissionService
 
         if (isAdmin) return true;
 
-        // system.all concede acceso a cualquier permiso
+        // system.all directo concede acceso a cualquier permiso
         var hasAll = await _context.SystemGrants
             .AsNoTracking()
             .AnyAsync(g =>
@@ -471,14 +471,33 @@ public class PermissionService : IPermissionService
 
         if (hasAll) return true;
 
-        // Permiso específico
-        return await _context.SystemGrants
+        // Permiso específico directo
+        var hasDirect = await _context.SystemGrants
             .AsNoTracking()
             .AnyAsync(g =>
                 g.UserId == userId &&
                 g.Permission == permission &&
                 g.IsActive &&
                 (g.ExpiresAt == null || g.ExpiresAt > DateTimeOffset.UtcNow),
+                cancellationToken);
+
+        if (hasDirect) return true;
+
+        // Permiso heredado por rol (RoleSystemPermission)
+        var userRoleIds = await _context.UserRoles
+            .AsNoTracking()
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.RoleId)
+            .ToListAsync(cancellationToken);
+
+        if (userRoleIds.Count == 0) return false;
+
+        return await _context.RoleSystemPermissions
+            .AsNoTracking()
+            .AnyAsync(rsp =>
+                userRoleIds.Contains(rsp.RoleId) &&
+                (rsp.Permission == permission || rsp.Permission == SystemPermissions.All) &&
+                rsp.IsActive,
                 cancellationToken);
     }
 
