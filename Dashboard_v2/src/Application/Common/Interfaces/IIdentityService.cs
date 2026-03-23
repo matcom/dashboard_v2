@@ -14,8 +14,12 @@ public interface IIdentityService
 
     Task<(Result Result, string UserId)> CreateUserAsync(string userName, string email, string password);
 
-    /// <summary>Autentica al usuario y devuelve un JWT si las credenciales son válidas.</summary>
-    Task<(Result Result, string? Token)> LoginAsync(string email, string password);
+    /// <summary>
+    /// Autentica al usuario. Si tiene múltiples roles y no se especifica <paramref name="selectedRole"/>,
+    /// devuelve los roles disponibles para que el cliente elija. Con un único rol o rol ya seleccionado,
+    /// genera el JWT directamente.
+    /// </summary>
+    Task<(Result Result, LoginResponse? Response)> LoginAsync(string email, string password, string? selectedRole = null);
 
     Task<(string? UserId, string? UserName, string? Email)> GetUserDetailsAsync(string userId);
 

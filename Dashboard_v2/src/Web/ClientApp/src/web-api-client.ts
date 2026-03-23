@@ -288,6 +288,7 @@ export interface IRegisterCommand {
 export class LoginCommand implements ILoginCommand {
     email?: string;
     password?: string;
+    selectedRole?: string | undefined;
 
     constructor(data?: ILoginCommand) {
         if (data) {
@@ -302,6 +303,7 @@ export class LoginCommand implements ILoginCommand {
         if (_data) {
             this.email = _data["email"];
             this.password = _data["password"];
+            this.selectedRole = _data["selectedRole"];
         }
     }
 
@@ -316,6 +318,7 @@ export class LoginCommand implements ILoginCommand {
         data = typeof data === 'object' ? data : {};
         data["email"] = this.email;
         data["password"] = this.password;
+        data["selectedRole"] = this.selectedRole;
         return data;
     }
 }
@@ -323,6 +326,7 @@ export class LoginCommand implements ILoginCommand {
 export interface ILoginCommand {
     email?: string;
     password?: string;
+    selectedRole?: string | undefined;
 }
 
 export class UserDto implements IUserDto {

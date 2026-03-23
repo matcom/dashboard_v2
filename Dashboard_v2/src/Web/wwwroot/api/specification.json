@@ -175,6 +175,10 @@
           },
           "password": {
             "type": "string"
+          },
+          "selectedRole": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

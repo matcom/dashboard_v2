@@ -46,16 +46,22 @@ public class Auth : EndpointGroupBase
 
     private async Task<IResult> Login(ISender sender, LoginCommand command, HttpContext httpContext)
     {
-        var (result, token) = await sender.Send(command);
+        var (result, response) = await sender.Send(command);
 
         if (!result.Succeeded)
         {
             return Results.BadRequest(new { errors = result.Errors });
         }
 
-        // Guardar el token en una cookie HttpOnly para que no sea accesible desde JavaScript.
+        // El usuario tiene múltiples roles y debe seleccionar uno antes de obtener la cookie.
+        if (response!.RequiresRoleSelection)
+        {
+            return Results.Ok(new { requiresRoleSelection = true, availableRoles = response.AvailableRoles });
+        }
+
+        // Login completo: guardar el token en una cookie HttpOnly.
         // Secure = true en HTTPS, SameSite=Strict evita ataques CSRF de otros orígenes.
-        httpContext.Response.Cookies.Append("access_token", token, new CookieOptions
+        httpContext.Response.Cookies.Append("access_token", response.Token!, new CookieOptions
         {
             HttpOnly = true,
             Secure = httpContext.Request.IsHttps,

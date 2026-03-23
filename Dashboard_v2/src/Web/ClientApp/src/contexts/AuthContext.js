@@ -35,12 +35,16 @@ export function AuthProvider({ children }) {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
-  const login = async (email, password) => {
+  const login = async (email, password, selectedRole = null) => {
+    const body = selectedRole
+      ? { email, password, selectedRole }
+      : { email, password };
+
     const response = await fetch('/api/Auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -49,8 +53,17 @@ export function AuthProvider({ children }) {
       throw new Error(Array.isArray(errors) ? errors.join(' ') : errors);
     }
 
-    // El servidor ya colocó la cookie, solo cargamos el usuario actual
+    const data = await response.json();
+
+    // El servidor pide que el usuario elija un rol antes de completar el login.
+    // Devolvemos el objeto para que la UI muestre el selector.
+    if (data.requiresRoleSelection) {
+      return data;
+    }
+
+    // Login completo: el servidor ya colocó la cookie.
     await fetchCurrentUser();
+    return null;
   };
 
   const logout = async () => {

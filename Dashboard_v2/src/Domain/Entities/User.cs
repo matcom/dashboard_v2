@@ -18,7 +18,7 @@ public class User
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     // Navegación
-    // public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     // public ICollection<UserScientificCat> UserScientificCats { get; set; } = new List<UserScientificCat>();
     // public ICollection<UserTeachingCat> UserTeachingCats { get; set; } = new List<UserTeachingCat>();
     // public ICollection<UserInvestigationCat> UserInvestigationCats { get; set; } = new List<UserInvestigationCat>();

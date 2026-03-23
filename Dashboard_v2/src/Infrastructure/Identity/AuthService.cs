@@ -71,7 +71,7 @@ public class AuthService : IIdentityService
         return (Result.Success(), user.Id);
     }
 
-    public async Task<(Result Result, string? Token)> LoginAsync(string email, string password)
+    public async Task<(Result Result, LoginResponse? Response)> LoginAsync(string email, string password, string? selectedRole = null)
     {
         var user = await _context.Users
             .AsNoTracking()
@@ -90,9 +90,34 @@ public class AuthService : IIdentityService
             .Select(ur => ur.Role.Name)
             .ToListAsync();
 
-        var token = _jwtService.GenerateToken(user.Id, user.UserName, user.Email, roles);
+        if (roles.Count == 0)
+            return (Result.Failure(["El usuario no tiene roles asignados."]), null);
 
-        return (Result.Success(), token);
+        string roleToUse;
+
+        if (selectedRole != null)
+        {
+            if (!roles.Contains(selectedRole))
+                return (Result.Failure(["El rol seleccionado no está asignado a este usuario."]), null);
+            roleToUse = selectedRole;
+        }
+        else if (roles.Count == 1)
+        {
+            roleToUse = roles[0];
+        }
+        else
+        {
+            // Múltiples roles: el cliente debe elegir uno
+            return (Result.Success(), new LoginResponse
+            {
+                RequiresRoleSelection = true,
+                AvailableRoles = roles
+            });
+        }
+
+        var token = _jwtService.GenerateToken(user.Id, user.UserName, user.Email, [roleToUse]);
+
+        return (Result.Success(), new LoginResponse { Token = token });
     }
 
     public async Task<(string? UserId, string? UserName, string? Email)> GetUserDetailsAsync(string userId)
