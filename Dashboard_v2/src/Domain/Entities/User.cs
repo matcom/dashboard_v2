@@ -4,12 +4,23 @@ public class User
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string UserName { get; set; } = default!;
+    public string UserLastName { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string PasswordHash { get; set; } = default!;
+    public DateTime BirthDate { get; set; }
+    //bool de si es adiestrado (no posee categoria cientifica ni docente) o no
+    public bool IsTrained { get; set; } = false;
+
+    public ScientificCategory ScientificCategory { get; set; } = ScientificCategory.None;
+    public TeachingCategory TeachingCategory { get; set; } = TeachingCategory.None;
+    public InvestigationCategory InvestigationCategory { get; set; } = InvestigationCategory.None;
     public bool IsActive { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     // Navegación
-    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    // public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    // public ICollection<UserScientificCat> UserScientificCats { get; set; } = new List<UserScientificCat>();
+    // public ICollection<UserTeachingCat> UserTeachingCats { get; set; } = new List<UserTeachingCat>();
+    // public ICollection<UserInvestigationCat> UserInvestigationCats { get; set; } = new List<UserInvestigationCat>();
     public ICollection<Resource> OwnedResources { get; set; } = new List<Resource>();
 }
