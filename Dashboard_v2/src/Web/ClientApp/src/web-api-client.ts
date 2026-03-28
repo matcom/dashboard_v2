@@ -620,7 +620,6 @@ export interface IUserDto {
 }
 
 export class RoleDto implements IRoleDto {
-    id?: string;
     name?: string;
 
     constructor(data?: IRoleDto) {
@@ -634,7 +633,6 @@ export class RoleDto implements IRoleDto {
 
     init(_data?: any) {
         if (_data) {
-            this.id = _data["id"];
             this.name = _data["name"];
         }
     }
@@ -648,14 +646,12 @@ export class RoleDto implements IRoleDto {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
         data["name"] = this.name;
         return data;
     }
 }
 
 export interface IRoleDto {
-    id?: string;
     name?: string;
 }
 

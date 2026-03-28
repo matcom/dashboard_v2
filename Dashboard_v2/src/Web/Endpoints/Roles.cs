@@ -8,7 +8,7 @@ public class Roles : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetRoles)
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .RequireAuthorization(policy => policy.RequireRole("Superuser"))
             .WithName("GetRoles")
             .Produces<List<RoleDto>>(200);
     }

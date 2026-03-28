@@ -1,6 +1,7 @@
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
+using RolesEnum = global::Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Application.Users.Commands.RemoveRole;
 
@@ -21,16 +22,14 @@ public class RemoveRoleCommandHandler : IRequestHandler<RemoveRoleCommand, Resul
 
     public async Task<Result> Handle(RemoveRoleCommand request, CancellationToken cancellationToken)
     {
-        var role = await _context.Roles
-            .FirstOrDefaultAsync(r => r.Name == request.RoleName, cancellationToken);
-        if (role == null)
-            return Result.Failure(["Rol no encontrado."]);
+        if (!Enum.TryParse<RolesEnum>(request.RoleName, out var roleEnum) || roleEnum == RolesEnum.None)
+            return Result.Failure(["Rol no válido."]);
 
         var userRole = await _context.UserRoles
-            .FirstOrDefaultAsync(ur => ur.UserId == request.UserId && ur.RoleId == role.Id, cancellationToken);
+            .FirstOrDefaultAsync(ur => ur.UserId == request.UserId && ur.Role == roleEnum, cancellationToken);
 
         if (userRole == null)
-            return Result.Success(); // Idempotente — ya no tenía el rol
+            return Result.Success(); // Idempotente
 
         _context.UserRoles.Remove(userRole);
         await _context.SaveChangesAsync(cancellationToken);

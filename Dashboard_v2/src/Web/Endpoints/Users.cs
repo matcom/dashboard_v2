@@ -10,18 +10,18 @@ public class Users : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetUsers)
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .RequireAuthorization(policy => policy.RequireRole("Superuser"))
             .WithName("GetUsers")
             .Produces<List<UserWithRolesDto>>(200);
 
         groupBuilder.MapPost("{userId}/roles", AssignRole)
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .RequireAuthorization(policy => policy.RequireRole("Superuser"))
             .WithName("AssignRole")
             .Produces(200)
             .ProducesProblem(400);
 
         groupBuilder.MapDelete("{userId}/roles/{roleName}", RemoveRole)
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .RequireAuthorization(policy => policy.RequireRole("Superuser"))
             .WithName("RemoveRole")
             .Produces(200)
             .ProducesProblem(400);

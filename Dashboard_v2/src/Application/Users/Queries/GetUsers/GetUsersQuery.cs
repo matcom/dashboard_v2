@@ -33,7 +33,7 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, List<UserWith
                 UserName = u.UserName,
                 Email = u.Email,
                 IsActive = u.IsActive,
-                Roles = u.UserRoles.Select(ur => ur.Role.Name).ToList()
+                Roles = u.UserRoles.Select(ur => ur.Role.ToString()).ToList()
             })
             .OrderBy(u => u.UserName)
             .ToListAsync(cancellationToken);

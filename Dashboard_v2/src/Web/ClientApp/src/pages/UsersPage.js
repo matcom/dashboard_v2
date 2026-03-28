@@ -204,7 +204,7 @@ export default function UsersPage() {
               onChange={e => setSelectedRole(e.target.value)}
             >
               {selectedUser && availableRoles(selectedUser).map(r => (
-                <option key={r.id} value={r.name}>{r.name}</option>
+                <option key={r.name} value={r.name}>{r.name}</option>
               ))}
             </Input>
           </FormGroup>

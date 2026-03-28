@@ -9,4 +9,5 @@ public enum Roles
     Jefe_de_Grupo_de_investigacion = 4,
     Jefe_de_Macroproyecto = 5,
     Jefe_de_Redes = 6,
+    Superuser = 7,
 }

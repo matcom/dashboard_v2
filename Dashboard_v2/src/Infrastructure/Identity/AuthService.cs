@@ -3,6 +3,7 @@ using Dashboard_v2.Application.Common.Models;
 using Dashboard_v2.Domain.Constants;
 using Dashboard_v2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Infrastructure.Identity;
 
@@ -27,17 +28,17 @@ public class AuthService : IIdentityService
 
     public async Task<bool> IsInRoleAsync(string userId, string role)
     {
+        if (!Enum.TryParse<RolesEnum>(role, out var roleEnum))
+            return false;
         return await _context.UserRoles
             .AsNoTracking()
-            .Include(ur => ur.Role)
-            .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == role);
+            .AnyAsync(ur => ur.UserId == userId && ur.Role == roleEnum);
     }
 
     public async Task<bool> AuthorizeAsync(string userId, string policyName)
     {
-        // La única política actual requiere el rol Administrator
         if (policyName == Policies.CanPurge)
-            return await IsInRoleAsync(userId, Roles.Administrator);
+            return await IsInRoleAsync(userId, nameof(RolesEnum.Superuser));
 
         return false;
     }
@@ -98,9 +99,8 @@ public class AuthService : IIdentityService
 
         var roles = await _context.UserRoles
             .AsNoTracking()
-            .Include(ur => ur.Role)
             .Where(ur => ur.UserId == user.Id)
-            .Select(ur => ur.Role.Name)
+            .Select(ur => ur.Role.ToString())
             .ToListAsync();
 
         if (roles.Count == 0)

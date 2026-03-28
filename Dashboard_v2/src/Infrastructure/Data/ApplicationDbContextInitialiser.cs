@@ -1,5 +1,4 @@
-﻿using Dashboard_v2.Domain.Constants;
-using Dashboard_v2.Domain.Entities;
+﻿using Dashboard_v2.Domain.Entities;
 using Dashboard_v2.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -38,8 +37,6 @@ public class ApplicationDbContextInitialiser
     {
         try
         {
-            // Apply migrations automatically on startup (Development only)
-            // For Production, use manual migration scripts or deployment pipelines
             await _context.Database.MigrateAsync();
         }
         catch (Exception ex)
@@ -64,124 +61,34 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
-        // Default roles
-        var adminRoleName = Domain.Constants.Roles.Administrator;
-        var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == adminRoleName);
-        if (adminRole == null)
-        {
-            adminRole = new Role { Id = Guid.NewGuid().ToString(), Name = adminRoleName };
-            _context.Roles.Add(adminRole);
-            await _context.SaveChangesAsync();
-        }
+        const string superuserName = "superuser";
+        const string superuserEmail = "superuser@localhost";
+        const string superuserPassword = "Superuser1!";
 
-        // Seed domain roles from enum
-        foreach (var domainRole in Enum.GetValues<Domain.Enums.Roles>())
+        var superuser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == superuserName);
+        if (superuser == null)
         {
-            if (domainRole == Domain.Enums.Roles.None) continue;
-            var roleName = domainRole.ToString();
-            if (!await _context.Roles.AnyAsync(r => r.Name == roleName))
-            {
-                _context.Roles.Add(new Role { Id = Guid.NewGuid().ToString(), Name = roleName });
-            }
-        }
-        await _context.SaveChangesAsync();
-
-        // Default users
-        const string adminUserName = "administrator";
-        const string adminEmail = "administrator@localhost";
-        const string adminPassword = "Administrator1!";
-
-        var adminUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == adminUserName);
-        if (adminUser == null)
-        {
-            adminUser = new User
+            superuser = new User
             {
                 Id = Guid.NewGuid().ToString(),
-                UserName = adminUserName,
-                UserLastName = "Administrator",
-                Email = adminEmail,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
+                UserName = superuserName,
+                UserLastName = "Superuser",
+                Email = superuserEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(superuserPassword),
                 BirthDate = DateTime.SpecifyKind(new DateTime(1970, 1, 1), DateTimeKind.Utc),
                 IsActive = true,
                 CreatedAt = DateTimeOffset.UtcNow
             };
-            _context.Users.Add(adminUser);
+            _context.Users.Add(superuser);
             await _context.SaveChangesAsync();
         }
 
-        // Assign admin role to admin user
-        var hasRole = await _context.UserRoles.AnyAsync(ur => ur.UserId == adminUser.Id && ur.RoleId == adminRole.Id);
+        var hasRole = await _context.UserRoles
+            .AnyAsync(ur => ur.UserId == superuser.Id && ur.Role == Roles.Superuser);
         if (!hasRole)
         {
-            _context.UserRoles.Add(new UserRole { UserId = adminUser.Id, RoleId = adminRole.Id });
+            _context.UserRoles.Add(new UserRole { UserId = superuser.Id, Role = Roles.Superuser });
             await _context.SaveChangesAsync();
         }
-
-        // Default data
-        // Seed default permissions
-        await SeedPermissionsAsync();
-
-        // Seed role permissions
-        await SeedRolePermissionsAsync(adminRole.Id);
-    }
-
-    private async Task SeedPermissionsAsync()
-    {
-        // Permisos básicos del sistema
-        var defaultPermissions = new[]
-        {
-            new { Name = "read", Description = "Permite leer/ver el recurso" },
-            new { Name = "write", Description = "Permite editar/modificar el recurso" },
-            new { Name = "delete", Description = "Permite eliminar el recurso" },
-            new { Name = "share", Description = "Permite compartir el recurso con otros usuarios" },
-            new { Name = "approve", Description = "Permite aprobar cambios o acciones sobre el recurso" },
-            new { Name = "admin", Description = "Permisos administrativos completos sobre el recurso" }
-        };
-
-        foreach (var permissionData in defaultPermissions)
-        {
-            if (!_context.Permissions.Any(p => p.Name == permissionData.Name))
-            {
-                var permission = new Permission
-                {
-                    Name = permissionData.Name,
-                    Description = permissionData.Description,
-                    ResourceType = null // Aplicable a todos los tipos de recursos
-                };
-                _context.Permissions.Add(permission);
-            }
-        }
-
-        await _context.SaveChangesAsync();
-    }
-
-    private async Task SeedRolePermissionsAsync(string adminRoleId)
-    {
-        // Asignar todos los permisos al rol Administrator
-        var allPermissions = await _context.Permissions.ToListAsync();
-        
-        foreach (var permission in allPermissions)
-        {
-            // Verificar si ya existe el permiso para el rol (sin tipo de recurso específico = aplica a todos)
-            var exists = await _context.RolePermissions
-                .AnyAsync(rp => 
-                    rp.RoleId == adminRoleId && 
-                    rp.PermissionId == permission.Id && 
-                    rp.ResourceType == null);
-
-            if (!exists)
-            {
-                var rolePermission = new RolePermission
-                {
-                    RoleId = adminRoleId,
-                    PermissionId = permission.Id,
-                    ResourceType = null, // Aplica a todos los tipos de recursos
-                    IsActive = true
-                };
-                _context.RolePermissions.Add(rolePermission);
-            }
-        }
-
-        await _context.SaveChangesAsync();
     }
 }

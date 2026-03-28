@@ -10,19 +10,14 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
     {
         builder.ToTable("UserRoles");
 
-        builder.HasKey(ur => new { ur.UserId, ur.RoleId });
+        builder.HasKey(ur => new { ur.UserId, ur.Role });
 
         builder.Property(ur => ur.UserId).HasMaxLength(450);
-        builder.Property(ur => ur.RoleId).HasMaxLength(450);
+        builder.Property(ur => ur.Role).HasConversion<int>();
 
         builder.HasOne(ur => ur.User)
             .WithMany(u => u.UserRoles)
             .HasForeignKey(ur => ur.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(ur => ur.Role)
-            .WithMany(r => r.UserRoles)
-            .HasForeignKey(ur => ur.RoleId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

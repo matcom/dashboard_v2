@@ -59,7 +59,7 @@ public partial class Testing
 
     public static async Task<string> RunAsAdministratorAsync()
     {
-        return await RunAsUserAsync("administrator@local", "Administrator1234!", new[] { "Administrator" });
+        return await RunAsUserAsync("superuser@local", "Superuser1234!", new[] { "Superuser" });
     }
 
     public static async Task<string> RunAsUserAsync(string userName, string password, string[] roles)
@@ -84,15 +84,11 @@ public partial class Testing
 
         foreach (var roleName in roles)
         {
-            var role = await context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
-            if (role == null)
+            if (Enum.TryParse<Dashboard_v2.Domain.Enums.Roles>(roleName, out var roleEnum) && roleEnum != Dashboard_v2.Domain.Enums.Roles.None)
             {
-                role = new Role { Id = Guid.NewGuid().ToString(), Name = roleName };
-                context.Roles.Add(role);
+                context.UserRoles.Add(new UserRole { UserId = user.Id, Role = roleEnum });
                 await context.SaveChangesAsync();
             }
-            context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
-            await context.SaveChangesAsync();
         }
 
         _userId = user.Id;

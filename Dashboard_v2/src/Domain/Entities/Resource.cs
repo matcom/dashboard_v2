@@ -28,7 +28,7 @@ public class Resource : BaseAuditableEntity
     /// Metadatos adicionales en formato JSON
     /// </summary>
     public string? Metadata { get; set; }
-    
+
     // Navigation properties
-    public ICollection<ResourceGrant> Grants { get; set; } = new List<ResourceGrant>();
+    public User Owner { get; set; } = default!;
 }

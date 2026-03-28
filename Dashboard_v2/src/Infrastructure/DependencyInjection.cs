@@ -38,6 +38,6 @@ public static class DependencyInjection
         builder.Services.AddScoped<IPermissionService, PermissionService>();
 
         builder.Services.AddAuthorization(options =>
-            options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));
+            options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Superuser)));
     }
 }
