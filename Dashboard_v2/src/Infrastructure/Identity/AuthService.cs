@@ -42,12 +42,19 @@ public class AuthService : IIdentityService
         return false;
     }
 
-    public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password)
-    {
-        return await CreateUserAsync(userName, userName, password);
-    }
+    public Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password)
+        => throw new NotSupportedException("Use CreateUserAsync with full profile parameters.");
 
-    public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string email, string password)
+    public async Task<(Result Result, string UserId)> CreateUserAsync(
+        string userName,
+        string userLastName,
+        string email,
+        string password,
+        DateTime birthDate,
+        bool isTrained,
+        TeachingCategory teachingCategory,
+        ScientificCategory scientificCategory,
+        InvestigationCategory investigationCategory)
     {
         if (await _context.Users.AnyAsync(u => u.Email == email))
             return (Result.Failure(["El email ya está en uso."]), string.Empty);
@@ -59,8 +66,14 @@ public class AuthService : IIdentityService
         {
             Id = Guid.NewGuid().ToString(),
             UserName = userName,
+            UserLastName = userLastName,
             Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            BirthDate = DateTime.SpecifyKind(birthDate, DateTimeKind.Utc),
+            IsTrained = isTrained,
+            TeachingCategory = teachingCategory,
+            ScientificCategory = scientificCategory,
+            InvestigationCategory = investigationCategory,
             IsActive = true,
             CreatedAt = DateTimeOffset.UtcNow
         };

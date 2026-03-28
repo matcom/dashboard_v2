@@ -1,5 +1,6 @@
 import DashboardHome from "./pages/DashboardHome";
 import { Counter } from "./components/Counter";
+import UsersPage from "./pages/UsersPage";
 
 const AppRoutes = [
   {
@@ -11,6 +12,12 @@ const AppRoutes = [
     path: '/counter',
     element: <Counter />,
     pageTitle: 'Contador',
+  },
+  {
+    path: '/users',
+    element: <UsersPage />,
+    pageTitle: 'Usuarios',
+    adminOnly: true,
   },
 ];
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
@@ -205,6 +205,13 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        <p className="text-center mt-3 mb-0" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+          ¿No tienes cuenta?{' '}
+          <Link to="/register" style={{ color: 'var(--accent-color)' }}>
+            Regístrate
+          </Link>
+        </p>
       </div>
     </div>
   );

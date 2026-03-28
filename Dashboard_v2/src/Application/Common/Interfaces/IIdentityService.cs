@@ -12,7 +12,16 @@ public interface IIdentityService
 
     Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password);
 
-    Task<(Result Result, string UserId)> CreateUserAsync(string userName, string email, string password);
+    Task<(Result Result, string UserId)> CreateUserAsync(
+        string userName,
+        string userLastName,
+        string email,
+        string password,
+        DateTime birthDate,
+        bool isTrained,
+        Dashboard_v2.Domain.Entities.TeachingCategory teachingCategory,
+        Dashboard_v2.Domain.Entities.ScientificCategory scientificCategory,
+        Dashboard_v2.Domain.Entities.InvestigationCategory investigationCategory);
 
     /// <summary>
     /// Autentica al usuario. Si tiene múltiples roles y no se especifica <paramref name="selectedRole"/>,

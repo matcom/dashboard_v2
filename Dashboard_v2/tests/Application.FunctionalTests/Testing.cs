@@ -1,8 +1,6 @@
-﻿using Dashboard_v2.Domain.Constants;
+﻿using Dashboard_v2.Domain.Entities;
 using Dashboard_v2.Infrastructure.Data;
-using Dashboard_v2.Infrastructure.Identity;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -61,41 +59,45 @@ public partial class Testing
 
     public static async Task<string> RunAsAdministratorAsync()
     {
-        return await RunAsUserAsync("administrator@local", "Administrator1234!", new[] { Roles.Administrator });
+        return await RunAsUserAsync("administrator@local", "Administrator1234!", new[] { "Administrator" });
     }
 
     public static async Task<string> RunAsUserAsync(string userName, string password, string[] roles)
     {
         using var scope = _scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-        var user = new ApplicationUser { UserName = userName, Email = userName };
-
-        var result = await userManager.CreateAsync(user, password);
-
-        if (roles.Any())
+        var user = new User
         {
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            Id = Guid.NewGuid().ToString(),
+            UserName = userName,
+            UserLastName = "TestUser",
+            Email = userName,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            BirthDate = DateTime.SpecifyKind(new DateTime(1990, 1, 1), DateTimeKind.Utc),
+            IsActive = true,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
 
-            foreach (var role in roles)
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        foreach (var roleName in roles)
+        {
+            var role = await context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+            if (role == null)
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                role = new Role { Id = Guid.NewGuid().ToString(), Name = roleName };
+                context.Roles.Add(role);
+                await context.SaveChangesAsync();
             }
-
-            await userManager.AddToRolesAsync(user, roles);
+            context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+            await context.SaveChangesAsync();
         }
 
-        if (result.Succeeded)
-        {
-            _userId = user.Id;
-            _roles = roles.ToList();
-            return _userId;
-        }
-
-        var errors = string.Join(Environment.NewLine, result.ToApplicationResult().Errors);
-
-        throw new Exception($"Unable to create {userName}.{Environment.NewLine}{errors}");
+        _userId = user.Id;
+        _roles = roles.ToList();
+        return _userId;
     }
 
     public static async Task ResetState()

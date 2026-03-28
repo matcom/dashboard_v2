@@ -7,6 +7,7 @@ public record UserDto
     public string Id { get; init; } = default!;
     public string UserName { get; init; } = default!;
     public string Email { get; init; } = default!;
+    public string? Role { get; init; }
 }
 
 public record GetCurrentUserQuery : IRequest<UserDto?>;
@@ -40,7 +41,8 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, U
         {
             Id = userId,
             UserName = userName ?? string.Empty,
-            Email = email ?? string.Empty
+            Email = email ?? string.Empty,
+            Role = _currentUser.Roles?.FirstOrDefault()
         };
     }
 }

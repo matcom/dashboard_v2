@@ -177,6 +177,201 @@ export class AuthClient {
     }
 }
 
+export class RolesClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getRoles(): Promise<RoleDto[]> {
+        let url_ = this.baseUrl + "/api/Roles";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoles(_response);
+        });
+    }
+
+    protected processGetRoles(response: Response): Promise<RoleDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(RoleDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoleDto[]>(null as any);
+    }
+}
+
+export class UsersClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getUsers(): Promise<UserWithRolesDto[]> {
+        let url_ = this.baseUrl + "/api/Users";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetUsers(_response);
+        });
+    }
+
+    protected processGetUsers(response: Response): Promise<UserWithRolesDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(UserWithRolesDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UserWithRolesDto[]>(null as any);
+    }
+
+    assignRole(userId: string, body: AssignRoleRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/{userId}/roles";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAssignRole(_response);
+        });
+    }
+
+    protected processAssignRole(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    removeRole(userId: string, roleName: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/{userId}/roles/{roleName}";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        if (roleName === undefined || roleName === null)
+            throw new globalThis.Error("The parameter 'roleName' must be defined.");
+        url_ = url_.replace("{roleName}", encodeURIComponent("" + roleName));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveRole(_response);
+        });
+    }
+
+    protected processRemoveRole(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class ProblemDetails implements IProblemDetails {
     type?: string | undefined;
     title?: string | undefined;
@@ -243,8 +438,14 @@ export interface IProblemDetails {
 
 export class RegisterCommand implements IRegisterCommand {
     userName?: string;
+    userLastName?: string;
     email?: string;
     password?: string;
+    birthDate?: Date;
+    isTrained?: boolean;
+    teachingCategory?: TeachingCategory;
+    scientificCategory?: ScientificCategory;
+    investigationCategory?: InvestigationCategory;
 
     constructor(data?: IRegisterCommand) {
         if (data) {
@@ -258,8 +459,14 @@ export class RegisterCommand implements IRegisterCommand {
     init(_data?: any) {
         if (_data) {
             this.userName = _data["userName"];
+            this.userLastName = _data["userLastName"];
             this.email = _data["email"];
             this.password = _data["password"];
+            this.birthDate = _data["birthDate"] ? new Date(_data["birthDate"].toString()) : undefined as any;
+            this.isTrained = _data["isTrained"];
+            this.teachingCategory = _data["teachingCategory"];
+            this.scientificCategory = _data["scientificCategory"];
+            this.investigationCategory = _data["investigationCategory"];
         }
     }
 
@@ -273,16 +480,51 @@ export class RegisterCommand implements IRegisterCommand {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["userName"] = this.userName;
+        data["userLastName"] = this.userLastName;
         data["email"] = this.email;
         data["password"] = this.password;
+        data["birthDate"] = this.birthDate ? this.birthDate.toISOString() : undefined as any;
+        data["isTrained"] = this.isTrained;
+        data["teachingCategory"] = this.teachingCategory;
+        data["scientificCategory"] = this.scientificCategory;
+        data["investigationCategory"] = this.investigationCategory;
         return data;
     }
 }
 
 export interface IRegisterCommand {
     userName?: string;
+    userLastName?: string;
     email?: string;
     password?: string;
+    birthDate?: Date;
+    isTrained?: boolean;
+    teachingCategory?: TeachingCategory;
+    scientificCategory?: ScientificCategory;
+    investigationCategory?: InvestigationCategory;
+}
+
+export enum TeachingCategory {
+    None = 0,
+    Titular = 1,
+    Auxiliar = 2,
+    Asistente = 3,
+    Instructor = 4,
+}
+
+export enum ScientificCategory {
+    None = 0,
+    Licenciado = 1,
+    Master = 2,
+    Doctor = 3,
+}
+
+export enum InvestigationCategory {
+    None = 0,
+    Titular = 1,
+    Auxiliar = 2,
+    Agregado = 3,
+    Asociado = 4,
 }
 
 export class LoginCommand implements ILoginCommand {
@@ -333,6 +575,7 @@ export class UserDto implements IUserDto {
     id?: string;
     userName?: string;
     email?: string;
+    role?: string | undefined;
 
     constructor(data?: IUserDto) {
         if (data) {
@@ -348,6 +591,7 @@ export class UserDto implements IUserDto {
             this.id = _data["id"];
             this.userName = _data["userName"];
             this.email = _data["email"];
+            this.role = _data["role"];
         }
     }
 
@@ -363,6 +607,7 @@ export class UserDto implements IUserDto {
         data["id"] = this.id;
         data["userName"] = this.userName;
         data["email"] = this.email;
+        data["role"] = this.role;
         return data;
     }
 }
@@ -371,6 +616,143 @@ export interface IUserDto {
     id?: string;
     userName?: string;
     email?: string;
+    role?: string | undefined;
+}
+
+export class RoleDto implements IRoleDto {
+    id?: string;
+    name?: string;
+
+    constructor(data?: IRoleDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): RoleDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoleDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IRoleDto {
+    id?: string;
+    name?: string;
+}
+
+export class UserWithRolesDto implements IUserWithRolesDto {
+    id?: string;
+    userName?: string;
+    email?: string;
+    isActive?: boolean;
+    roles?: string[];
+
+    constructor(data?: IUserWithRolesDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.userName = _data["userName"];
+            this.email = _data["email"];
+            this.isActive = _data["isActive"];
+            if (Array.isArray(_data["roles"])) {
+                this.roles = [] as any;
+                for (let item of _data["roles"])
+                    this.roles!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): UserWithRolesDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new UserWithRolesDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["userName"] = this.userName;
+        data["email"] = this.email;
+        data["isActive"] = this.isActive;
+        if (Array.isArray(this.roles)) {
+            data["roles"] = [];
+            for (let item of this.roles)
+                data["roles"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IUserWithRolesDto {
+    id?: string;
+    userName?: string;
+    email?: string;
+    isActive?: boolean;
+    roles?: string[];
+}
+
+export class AssignRoleRequest implements IAssignRoleRequest {
+    roleName?: string;
+
+    constructor(data?: IAssignRoleRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.roleName = _data["roleName"];
+        }
+    }
+
+    static fromJS(data: any): AssignRoleRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new AssignRoleRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roleName"] = this.roleName;
+        return data;
+    }
+}
+
+export interface IAssignRoleRequest {
+    roleName?: string;
 }
 
 export class SwaggerException extends Error {

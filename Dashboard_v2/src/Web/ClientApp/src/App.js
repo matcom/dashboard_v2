@@ -3,7 +3,9 @@ import { Route, Routes } from 'react-router-dom';
 import AppRoutes from './AppRoutes';
 import { Layout } from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import { AuthProvider } from './contexts/AuthContext';
 import './custom.css';
 
@@ -11,22 +13,24 @@ export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        {/* Public route — no layout */}
+        {/* Public routes — no layout */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected routes — wrapped in dashboard layout */}
         {AppRoutes.map((route, index) => {
-          const { element, pageTitle, ...rest } = route;
+          const { element, pageTitle, adminOnly, ...rest } = route;
+          const Guard = adminOnly ? AdminRoute : ProtectedRoute;
           return (
             <Route
               key={index}
               {...rest}
               element={
-                <ProtectedRoute>
+                <Guard>
                   <Layout pageTitle={pageTitle}>
                     {element}
                   </Layout>
-                </ProtectedRoute>
+                </Guard>
               }
             />
           );

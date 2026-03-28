@@ -1,5 +1,6 @@
 ﻿using Dashboard_v2.Domain.Constants;
 using Dashboard_v2.Domain.Entities;
+using Dashboard_v2.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,7 +65,7 @@ public class ApplicationDbContextInitialiser
     public async Task TrySeedAsync()
     {
         // Default roles
-        var adminRoleName = Roles.Administrator;
+        var adminRoleName = Domain.Constants.Roles.Administrator;
         var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == adminRoleName);
         if (adminRole == null)
         {
@@ -72,6 +73,18 @@ public class ApplicationDbContextInitialiser
             _context.Roles.Add(adminRole);
             await _context.SaveChangesAsync();
         }
+
+        // Seed domain roles from enum
+        foreach (var domainRole in Enum.GetValues<Domain.Enums.Roles>())
+        {
+            if (domainRole == Domain.Enums.Roles.None) continue;
+            var roleName = domainRole.ToString();
+            if (!await _context.Roles.AnyAsync(r => r.Name == roleName))
+            {
+                _context.Roles.Add(new Role { Id = Guid.NewGuid().ToString(), Name = roleName });
+            }
+        }
+        await _context.SaveChangesAsync();
 
         // Default users
         const string adminUserName = "administrator";
@@ -85,8 +98,10 @@ public class ApplicationDbContextInitialiser
             {
                 Id = Guid.NewGuid().ToString(),
                 UserName = adminUserName,
+                UserLastName = "Administrator",
                 Email = adminEmail,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
+                BirthDate = DateTime.SpecifyKind(new DateTime(1970, 1, 1), DateTimeKind.Utc),
                 IsActive = true,
                 CreatedAt = DateTimeOffset.UtcNow
             };
