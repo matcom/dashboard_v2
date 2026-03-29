@@ -9,9 +9,13 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
             .MinimumLength(3).WithMessage("El nombre de usuario debe tener al menos 3 caracteres.")
             .MaximumLength(100).WithMessage("El nombre de usuario no debe exceder 100 caracteres.");
 
-        RuleFor(v => v.UserLastName)
-            .NotEmpty().WithMessage("Los apellidos son requeridos.")
-            .MaximumLength(256).WithMessage("Los apellidos no deben exceder 256 caracteres.");
+        RuleFor(v => v.UserLastName1)
+            .NotEmpty().WithMessage("El primer apellido es requerido.")
+            .MaximumLength(256).WithMessage("El primer apellido no debe exceder 256 caracteres.");
+
+        RuleFor(v => v.UserLastName2)
+            .MaximumLength(256).When(v => v.UserLastName2 != null)
+            .WithMessage("El segundo apellido no debe exceder 256 caracteres.");
 
         RuleFor(v => v.Email)
             .NotEmpty().WithMessage("El email es requerido.")

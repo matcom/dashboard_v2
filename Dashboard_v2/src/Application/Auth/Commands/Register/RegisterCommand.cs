@@ -12,7 +12,8 @@ namespace Dashboard_v2.Application.Auth.Commands.Register;
 public record RegisterCommand : IRequest<Result>
 {
     public string UserName { get; init; } = default!;
-    public string UserLastName { get; init; } = default!;
+    public string UserLastName1 { get; init; } = default!;
+    public string? UserLastName2 { get; init; }
     public string Email { get; init; } = default!;
     public string Password { get; init; } = default!;
     public DateTime BirthDate { get; init; }
@@ -40,7 +41,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result>
     {
         var (result, userId) = await _identityService.CreateUserAsync(
             request.UserName,
-            request.UserLastName,
+            request.UserLastName1,
+            request.UserLastName2,
             request.Email,
             request.Password,
             request.BirthDate,

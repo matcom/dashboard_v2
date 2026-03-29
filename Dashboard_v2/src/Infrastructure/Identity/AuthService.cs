@@ -74,7 +74,8 @@ public class AuthService : IIdentityService
     /// </summary>
     public async Task<(Result Result, string UserId)> CreateUserAsync(
         string userName,
-        string userLastName,
+        string userLastName1,
+        string? userLastName2,
         string email,
         string password,
         DateTime birthDate,
@@ -93,7 +94,8 @@ public class AuthService : IIdentityService
         {
             Id = Guid.NewGuid().ToString(),
             UserName = userName,
-            UserLastName = userLastName,
+            UserLastName1 = userLastName1,
+            UserLastName2 = userLastName2,
             Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             BirthDate = DateTime.SpecifyKind(birthDate, DateTimeKind.Utc),

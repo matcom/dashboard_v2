@@ -111,7 +111,10 @@ public class Publications : EndpointGroupBase
             Title = body.Title,
             PublicationData = body.PublicationData,
             PublicationTypeId = body.PublicationTypeId,
-            UrlDoi = body.UrlDoi
+            UrlDoi = body.UrlDoi,
+            AdditionalAuthorIds = body.AdditionalAuthorIds ?? [],
+            AdditionalAuthorNames = body.AdditionalAuthorNames ?? [],
+            AdditionalUserIds = body.AdditionalUserIds ?? []
         });
 
         if (!result.Succeeded)
@@ -132,7 +135,14 @@ public class Publications : EndpointGroupBase
 }
 
 /// <summary>Cuerpo de la petición PUT para actualizar una publicación.</summary>
-public record UpdatePublicationBody(string Title, string PublicationData, string PublicationTypeId, string? UrlDoi);
+public record UpdatePublicationBody(
+    string Title,
+    string PublicationData,
+    string PublicationTypeId,
+    string? UrlDoi,
+    List<string>? AdditionalAuthorIds,
+    List<string>? AdditionalAuthorNames,
+    List<string>? AdditionalUserIds);
 
 /// <summary>Cuerpo de la petición POST para crear un tipo de publicación.</summary>
 public record CreatePublicationTypeBody(string Name);

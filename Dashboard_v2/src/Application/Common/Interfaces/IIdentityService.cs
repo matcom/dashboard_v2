@@ -14,7 +14,8 @@ public interface IIdentityService
 
     Task<(Result Result, string UserId)> CreateUserAsync(
         string userName,
-        string userLastName,
+        string userLastName1,
+        string? userLastName2,
         string email,
         string password,
         DateTime birthDate,

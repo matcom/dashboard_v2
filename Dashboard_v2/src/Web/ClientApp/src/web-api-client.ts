@@ -177,6 +177,181 @@ export class AuthClient {
     }
 }
 
+export class AuthorsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    searchAuthors(q: string | null | undefined): Promise<AuthorSearchDto[]> {
+        let url_ = this.baseUrl + "/api/Authors/search?";
+        if (q !== undefined && q !== null)
+            url_ += "q=" + encodeURIComponent("" + q) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSearchAuthors(_response);
+        });
+    }
+
+    protected processSearchAuthors(response: Response): Promise<AuthorSearchDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AuthorSearchDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AuthorSearchDto[]>(null as any);
+    }
+
+    searchCoauthors(q: string | null | undefined): Promise<CoauthorSearchDto[]> {
+        let url_ = this.baseUrl + "/api/Authors/search-coauthors?";
+        if (q !== undefined && q !== null)
+            url_ += "q=" + encodeURIComponent("" + q) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSearchCoauthors(_response);
+        });
+    }
+
+    protected processSearchCoauthors(response: Response): Promise<CoauthorSearchDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CoauthorSearchDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CoauthorSearchDto[]>(null as any);
+    }
+
+    getPotentialAuthorMatches(): Promise<PotentialAuthorMatchesDto> {
+        let url_ = this.baseUrl + "/api/Authors/potential-matches";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetPotentialAuthorMatches(_response);
+        });
+    }
+
+    protected processGetPotentialAuthorMatches(response: Response): Promise<PotentialAuthorMatchesDto> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PotentialAuthorMatchesDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PotentialAuthorMatchesDto>(null as any);
+    }
+
+    linkAuthorToMe(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Authors/{id}/link-to-me";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLinkAuthorToMe(_response);
+        });
+    }
+
+    protected processLinkAuthorToMe(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class PublicationsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -766,7 +941,8 @@ export interface IProblemDetails {
 
 export class RegisterCommand implements IRegisterCommand {
     userName?: string;
-    userLastName?: string;
+    userLastName1?: string;
+    userLastName2?: string | undefined;
     email?: string;
     password?: string;
     birthDate?: Date;
@@ -787,7 +963,8 @@ export class RegisterCommand implements IRegisterCommand {
     init(_data?: any) {
         if (_data) {
             this.userName = _data["userName"];
-            this.userLastName = _data["userLastName"];
+            this.userLastName1 = _data["userLastName1"];
+            this.userLastName2 = _data["userLastName2"];
             this.email = _data["email"];
             this.password = _data["password"];
             this.birthDate = _data["birthDate"] ? new Date(_data["birthDate"].toString()) : undefined as any;
@@ -808,7 +985,8 @@ export class RegisterCommand implements IRegisterCommand {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["userName"] = this.userName;
-        data["userLastName"] = this.userLastName;
+        data["userLastName1"] = this.userLastName1;
+        data["userLastName2"] = this.userLastName2;
         data["email"] = this.email;
         data["password"] = this.password;
         data["birthDate"] = this.birthDate ? this.birthDate.toISOString() : undefined as any;
@@ -822,7 +1000,8 @@ export class RegisterCommand implements IRegisterCommand {
 
 export interface IRegisterCommand {
     userName?: string;
-    userLastName?: string;
+    userLastName1?: string;
+    userLastName2?: string | undefined;
     email?: string;
     password?: string;
     birthDate?: Date;
@@ -945,6 +1124,186 @@ export interface IUserDto {
     userName?: string;
     email?: string;
     role?: string | undefined;
+}
+
+export class AuthorSearchDto implements IAuthorSearchDto {
+    id?: string;
+    name?: string;
+
+    constructor(data?: IAuthorSearchDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): AuthorSearchDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AuthorSearchDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IAuthorSearchDto {
+    id?: string;
+    name?: string;
+}
+
+export class CoauthorSearchDto implements ICoauthorSearchDto {
+    id?: string;
+    name?: string;
+    type?: string;
+
+    constructor(data?: ICoauthorSearchDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.type = _data["type"];
+        }
+    }
+
+    static fromJS(data: any): CoauthorSearchDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CoauthorSearchDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["type"] = this.type;
+        return data;
+    }
+}
+
+export interface ICoauthorSearchDto {
+    id?: string;
+    name?: string;
+    type?: string;
+}
+
+export class PotentialAuthorMatchesDto implements IPotentialAuthorMatchesDto {
+    exactMatches?: PotentialAuthorMatchDto[];
+    fuzzyMatches?: PotentialAuthorMatchDto[];
+
+    constructor(data?: IPotentialAuthorMatchesDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["exactMatches"])) {
+                this.exactMatches = [] as any;
+                for (let item of _data["exactMatches"])
+                    this.exactMatches!.push(PotentialAuthorMatchDto.fromJS(item));
+            }
+            if (Array.isArray(_data["fuzzyMatches"])) {
+                this.fuzzyMatches = [] as any;
+                for (let item of _data["fuzzyMatches"])
+                    this.fuzzyMatches!.push(PotentialAuthorMatchDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): PotentialAuthorMatchesDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PotentialAuthorMatchesDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.exactMatches)) {
+            data["exactMatches"] = [];
+            for (let item of this.exactMatches)
+                data["exactMatches"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.fuzzyMatches)) {
+            data["fuzzyMatches"] = [];
+            for (let item of this.fuzzyMatches)
+                data["fuzzyMatches"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IPotentialAuthorMatchesDto {
+    exactMatches?: PotentialAuthorMatchDto[];
+    fuzzyMatches?: PotentialAuthorMatchDto[];
+}
+
+export class PotentialAuthorMatchDto implements IPotentialAuthorMatchDto {
+    id?: string;
+    name?: string;
+
+    constructor(data?: IPotentialAuthorMatchDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): PotentialAuthorMatchDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PotentialAuthorMatchDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IPotentialAuthorMatchDto {
+    id?: string;
+    name?: string;
 }
 
 export class PublicationTypeDto implements IPublicationTypeDto {
@@ -1136,7 +1495,9 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
     publicationData?: string;
     publicationTypeId?: string;
     urlDoi?: string | undefined;
+    additionalAuthorIds?: string[];
     additionalAuthorNames?: string[];
+    additionalUserIds?: string[];
 
     constructor(data?: ICreatePublicationCommand) {
         if (data) {
@@ -1153,10 +1514,20 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
             this.publicationData = _data["publicationData"];
             this.publicationTypeId = _data["publicationTypeId"];
             this.urlDoi = _data["urlDoi"];
+            if (Array.isArray(_data["additionalAuthorIds"])) {
+                this.additionalAuthorIds = [] as any;
+                for (let item of _data["additionalAuthorIds"])
+                    this.additionalAuthorIds!.push(item);
+            }
             if (Array.isArray(_data["additionalAuthorNames"])) {
                 this.additionalAuthorNames = [] as any;
                 for (let item of _data["additionalAuthorNames"])
                     this.additionalAuthorNames!.push(item);
+            }
+            if (Array.isArray(_data["additionalUserIds"])) {
+                this.additionalUserIds = [] as any;
+                for (let item of _data["additionalUserIds"])
+                    this.additionalUserIds!.push(item);
             }
         }
     }
@@ -1174,10 +1545,20 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
         data["publicationData"] = this.publicationData;
         data["publicationTypeId"] = this.publicationTypeId;
         data["urlDoi"] = this.urlDoi;
+        if (Array.isArray(this.additionalAuthorIds)) {
+            data["additionalAuthorIds"] = [];
+            for (let item of this.additionalAuthorIds)
+                data["additionalAuthorIds"].push(item);
+        }
         if (Array.isArray(this.additionalAuthorNames)) {
             data["additionalAuthorNames"] = [];
             for (let item of this.additionalAuthorNames)
                 data["additionalAuthorNames"].push(item);
+        }
+        if (Array.isArray(this.additionalUserIds)) {
+            data["additionalUserIds"] = [];
+            for (let item of this.additionalUserIds)
+                data["additionalUserIds"].push(item);
         }
         return data;
     }
@@ -1188,7 +1569,9 @@ export interface ICreatePublicationCommand {
     publicationData?: string;
     publicationTypeId?: string;
     urlDoi?: string | undefined;
+    additionalAuthorIds?: string[];
     additionalAuthorNames?: string[];
+    additionalUserIds?: string[];
 }
 
 export class UpdatePublicationBody implements IUpdatePublicationBody {
@@ -1196,6 +1579,9 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     publicationData?: string;
     publicationTypeId?: string;
     urlDoi?: string | undefined;
+    additionalAuthorIds?: string[] | undefined;
+    additionalAuthorNames?: string[] | undefined;
+    additionalUserIds?: string[] | undefined;
 
     constructor(data?: IUpdatePublicationBody) {
         if (data) {
@@ -1212,6 +1598,21 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
             this.publicationData = _data["publicationData"];
             this.publicationTypeId = _data["publicationTypeId"];
             this.urlDoi = _data["urlDoi"];
+            if (Array.isArray(_data["additionalAuthorIds"])) {
+                this.additionalAuthorIds = [] as any;
+                for (let item of _data["additionalAuthorIds"])
+                    this.additionalAuthorIds!.push(item);
+            }
+            if (Array.isArray(_data["additionalAuthorNames"])) {
+                this.additionalAuthorNames = [] as any;
+                for (let item of _data["additionalAuthorNames"])
+                    this.additionalAuthorNames!.push(item);
+            }
+            if (Array.isArray(_data["additionalUserIds"])) {
+                this.additionalUserIds = [] as any;
+                for (let item of _data["additionalUserIds"])
+                    this.additionalUserIds!.push(item);
+            }
         }
     }
 
@@ -1228,6 +1629,21 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         data["publicationData"] = this.publicationData;
         data["publicationTypeId"] = this.publicationTypeId;
         data["urlDoi"] = this.urlDoi;
+        if (Array.isArray(this.additionalAuthorIds)) {
+            data["additionalAuthorIds"] = [];
+            for (let item of this.additionalAuthorIds)
+                data["additionalAuthorIds"].push(item);
+        }
+        if (Array.isArray(this.additionalAuthorNames)) {
+            data["additionalAuthorNames"] = [];
+            for (let item of this.additionalAuthorNames)
+                data["additionalAuthorNames"].push(item);
+        }
+        if (Array.isArray(this.additionalUserIds)) {
+            data["additionalUserIds"] = [];
+            for (let item of this.additionalUserIds)
+                data["additionalUserIds"].push(item);
+        }
         return data;
     }
 }
@@ -1237,6 +1653,9 @@ export interface IUpdatePublicationBody {
     publicationData?: string;
     publicationTypeId?: string;
     urlDoi?: string | undefined;
+    additionalAuthorIds?: string[] | undefined;
+    additionalAuthorNames?: string[] | undefined;
+    additionalUserIds?: string[] | undefined;
 }
 
 export class RoleDto implements IRoleDto {

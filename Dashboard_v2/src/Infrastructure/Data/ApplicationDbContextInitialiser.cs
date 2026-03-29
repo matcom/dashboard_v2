@@ -92,7 +92,7 @@ public class ApplicationDbContextInitialiser
             {
                 Id = Guid.NewGuid().ToString(),
                 UserName = superuserName,
-                UserLastName = "Superuser",
+                UserLastName1 = "Superuser",
                 Email = superuserEmail,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(superuserPassword),
                 BirthDate = DateTime.SpecifyKind(new DateTime(1970, 1, 1), DateTimeKind.Utc),

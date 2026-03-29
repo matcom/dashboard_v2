@@ -13,11 +13,16 @@ public class DeletePublicationCommandHandler : IRequestHandler<DeletePublication
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly IAuthorCleanupService _authorCleanup;
 
-    public DeletePublicationCommandHandler(IApplicationDbContext context, IUser currentUser)
+    public DeletePublicationCommandHandler(
+        IApplicationDbContext context,
+        IUser currentUser,
+        IAuthorCleanupService authorCleanup)
     {
         _context = context;
         _currentUser = currentUser;
+        _authorCleanup = authorCleanup;
     }
 
     public async Task<Result> Handle(DeletePublicationCommand request, CancellationToken cancellationToken)
@@ -32,13 +37,24 @@ public class DeletePublicationCommandHandler : IRequestHandler<DeletePublication
         if (!isAuthor)
             return Result.Failure(["Publicación no encontrada o no tienes permiso para eliminarla."]);
 
-        var publication = await _context.Publications.FindAsync([request.Id], cancellationToken);
+        var publication = await _context.Publications
+            .Include(p => p.AuthorPublications)
+            .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
+
         if (publication == null)
             return Result.Failure(["Publicación no encontrada."]);
+
+        // Capturar los IDs de autores antes de que el cascade los elimine
+        var authorIds = publication.AuthorPublications
+            .Select(ap => ap.AuthorId)
+            .ToList();
 
         // El Cascade en AuthorPublicationConfiguration elimina las filas de AuthorPublications automáticamente
         _context.Publications.Remove(publication);
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Eliminar autores que ya no tienen ninguna referencia y no están vinculados a un usuario
+        await _authorCleanup.CleanupIfOrphanedAsync(authorIds, cancellationToken);
 
         return Result.Success();
     }

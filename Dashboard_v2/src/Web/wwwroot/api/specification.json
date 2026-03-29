@@ -119,6 +119,128 @@
         }
       }
     },
+    "/api/Authors/search": {
+      "get": {
+        "tags": [
+          "Authors"
+        ],
+        "operationId": "SearchAuthors",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuthorSearchDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Authors/search-coauthors": {
+      "get": {
+        "tags": [
+          "Authors"
+        ],
+        "operationId": "SearchCoauthors",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoauthorSearchDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Authors/potential-matches": {
+      "get": {
+        "tags": [
+          "Authors"
+        ],
+        "operationId": "GetPotentialAuthorMatches",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PotentialAuthorMatchesDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Authors/{id}/link-to-me": {
+      "post": {
+        "tags": [
+          "Authors"
+        ],
+        "operationId": "LinkAuthorToMe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Publications/types": {
       "get": {
         "tags": [
@@ -549,8 +671,12 @@
           "userName": {
             "type": "string"
           },
-          "userLastName": {
+          "userLastName1": {
             "type": "string"
+          },
+          "userLastName2": {
+            "type": "string",
+            "nullable": true
           },
           "email": {
             "type": "string"
@@ -663,6 +789,63 @@
           }
         }
       },
+      "AuthorSearchDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CoauthorSearchDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "PotentialAuthorMatchesDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "exactMatches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PotentialAuthorMatchDto"
+            }
+          },
+          "fuzzyMatches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PotentialAuthorMatchDto"
+            }
+          }
+        }
+      },
+      "PotentialAuthorMatchDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "PublicationTypeDto": {
         "type": "object",
         "additionalProperties": false,
@@ -745,7 +928,19 @@
             "type": "string",
             "nullable": true
           },
+          "additionalAuthorIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "additionalAuthorNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
             "type": "array",
             "items": {
               "type": "string"
@@ -769,6 +964,27 @@
           "urlDoi": {
             "type": "string",
             "nullable": true
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

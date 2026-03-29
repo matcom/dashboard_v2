@@ -27,7 +27,8 @@ const INVESTIGATION_CATEGORIES = [
 export default function RegisterPage() {
   const [form, setForm] = useState({
     userName: '',
-    userLastName: '',
+    userLastName1: '',
+    userLastName2: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -65,7 +66,8 @@ export default function RegisterPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userName: form.userName,
-          userLastName: form.userLastName,
+          userLastName1: form.userLastName1,
+          userLastName2: form.userLastName2 || null,
           email: form.email,
           password: form.password,
           birthDate: form.birthDate,
@@ -152,18 +154,34 @@ export default function RegisterPage() {
           </div>
 
           <div className="form-field">
-            <label className="form-field__label" htmlFor="userLastName">Apellidos</label>
+            <label className="form-field__label" htmlFor="userLastName1">Primer apellido <span style={{color:'red'}}>*</span></label>
             <div className="form-field__input-wrapper">
               <i className="bi bi-person form-field__icon"></i>
               <input
-                id="userLastName"
+                id="userLastName1"
                 type="text"
                 className="form-field__input"
-                placeholder="Primer apellido Segundo apellido"
-                value={form.userLastName}
-                onChange={set('userLastName')}
+                placeholder="Primer apellido"
+                value={form.userLastName1}
+                onChange={set('userLastName1')}
                 required
                 autoComplete="family-name"
+              />
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label className="form-field__label" htmlFor="userLastName2">Segundo apellido</label>
+            <div className="form-field__input-wrapper">
+              <i className="bi bi-person form-field__icon"></i>
+              <input
+                id="userLastName2"
+                type="text"
+                className="form-field__input"
+                placeholder="Segundo apellido (opcional)"
+                value={form.userLastName2}
+                onChange={set('userLastName2')}
+                autoComplete="additional-name"
               />
             </div>
           </div>

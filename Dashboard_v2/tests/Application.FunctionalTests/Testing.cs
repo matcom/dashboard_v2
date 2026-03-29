@@ -71,7 +71,7 @@ public partial class Testing
         {
             Id = Guid.NewGuid().ToString(),
             UserName = userName,
-            UserLastName = "TestUser",
+            UserLastName1 = "TestUser",
             Email = userName,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             BirthDate = DateTime.SpecifyKind(new DateTime(1990, 1, 1), DateTimeKind.Utc),

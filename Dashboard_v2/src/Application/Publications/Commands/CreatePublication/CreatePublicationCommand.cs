@@ -15,8 +15,15 @@ public record CreatePublicationCommand : IRequest<(Result Result, string? Public
     public string PublicationData { get; init; } = default!;
     public string PublicationTypeId { get; init; } = default!;
     public string? UrlDoi { get; init; }
-    /// <summary>Nombres de coautores que no son el usuario actual (pueden o no tener cuenta).</summary>
+    /// <summary>IDs de autores ya existentes en BD que son coautores.</summary>
+    public List<string> AdditionalAuthorIds { get; init; } = [];
+    /// <summary>Nombres de coautores nuevos (no existían en la BD).</summary>
     public List<string> AdditionalAuthorNames { get; init; } = [];
+    /// <summary>
+    /// IDs de usuarios registrados que serán coautores.<br/>
+    /// Si el usuario ya tiene perfil de autor se reutiliza; si no, se crea automáticamente.
+    /// </summary>
+    public List<string> AdditionalUserIds { get; init; } = [];
 }
 
 public class CreatePublicationCommandHandler : IRequestHandler<CreatePublicationCommand, (Result Result, string? PublicationId)>
@@ -55,7 +62,7 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
 
             author = new Author
             {
-                Name = $"{user.UserName} {user.UserLastName}".Trim(),
+                Name = $"{user.UserName} {user.UserLastName1}{(string.IsNullOrEmpty(user.UserLastName2) ? string.Empty : " " + user.UserLastName2)}".Trim(),
                 UserId = user.Id
             };
             _context.Authors.Add(author);
@@ -73,13 +80,51 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
             AuthorPublications = [new AuthorPublication { AuthorId = author.Id }]
         };
 
-        // Agregar coautores adicionales (sin cuenta vinculada)
+        // Agregar coautores existentes por ID
+        foreach (var authorId in request.AdditionalAuthorIds.Where(id => !string.IsNullOrWhiteSpace(id)))
+        {
+            // Verificar que el autor no sea el mismo usuario actual y que exista
+            if (authorId != author.Id && await _context.Authors.AnyAsync(a => a.Id == authorId, cancellationToken))
+            {
+                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = authorId });
+            }
+        }
+
+        // Agregar coautores nuevos por nombre (se crean como autores sin cuenta vinculada)
         foreach (var name in request.AdditionalAuthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
         {
             publication.AuthorPublications.Add(new AuthorPublication
             {
                 Author = new Author { Name = name.Trim() }
             });
+        }
+
+        // Agregar coautores referenciados como usuarios (find-or-create author vinculado)
+        foreach (var userId in request.AdditionalUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
+        {
+            if (userId == _currentUser.Id) continue; // ya es el autor principal
+
+            var coAuthor = await _context.Authors
+                .FirstOrDefaultAsync(a => a.UserId == userId, cancellationToken);
+
+            if (coAuthor == null)
+            {
+                var coUser = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+                if (coUser == null) continue;
+
+                coAuthor = new Author
+                {
+                    Name = $"{coUser.UserName} {coUser.UserLastName1}{(string.IsNullOrEmpty(coUser.UserLastName2) ? string.Empty : " " + coUser.UserLastName2)}".Trim(),
+                    UserId = coUser.Id
+                };
+                _context.Authors.Add(coAuthor);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            if (publication.AuthorPublications.All(ap => ap.AuthorId != coAuthor.Id))
+                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = coAuthor.Id });
         }
 
         _context.Publications.Add(publication);

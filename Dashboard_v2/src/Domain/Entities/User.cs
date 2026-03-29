@@ -9,7 +9,10 @@ public class User
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string UserName { get; set; } = default!;
-    public string UserLastName { get; set; } = default!;
+    /// <summary>Primer apellido (obligatorio).</summary>
+    public string UserLastName1 { get; set; } = default!;
+    /// <summary>Segundo apellido (opcional).</summary>
+    public string? UserLastName2 { get; set; }
     public string Email { get; set; } = default!;
     public string PasswordHash { get; set; } = default!;
     public DateTime BirthDate { get; set; }
