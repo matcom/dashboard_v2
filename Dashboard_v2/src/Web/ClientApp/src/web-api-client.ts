@@ -352,6 +352,201 @@ export class AuthorsClient {
     }
 }
 
+export class AwardsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getMyAwards(): Promise<AwardDto[]> {
+        let url_ = this.baseUrl + "/api/Awards";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMyAwards(_response);
+        });
+    }
+
+    protected processGetMyAwards(response: Response): Promise<AwardDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AwardDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AwardDto[]>(null as any);
+    }
+
+    createAward(body: CreateAwardBody): Promise<void> {
+        let url_ = this.baseUrl + "/api/Awards";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateAward(_response);
+        });
+    }
+
+    protected processCreateAward(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    updateAward(id: number, body: UpdateAwardBody): Promise<void> {
+        let url_ = this.baseUrl + "/api/Awards/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateAward(_response);
+        });
+    }
+
+    protected processUpdateAward(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    deleteAward(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Awards/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteAward(_response);
+        });
+    }
+
+    protected processDeleteAward(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class PublicationsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -1304,6 +1499,154 @@ export class PotentialAuthorMatchDto implements IPotentialAuthorMatchDto {
 export interface IPotentialAuthorMatchDto {
     id?: string;
     name?: string;
+}
+
+export class AwardDto implements IAwardDto {
+    id?: number;
+    awardName?: string;
+    awardType?: number;
+    year?: number;
+    awardedAt?: Date;
+
+    constructor(data?: IAwardDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.awardName = _data["awardName"];
+            this.awardType = _data["awardType"];
+            this.year = _data["year"];
+            this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): AwardDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AwardDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["awardName"] = this.awardName;
+        data["awardType"] = this.awardType;
+        data["year"] = this.year;
+        data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IAwardDto {
+    id?: number;
+    awardName?: string;
+    awardType?: number;
+    year?: number;
+    awardedAt?: Date;
+}
+
+export class CreateAwardBody implements ICreateAwardBody {
+    awardName?: string;
+    awardType?: number;
+    year?: number;
+    awardedAt?: Date;
+
+    constructor(data?: ICreateAwardBody) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.awardName = _data["awardName"];
+            this.awardType = _data["awardType"];
+            this.year = _data["year"];
+            this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CreateAwardBody {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateAwardBody();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["awardName"] = this.awardName;
+        data["awardType"] = this.awardType;
+        data["year"] = this.year;
+        data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICreateAwardBody {
+    awardName?: string;
+    awardType?: number;
+    year?: number;
+    awardedAt?: Date;
+}
+
+export class UpdateAwardBody implements IUpdateAwardBody {
+    awardName?: string;
+    awardType?: number;
+    year?: number;
+    awardedAt?: Date;
+
+    constructor(data?: IUpdateAwardBody) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.awardName = _data["awardName"];
+            this.awardType = _data["awardType"];
+            this.year = _data["year"];
+            this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): UpdateAwardBody {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateAwardBody();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["awardName"] = this.awardName;
+        data["awardType"] = this.awardType;
+        data["year"] = this.year;
+        data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IUpdateAwardBody {
+    awardName?: string;
+    awardType?: number;
+    year?: number;
+    awardedAt?: Date;
 }
 
 export class PublicationTypeDto implements IPublicationTypeDto {

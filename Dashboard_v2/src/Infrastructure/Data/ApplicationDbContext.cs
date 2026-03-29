@@ -16,6 +16,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<PublicationType> PublicationTypes => Set<PublicationType>();
     public DbSet<Author> Authors => Set<Author>();
     public DbSet<AuthorPublication> AuthorPublications => Set<AuthorPublication>();
+    public DbSet<Award> Awards => Set<Award>();
+    public DbSet<UserAwarded> UserAwardeds => Set<UserAwarded>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -12,6 +12,8 @@ public interface IApplicationDbContext
     DbSet<PublicationType> PublicationTypes { get; }
     DbSet<Author> Authors { get; }
     DbSet<AuthorPublication> AuthorPublications { get; }
+    DbSet<Award> Awards { get; }
+    DbSet<UserAwarded> UserAwardeds { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
