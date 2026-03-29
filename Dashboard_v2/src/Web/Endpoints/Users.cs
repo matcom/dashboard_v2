@@ -5,8 +5,13 @@ using Dashboard_v2.Web.Infrastructure;
 
 namespace Dashboard_v2.Web.Endpoints;
 
+/// <summary>
+/// Grupo de endpoints de administración de usuarios, mapeado bajo <c>/api/Users</c>.<br/>
+/// Todos los endpoints requieren el rol <c>Superuser</c> — cualquier otro rol recibe 403.
+/// </summary>
 public class Users : EndpointGroupBase
 {
+    /// <summary>Registra GET (listar), POST /{id}/roles (asignar) y DELETE /{id}/roles/{rol} (quitar).</summary>
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetUsers)
@@ -27,12 +32,17 @@ public class Users : EndpointGroupBase
             .ProducesProblem(400);
     }
 
+    /// <summary>GET /api/Users — Retorna todos los usuarios con sus roles. Solo Superuser.</summary>
     private async Task<IResult> GetUsers(ISender sender)
     {
         var users = await sender.Send(new GetUsersQuery());
         return Results.Ok(users);
     }
 
+    /// <summary>
+    /// POST /api/Users/{userId}/roles — Asigna un rol al usuario indicado. Solo Superuser.<br/>
+    /// El cuerpo JSON debe contener <c>{ "roleName": "Profesor" }</c> (nombre exacto del enum).
+    /// </summary>
     private async Task<IResult> AssignRole(ISender sender, string userId, AssignRoleRequest body)
     {
         var result = await sender.Send(new AssignRoleCommand { UserId = userId, RoleName = body.RoleName });
@@ -41,6 +51,9 @@ public class Users : EndpointGroupBase
             : Results.BadRequest(new { errors = result.Errors });
     }
 
+    /// <summary>
+    /// DELETE /api/Users/{userId}/roles/{roleName} — Quita el rol especificado al usuario. Solo Superuser.
+    /// </summary>
     private async Task<IResult> RemoveRole(ISender sender, string userId, string roleName)
     {
         var result = await sender.Send(new RemoveRoleCommand { UserId = userId, RoleName = roleName });
@@ -50,4 +63,5 @@ public class Users : EndpointGroupBase
     }
 }
 
+/// <summary>Cuerpo de la petición para asignar un rol. <paramref name="RoleName"/> debe ser un valor válido del enum Roles.</summary>
 public record AssignRoleRequest(string RoleName);

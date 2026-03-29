@@ -6,8 +6,14 @@ using Dashboard_v2.Web.Infrastructure;
 
 namespace Dashboard_v2.Web.Endpoints;
 
+/// <summary>
+/// Grupo de endpoints de autenticación, registrado bajo la ruta <c>/api/Auth</c>.<br/>
+/// Login y Register son públicos (AllowAnonymous).
+/// Logout y Me requieren un JWT válido en la cookie <c>access_token</c>.
+/// </summary>
 public class Auth : EndpointGroupBase
 {
+    /// <summary>Registra las cuatro rutas del grupo durante el arranque de la aplicación.</summary>
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapPost("register", Register)
@@ -32,6 +38,10 @@ public class Auth : EndpointGroupBase
             .ProducesProblem(401);
     }
 
+    /// <summary>
+    /// POST /api/Auth/register — Registra un nuevo usuario. No requiere autenticación.<br/>
+    /// Devuelve 200 con mensaje de éxito o 400 con lista de errores de validación.
+    /// </summary>
     private async Task<IResult> Register(ISender sender, RegisterCommand command)
     {
         var result = await sender.Send(command);
@@ -44,6 +54,12 @@ public class Auth : EndpointGroupBase
         return Results.Ok(new { message = "Usuario registrado exitosamente." });
     }
 
+    /// <summary>
+    /// POST /api/Auth/login — Autentica al usuario.<br/>
+    /// • Un solo rol → establece cookie HttpOnly <c>access_token</c> con el JWT y retorna 200.<br/>
+    /// • Múltiples roles, sin selectedRole → retorna <c>{ requiresRoleSelection: true, availableRoles: [...] }</c>.<br/>
+    /// La cookie es HttpOnly (JavaScript no puede leerla) y SameSite=Strict (protección CSRF).
+    /// </summary>
     private async Task<IResult> Login(ISender sender, LoginCommand command, HttpContext httpContext)
     {
         var (result, response) = await sender.Send(command);
@@ -72,6 +88,10 @@ public class Auth : EndpointGroupBase
         return Results.Ok(new { message = "Login exitoso." });
     }
 
+    /// <summary>
+    /// POST /api/Auth/logout — Cierra la sesión eliminando la cookie <c>access_token</c>.<br/>
+    /// Requiere sesión activa. Ejecuta el LogoutCommand (puede limpiar estado de servidor si hace falta).
+    /// </summary>
     private async Task<IResult> Logout(ISender sender, HttpContext httpContext)
     {
         await sender.Send(new LogoutCommand());
@@ -81,6 +101,11 @@ public class Auth : EndpointGroupBase
         return Results.Ok(new { message = "Sesión cerrada exitosamente." });
     }
 
+    /// <summary>
+    /// GET /api/Auth/me — Devuelve el DTO con los datos del usuario actualmente autenticado.<br/>
+    /// El handler lee el claim <c>sub</c> del JWT para identificar al usuario.<br/>
+    /// Retorna 401 si la cookie no existe o el JWT expirado/inválido.
+    /// </summary>
     private async Task<IResult> GetCurrentUser(ISender sender)
     {
         var user = await sender.Send(new GetCurrentUserQuery());

@@ -7,6 +7,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Dashboard_v2.Infrastructure.Services;
 
+/// <summary>
+/// Servicio que genera tokens JWT firmados con HMAC-SHA256 (HS256).<br/>
+/// La configuración se lee de <c>appsettings.json</c> bajo la sección <c>Jwt:</c>:
+/// <c>Secret</c> (clave privada), <c>Issuer</c>, <c>Audience</c> y <c>ExpiryMinutes</c>.
+/// </summary>
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
@@ -16,6 +21,13 @@ public class JwtService : IJwtService
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// Genera un token JWT que identifica al usuario en cada petición.<br/>
+    /// Claims incluidos: <c>sub</c> (userId), <c>unique_name</c> (userName), <c>email</c>,
+    /// <c>jti</c> (UUID único del token), y uno o más claims <c>role</c>.<br/>
+    /// El token está firmado con la clave secreta del servidor — el cliente no puede alterarlo
+    /// sin invalidar la firma. La cookie HttpOnly evita que JavaScript lo lea.
+    /// </summary>
     public string GenerateToken(string userId, string userName, string email, IEnumerable<string> roles)
     {
         var secret = _configuration["Jwt:Secret"]
