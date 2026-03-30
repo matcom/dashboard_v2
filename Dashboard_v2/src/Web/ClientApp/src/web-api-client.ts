@@ -547,6 +547,540 @@ export class AwardsClient {
     }
 }
 
+export class EventsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getMyEvents(): Promise<EventDto[]> {
+        let url_ = this.baseUrl + "/api/Events";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMyEvents(_response);
+        });
+    }
+
+    protected processGetMyEvents(response: Response): Promise<EventDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(EventDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventDto[]>(null as any);
+    }
+
+    createEvent(body: CreateEventBody): Promise<void> {
+        let url_ = this.baseUrl + "/api/Events";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateEvent(_response);
+        });
+    }
+
+    protected processCreateEvent(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getAllEvents(): Promise<EventDto[]> {
+        let url_ = this.baseUrl + "/api/Events/all";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAllEvents(_response);
+        });
+    }
+
+    protected processGetAllEvents(response: Response): Promise<EventDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(EventDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventDto[]>(null as any);
+    }
+
+    getCountries(): Promise<CountryDto[]> {
+        let url_ = this.baseUrl + "/api/Events/countries";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCountries(_response);
+        });
+    }
+
+    protected processGetCountries(response: Response): Promise<CountryDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CountryDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CountryDto[]>(null as any);
+    }
+
+    createCountry(body: CreateCountryBody): Promise<CountryDto> {
+        let url_ = this.baseUrl + "/api/Events/countries";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateCountry(_response);
+        });
+    }
+
+    protected processCreateCountry(response: Response): Promise<CountryDto> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = CountryDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CountryDto>(null as any);
+    }
+
+    getEventTypes(): Promise<EventTypeDto[]> {
+        let url_ = this.baseUrl + "/api/Events/types";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetEventTypes(_response);
+        });
+    }
+
+    protected processGetEventTypes(response: Response): Promise<EventTypeDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(EventTypeDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventTypeDto[]>(null as any);
+    }
+
+    updateEvent(id: number, body: UpdateEventBody): Promise<void> {
+        let url_ = this.baseUrl + "/api/Events/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateEvent(_response);
+        });
+    }
+
+    protected processUpdateEvent(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    deleteEvent(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Events/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteEvent(_response);
+        });
+    }
+
+    protected processDeleteEvent(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
+export class PresentationsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getMyPresentations(): Promise<PresentationDto[]> {
+        let url_ = this.baseUrl + "/api/Presentations";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMyPresentations(_response);
+        });
+    }
+
+    protected processGetMyPresentations(response: Response): Promise<PresentationDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PresentationDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PresentationDto[]>(null as any);
+    }
+
+    createPresentation(body: CreatePresentationBody): Promise<void> {
+        let url_ = this.baseUrl + "/api/Presentations";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreatePresentation(_response);
+        });
+    }
+
+    protected processCreatePresentation(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    updatePresentation(id: number, body: UpdatePresentationBody): Promise<void> {
+        let url_ = this.baseUrl + "/api/Presentations/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdatePresentation(_response);
+        });
+    }
+
+    protected processUpdatePresentation(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    deletePresentation(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Presentations/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeletePresentation(_response);
+        });
+    }
+
+    protected processDeletePresentation(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class PublicationsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -1647,6 +2181,490 @@ export interface IUpdateAwardBody {
     awardType?: number;
     year?: number;
     awardedAt?: Date;
+}
+
+export class EventDto implements IEventDto {
+    id?: number;
+    name?: string;
+    countryId?: number;
+    countryName?: string;
+    eventType?: number;
+    institutions?: string[];
+    presentationCount?: number;
+
+    constructor(data?: IEventDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.countryId = _data["countryId"];
+            this.countryName = _data["countryName"];
+            this.eventType = _data["eventType"];
+            if (Array.isArray(_data["institutions"])) {
+                this.institutions = [] as any;
+                for (let item of _data["institutions"])
+                    this.institutions!.push(item);
+            }
+            this.presentationCount = _data["presentationCount"];
+        }
+    }
+
+    static fromJS(data: any): EventDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new EventDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["countryId"] = this.countryId;
+        data["countryName"] = this.countryName;
+        data["eventType"] = this.eventType;
+        if (Array.isArray(this.institutions)) {
+            data["institutions"] = [];
+            for (let item of this.institutions)
+                data["institutions"].push(item);
+        }
+        data["presentationCount"] = this.presentationCount;
+        return data;
+    }
+}
+
+export interface IEventDto {
+    id?: number;
+    name?: string;
+    countryId?: number;
+    countryName?: string;
+    eventType?: number;
+    institutions?: string[];
+    presentationCount?: number;
+}
+
+export class CountryDto implements ICountryDto {
+    id?: number;
+    name?: string;
+
+    constructor(data?: ICountryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): CountryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CountryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface ICountryDto {
+    id?: number;
+    name?: string;
+}
+
+export class CreateCountryBody implements ICreateCountryBody {
+    name?: string;
+
+    constructor(data?: ICreateCountryBody) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): CreateCountryBody {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateCountryBody();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface ICreateCountryBody {
+    name?: string;
+}
+
+export class EventTypeDto implements IEventTypeDto {
+    value?: number;
+    name?: string;
+
+    constructor(data?: IEventTypeDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.value = _data["value"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): EventTypeDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new EventTypeDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["value"] = this.value;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IEventTypeDto {
+    value?: number;
+    name?: string;
+}
+
+export class CreateEventBody implements ICreateEventBody {
+    name?: string;
+    countryId?: number;
+    eventType?: number;
+    institutions?: string[];
+
+    constructor(data?: ICreateEventBody) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.countryId = _data["countryId"];
+            this.eventType = _data["eventType"];
+            if (Array.isArray(_data["institutions"])) {
+                this.institutions = [] as any;
+                for (let item of _data["institutions"])
+                    this.institutions!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateEventBody {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateEventBody();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["countryId"] = this.countryId;
+        data["eventType"] = this.eventType;
+        if (Array.isArray(this.institutions)) {
+            data["institutions"] = [];
+            for (let item of this.institutions)
+                data["institutions"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface ICreateEventBody {
+    name?: string;
+    countryId?: number;
+    eventType?: number;
+    institutions?: string[];
+}
+
+export class UpdateEventBody implements IUpdateEventBody {
+    name?: string;
+    countryId?: number;
+    eventType?: number;
+    institutions?: string[];
+
+    constructor(data?: IUpdateEventBody) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.countryId = _data["countryId"];
+            this.eventType = _data["eventType"];
+            if (Array.isArray(_data["institutions"])) {
+                this.institutions = [] as any;
+                for (let item of _data["institutions"])
+                    this.institutions!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): UpdateEventBody {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateEventBody();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["countryId"] = this.countryId;
+        data["eventType"] = this.eventType;
+        if (Array.isArray(this.institutions)) {
+            data["institutions"] = [];
+            for (let item of this.institutions)
+                data["institutions"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IUpdateEventBody {
+    name?: string;
+    countryId?: number;
+    eventType?: number;
+    institutions?: string[];
+}
+
+export class PresentationDto implements IPresentationDto {
+    id?: number;
+    name?: string;
+    eventId?: number;
+    eventName?: string;
+    authors?: string[];
+
+    constructor(data?: IPresentationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.eventId = _data["eventId"];
+            this.eventName = _data["eventName"];
+            if (Array.isArray(_data["authors"])) {
+                this.authors = [] as any;
+                for (let item of _data["authors"])
+                    this.authors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): PresentationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PresentationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["eventId"] = this.eventId;
+        data["eventName"] = this.eventName;
+        if (Array.isArray(this.authors)) {
+            data["authors"] = [];
+            for (let item of this.authors)
+                data["authors"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IPresentationDto {
+    id?: number;
+    name?: string;
+    eventId?: number;
+    eventName?: string;
+    authors?: string[];
+}
+
+export class CreatePresentationBody implements ICreatePresentationBody {
+    name?: string;
+    eventId?: number;
+    coauthorIds?: string[];
+    coauthorNames?: string[];
+
+    constructor(data?: ICreatePresentationBody) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.eventId = _data["eventId"];
+            if (Array.isArray(_data["coauthorIds"])) {
+                this.coauthorIds = [] as any;
+                for (let item of _data["coauthorIds"])
+                    this.coauthorIds!.push(item);
+            }
+            if (Array.isArray(_data["coauthorNames"])) {
+                this.coauthorNames = [] as any;
+                for (let item of _data["coauthorNames"])
+                    this.coauthorNames!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CreatePresentationBody {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreatePresentationBody();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["eventId"] = this.eventId;
+        if (Array.isArray(this.coauthorIds)) {
+            data["coauthorIds"] = [];
+            for (let item of this.coauthorIds)
+                data["coauthorIds"].push(item);
+        }
+        if (Array.isArray(this.coauthorNames)) {
+            data["coauthorNames"] = [];
+            for (let item of this.coauthorNames)
+                data["coauthorNames"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface ICreatePresentationBody {
+    name?: string;
+    eventId?: number;
+    coauthorIds?: string[];
+    coauthorNames?: string[];
+}
+
+export class UpdatePresentationBody implements IUpdatePresentationBody {
+    name?: string;
+    eventId?: number;
+    coauthorIds?: string[];
+    coauthorNames?: string[];
+
+    constructor(data?: IUpdatePresentationBody) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.eventId = _data["eventId"];
+            if (Array.isArray(_data["coauthorIds"])) {
+                this.coauthorIds = [] as any;
+                for (let item of _data["coauthorIds"])
+                    this.coauthorIds!.push(item);
+            }
+            if (Array.isArray(_data["coauthorNames"])) {
+                this.coauthorNames = [] as any;
+                for (let item of _data["coauthorNames"])
+                    this.coauthorNames!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): UpdatePresentationBody {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdatePresentationBody();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["eventId"] = this.eventId;
+        if (Array.isArray(this.coauthorIds)) {
+            data["coauthorIds"] = [];
+            for (let item of this.coauthorIds)
+                data["coauthorIds"].push(item);
+        }
+        if (Array.isArray(this.coauthorNames)) {
+            data["coauthorNames"] = [];
+            for (let item of this.coauthorNames)
+                data["coauthorNames"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IUpdatePresentationBody {
+    name?: string;
+    eventId?: number;
+    coauthorIds?: string[];
+    coauthorNames?: string[];
 }
 
 export class PublicationTypeDto implements IPublicationTypeDto {

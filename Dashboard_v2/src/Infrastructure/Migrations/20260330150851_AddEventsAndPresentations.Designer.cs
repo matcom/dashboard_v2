@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260330150851_AddEventsAndPresentations")]
+    partial class AddEventsAndPresentations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,7 +137,7 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Property<int>("CountryId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("EventType")
+                    b.Property<int>("EventTypeId")
                         .HasColumnType("integer");
 
                     b.PrimitiveCollection<List<string>>("Institutions")
@@ -150,7 +153,27 @@ namespace Dashboard_v2.Infrastructure.Migrations
 
                     b.HasIndex("CountryId");
 
+                    b.HasIndex("EventTypeId");
+
                     b.ToTable("Events", (string)null);
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.EventType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EventTypes", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Presentation", b =>
@@ -442,7 +465,15 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Dashboard_v2.Domain.Entities.EventType", "EventType")
+                        .WithMany("Events")
+                        .HasForeignKey("EventTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Country");
+
+                    b.Navigation("EventType");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Presentation", b =>
@@ -528,6 +559,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Event", b =>
                 {
                     b.Navigation("Presentations");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.EventType", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Presentation", b =>

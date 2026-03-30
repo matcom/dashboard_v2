@@ -14,6 +14,10 @@ public interface IApplicationDbContext
     DbSet<AuthorPublication> AuthorPublications { get; }
     DbSet<Award> Awards { get; }
     DbSet<UserAwarded> UserAwardeds { get; }
+    DbSet<Country> Countries { get; }
+    DbSet<Event> Events { get; }
+    DbSet<Presentation> Presentations { get; }
+    DbSet<AuthorPresentation> AuthorPresentations { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

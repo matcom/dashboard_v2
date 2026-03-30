@@ -17,6 +17,7 @@ const profesorGroups = [
     items: [
       { to: '/publications', icon: 'bi-journal-text', label: 'Mis publicaciones' },
       { to: '/awards', icon: 'bi-trophy', label: 'Mis premios' },
+      { to: '/events', icon: 'bi-mic', label: 'Mis eventos' },
     ],
   },
 ];

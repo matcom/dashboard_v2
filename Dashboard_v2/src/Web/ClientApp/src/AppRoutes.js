@@ -3,6 +3,7 @@ import { Counter } from "./components/Counter";
 import UsersPage from "./pages/UsersPage";
 import PublicationsPage from "./pages/PublicationsPage";
 import AwardsPage from "./pages/AwardsPage";
+import EventsPage from "./pages/EventsPage";
 
 const AppRoutes = [
   {
@@ -31,6 +32,12 @@ const AppRoutes = [
     path: '/awards',
     element: <AwardsPage />,
     pageTitle: 'Mis premios',
+    profesorOnly: true,
+  },
+  {
+    path: '/events',
+    element: <EventsPage />,
+    pageTitle: 'Mis eventos y presentaciones',
     profesorOnly: true,
   },
 ];

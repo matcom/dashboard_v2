@@ -12,4 +12,5 @@ public class Author
 
     // Navegación
     public ICollection<AuthorPublication> AuthorPublications { get; set; } = new List<AuthorPublication>();
+    public ICollection<AuthorPresentation> AuthorPresentations { get; set; } = new List<AuthorPresentation>();
 }
