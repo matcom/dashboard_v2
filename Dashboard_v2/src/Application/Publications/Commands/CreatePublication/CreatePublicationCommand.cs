@@ -1,6 +1,7 @@
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
 using Dashboard_v2.Domain.Entities;
+using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Application.Publications.Commands.CreatePublication;
 
@@ -13,7 +14,7 @@ public record CreatePublicationCommand : IRequest<(Result Result, string? Public
 {
     public string Title { get; init; } = default!;
     public string PublicationData { get; init; } = default!;
-    public string PublicationTypeId { get; init; } = default!;
+    public PublicationType PublicationType { get; init; }
     public string? UrlDoi { get; init; }
     /// <summary>IDs de autores ya existentes en BD que son coautores.</summary>
     public List<string> AdditionalAuthorIds { get; init; } = [];
@@ -40,11 +41,9 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
     public async Task<(Result Result, string? PublicationId)> Handle(
         CreatePublicationCommand request, CancellationToken cancellationToken)
     {
-        // Validar que el tipo de publicación existe
-        var typeExists = await _context.PublicationTypes
-            .AnyAsync(pt => pt.Id == request.PublicationTypeId, cancellationToken);
-        if (!typeExists)
-            return (Result.Failure(["Tipo de publicación no encontrado."]), null);
+        // Validar que el tipo de publicación es válido
+        if (!Enum.IsDefined(typeof(PublicationType), request.PublicationType))
+            return (Result.Failure(["Tipo de publicación no válido."]), null);
 
         // Obtener o crear el perfil de autor del usuario actual
         var author = await _context.Authors
@@ -75,7 +74,7 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
         {
             Title = request.Title.Trim(),
             PublicationData = request.PublicationData,
-            PublicationTypeId = request.PublicationTypeId,
+            PublicationType = request.PublicationType,
             UrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : request.UrlDoi.Trim(),
             AuthorPublications = [new AuthorPublication { AuthorId = author.Id }]
         };

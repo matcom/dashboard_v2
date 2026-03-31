@@ -1,7 +1,7 @@
 using Dashboard_v2.Application.Publications;
 using Dashboard_v2.Application.Publications.Commands.CreatePublication;
-using Dashboard_v2.Application.Publications.Commands.CreatePublicationType;
 using Dashboard_v2.Application.Publications.Commands.DeletePublication;
+using Dashboard_v2.Domain.Enums;
 using Dashboard_v2.Application.Publications.Commands.UpdatePublication;
 using Dashboard_v2.Application.Publications.Queries.GetMyPublications;
 using Dashboard_v2.Application.Publications.Queries.GetPublicationById;
@@ -22,13 +22,6 @@ public class Publications : EndpointGroupBase
             .RequireAuthorization(p => p.RequireRole("Profesor"))
             .WithName("GetPublicationTypes")
             .Produces<List<PublicationTypeDto>>(200);
-
-        // POST /api/Publications/types — crea un nuevo tipo de publicación
-        groupBuilder.MapPost("types", CreatePublicationType)
-            .RequireAuthorization(p => p.RequireRole("Profesor"))
-            .WithName("CreatePublicationType")
-            .Produces<PublicationTypeDto>(201)
-            .ProducesProblem(400);
 
         // GET /api/Publications — publicaciones del usuario autenticado
         groupBuilder.MapGet("", GetMyPublications)
@@ -73,14 +66,6 @@ public class Publications : EndpointGroupBase
         return Results.Ok(types);
     }
 
-    private async Task<IResult> CreatePublicationType(ISender sender, CreatePublicationTypeBody body)
-    {
-        var (result, type) = await sender.Send(new CreatePublicationTypeCommand { Name = body.Name });
-        if (!result.Succeeded)
-            return Results.BadRequest(new { errors = result.Errors });
-        return Results.Created($"/api/Publications/types/{type!.Id}", type);
-    }
-
     private async Task<IResult> GetMyPublications(ISender sender)
     {
         var publications = await sender.Send(new GetMyPublicationsQuery());
@@ -110,7 +95,7 @@ public class Publications : EndpointGroupBase
             Id = id,
             Title = body.Title,
             PublicationData = body.PublicationData,
-            PublicationTypeId = body.PublicationTypeId,
+            PublicationType = (PublicationType)body.PublicationType,
             UrlDoi = body.UrlDoi,
             AdditionalAuthorIds = body.AdditionalAuthorIds ?? [],
             AdditionalAuthorNames = body.AdditionalAuthorNames ?? [],
@@ -138,11 +123,8 @@ public class Publications : EndpointGroupBase
 public record UpdatePublicationBody(
     string Title,
     string PublicationData,
-    string PublicationTypeId,
+    int PublicationType,
     string? UrlDoi,
     List<string>? AdditionalAuthorIds,
     List<string>? AdditionalAuthorNames,
     List<string>? AdditionalUserIds);
-
-/// <summary>Cuerpo de la petición POST para crear un tipo de publicación.</summary>
-public record CreatePublicationTypeBody(string Name);

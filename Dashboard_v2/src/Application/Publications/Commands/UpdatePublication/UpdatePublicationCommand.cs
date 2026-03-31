@@ -1,6 +1,7 @@
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
 using Dashboard_v2.Domain.Entities;
+using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Application.Publications.Commands.UpdatePublication;
 
@@ -13,7 +14,7 @@ public record UpdatePublicationCommand : IRequest<Result>
     public string Id { get; init; } = default!;
     public string Title { get; init; } = default!;
     public string PublicationData { get; init; } = default!;
-    public string PublicationTypeId { get; init; } = default!;
+    public PublicationType PublicationType { get; init; }
     public string? UrlDoi { get; init; }
     /// <summary>IDs de autores ya existentes en BD que deben figurar como coautores.</summary>
     public List<string> AdditionalAuthorIds { get; init; } = [];
@@ -64,15 +65,13 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
         if (publication == null)
             return Result.Failure(["Publicación no encontrada."]);
 
-        // Validar que el nuevo tipo existe
-        var typeExists = await _context.PublicationTypes
-            .AnyAsync(pt => pt.Id == request.PublicationTypeId, cancellationToken);
-        if (!typeExists)
-            return Result.Failure(["Tipo de publicación no encontrado."]);
+        // Validar que el nuevo tipo es válido
+        if (!Enum.IsDefined(typeof(PublicationType), request.PublicationType))
+            return Result.Failure(["Tipo de publicación no válido."]);
 
         publication.Title = request.Title.Trim();
         publication.PublicationData = request.PublicationData;
-        publication.PublicationTypeId = request.PublicationTypeId;
+        publication.PublicationType = request.PublicationType;
         publication.UrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : request.UrlDoi.Trim();
 
         // Reemplazar coautores: conservar solo el autor actual y añadir los nuevos

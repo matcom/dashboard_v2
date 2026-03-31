@@ -39,7 +39,7 @@ const EMPTY_FORM = {
   title: '',
   publicationData: '',
   urlDoi: '',
-  publicationTypeId: '',
+  publicationType: 0,
 };
 
 export default function PublicationsPage() {
@@ -61,12 +61,6 @@ export default function PublicationsPage() {
   const [toDelete, setToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  // Creación inline de nuevo tipo
-  const [newTypeName, setNewTypeName] = useState('');
-  const [showNewType, setShowNewType] = useState(false);
-  const [newTypeLoading, setNewTypeLoading] = useState(false);
-  const [newTypeError, setNewTypeError] = useState('');
-
   // Tag-picker de coautores
   const [coauthorTags, setCoauthorTags] = useState([]); // [{id?, name}]
   const [coauthorInput, setCoauthorInput] = useState('');
@@ -96,11 +90,8 @@ export default function PublicationsPage() {
 
   function openCreate() {
     setEditing(null);
-    setForm({ ...EMPTY_FORM, publicationTypeId: types[0]?.id ?? '' });
+    setForm({ ...EMPTY_FORM, publicationType: types[0]?.value ?? 0 });
     setFormError('');
-    setShowNewType(false);
-    setNewTypeName('');
-    setNewTypeError('');
     setCoauthorTags([]);
     setCoauthorInput('');
     setSuggestionsOpen(false);
@@ -113,12 +104,9 @@ export default function PublicationsPage() {
       title: pub.title,
       publicationData: pub.publicationData,
       urlDoi: pub.urlDoi ?? '',
-      publicationTypeId: pub.publicationType.id,
+      publicationType: pub.publicationType,
     });
     setFormError('');
-    setShowNewType(false);
-    setNewTypeName('');
-    setNewTypeError('');
     // Pre-cargar coautores (todos excepto el usuario actual)
     const initialTags = (pub.authors ?? [])
       .filter(a => a.userId !== user?.id)
@@ -138,7 +126,7 @@ export default function PublicationsPage() {
   }
 
   async function handleSubmit() {
-    if (!form.title.trim() || !form.publicationTypeId) {
+    if (!form.title.trim() || form.publicationType === '') {
       setFormError('El título y el tipo de publicación son obligatorios.');
       return;
     }
@@ -152,7 +140,7 @@ export default function PublicationsPage() {
           body: JSON.stringify({
             title: form.title,
             publicationData: form.publicationData,
-            publicationTypeId: form.publicationTypeId,
+            publicationType: parseInt(form.publicationType, 10),
             urlDoi: form.urlDoi || null,
             additionalAuthorIds: coauthorTags.filter(t => t.type === 'author').map(t => t.id),
             additionalAuthorNames: coauthorTags.filter(t => !t.type).map(t => t.name),
@@ -166,7 +154,7 @@ export default function PublicationsPage() {
           body: JSON.stringify({
             title: form.title,
             publicationData: form.publicationData,
-            publicationTypeId: form.publicationTypeId,
+            publicationType: parseInt(form.publicationType, 10),
             urlDoi: form.urlDoi || null,
             additionalAuthorIds: coauthorTags.filter(t => t.type === 'author').map(t => t.id),
             additionalAuthorNames: coauthorTags.filter(t => !t.type).map(t => t.name),
@@ -234,28 +222,6 @@ export default function PublicationsPage() {
     if (e.key === 'Escape') setSuggestionsOpen(false);
   }
 
-  // ── creación de tipo inline ────────────────────────────────────────────────
-
-  async function handleCreateType() {
-    if (!newTypeName.trim()) return;
-    setNewTypeLoading(true);
-    setNewTypeError('');
-    try {
-      const created = await apiFetch('/api/Publications/types', {
-        method: 'POST',
-        body: JSON.stringify({ name: newTypeName.trim() }),
-      });
-      setTypes(prev => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
-      setForm(f => ({ ...f, publicationTypeId: created.id }));
-      setShowNewType(false);
-      setNewTypeName('');
-    } catch (e) {
-      setNewTypeError(e.message);
-    } finally {
-      setNewTypeLoading(false);
-    }
-  }
-
   // ── borrado ────────────────────────────────────────────────────────────────
 
   function openDelete(pub) {
@@ -317,7 +283,7 @@ export default function PublicationsPage() {
                     <td>{pub.title}</td>
                     <td>
                       <Badge color="secondary" pill>
-                        {pub.publicationType.name}
+                        {types.find(t => t.value === pub.publicationType)?.name ?? pub.publicationType}
                       </Badge>
                     </td>
                     <td style={{ maxWidth: 200 }}>
@@ -328,8 +294,9 @@ export default function PublicationsPage() {
                         : <span className="text-muted">—</span>}
                     </td>
                     <td>
-                      {pub.authors.map(a => (
-                        <span key={a.id} className="me-2">
+                      {pub.authors.map((a, i) => (
+                        <span key={a.id}>
+                          {i > 0 && <span className="text-muted me-1">,</span>}
                           {a.name}
                           {a.userId && (
                             <i className="bi bi-person-check ms-1 text-success"
@@ -382,53 +349,20 @@ export default function PublicationsPage() {
               />
             </FormGroup>
             <FormGroup>
-              <div className="d-flex justify-content-between align-items-center mb-1">
-                <Label for="publicationTypeId" className="mb-0">
-                  Tipo <span className="text-danger">*</span>
-                </Label>
-                {!showNewType && (
-                  <button type="button" className="btn btn-link btn-sm p-0"
-                    onClick={() => { setShowNewType(true); setNewTypeError(''); }}>
-                    <i className="bi bi-plus-circle me-1"></i>Nuevo tipo
-                  </button>
-                )}
-              </div>
-              {showNewType ? (
-                <>
-                  <div className="input-group input-group-sm">
-                    <Input
-                      value={newTypeName}
-                      onChange={e => setNewTypeName(e.target.value)}
-                      placeholder="Nombre del nuevo tipo"
-                      onKeyDown={e => e.key === 'Enter' && handleCreateType()}
-                      disabled={newTypeLoading}
-                      autoFocus
-                    />
-                    <Button color="primary" size="sm" onClick={handleCreateType}
-                      disabled={newTypeLoading || !newTypeName.trim()}>
-                      {newTypeLoading ? <Spinner size="sm" /> : 'Crear'}
-                    </Button>
-                    <Button color="secondary" outline size="sm"
-                      onClick={() => { setShowNewType(false); setNewTypeName(''); setNewTypeError(''); }}
-                      disabled={newTypeLoading}>
-                      Cancelar
-                    </Button>
-                  </div>
-                  {newTypeError && <small className="text-danger">{newTypeError}</small>}
-                </>
-              ) : (
-                <Input
-                  type="select"
-                  id="publicationTypeId"
-                  name="publicationTypeId"
-                  value={form.publicationTypeId}
-                  onChange={handleFormChange}
-                >
-                  {types.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </Input>
-              )}
+              <Label for="publicationType">
+                Tipo <span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="select"
+                id="publicationType"
+                name="publicationType"
+                value={form.publicationType}
+                onChange={handleFormChange}
+              >
+                {types.map(t => (
+                  <option key={t.value} value={t.value}>{t.name}</option>
+                ))}
+              </Input>
             </FormGroup>
             <FormGroup>
               <Label for="urlDoi">URL / DOI</Label>

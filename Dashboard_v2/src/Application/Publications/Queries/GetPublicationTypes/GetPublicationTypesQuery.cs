@@ -1,23 +1,18 @@
-using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Publications;
+using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Application.Publications.Queries.GetPublicationTypes;
 
-/// <summary>Retorna todos los tipos de publicación disponibles (para el selector al crear/editar).</summary>
+/// <summary>Retorna todos los tipos de publicación disponibles (desde el enum).</summary>
 public record GetPublicationTypesQuery : IRequest<List<PublicationTypeDto>>;
 
 public class GetPublicationTypesQueryHandler : IRequestHandler<GetPublicationTypesQuery, List<PublicationTypeDto>>
 {
-    private readonly IApplicationDbContext _context;
-
-    public GetPublicationTypesQueryHandler(IApplicationDbContext context) => _context = context;
-
-    public async Task<List<PublicationTypeDto>> Handle(GetPublicationTypesQuery request, CancellationToken cancellationToken)
+    public Task<List<PublicationTypeDto>> Handle(GetPublicationTypesQuery request, CancellationToken cancellationToken)
     {
-        return await _context.PublicationTypes
-            .AsNoTracking()
-            .Select(pt => new PublicationTypeDto { Id = pt.Id, Name = pt.Name })
-            .OrderBy(pt => pt.Name)
-            .ToListAsync(cancellationToken);
+        var result = Enum.GetValues<PublicationType>()
+            .Select(e => new PublicationTypeDto((int)e, e.ToString()))
+            .ToList();
+        return Task.FromResult(result);
     }
 }

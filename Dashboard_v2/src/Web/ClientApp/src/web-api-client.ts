@@ -1133,52 +1133,6 @@ export class PublicationsClient {
         return Promise.resolve<PublicationTypeDto[]>(null as any);
     }
 
-    createPublicationType(body: CreatePublicationTypeBody): Promise<PublicationTypeDto> {
-        let url_ = this.baseUrl + "/api/Publications/types";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreatePublicationType(_response);
-        });
-    }
-
-    protected processCreatePublicationType(response: Response): Promise<PublicationTypeDto> {
-        followIfLoginRedirect(response);
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 201) {
-            return response.text().then((_responseText) => {
-            let result201: any = null;
-            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result201 = PublicationTypeDto.fromJS(resultData201);
-            return result201;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result400 = ProblemDetails.fromJS(resultData400);
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<PublicationTypeDto>(null as any);
-    }
-
     getMyPublications(): Promise<PublicationDto[]> {
         let url_ = this.baseUrl + "/api/Publications";
         url_ = url_.replace(/[?&]$/, "");
@@ -2668,7 +2622,7 @@ export interface IUpdatePresentationBody {
 }
 
 export class PublicationTypeDto implements IPublicationTypeDto {
-    id?: string;
+    value?: number;
     name?: string;
 
     constructor(data?: IPublicationTypeDto) {
@@ -2682,7 +2636,7 @@ export class PublicationTypeDto implements IPublicationTypeDto {
 
     init(_data?: any) {
         if (_data) {
-            this.id = _data["id"];
+            this.value = _data["value"];
             this.name = _data["name"];
         }
     }
@@ -2696,50 +2650,14 @@ export class PublicationTypeDto implements IPublicationTypeDto {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
+        data["value"] = this.value;
         data["name"] = this.name;
         return data;
     }
 }
 
 export interface IPublicationTypeDto {
-    id?: string;
-    name?: string;
-}
-
-export class CreatePublicationTypeBody implements ICreatePublicationTypeBody {
-    name?: string;
-
-    constructor(data?: ICreatePublicationTypeBody) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.name = _data["name"];
-        }
-    }
-
-    static fromJS(data: any): CreatePublicationTypeBody {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreatePublicationTypeBody();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["name"] = this.name;
-        return data;
-    }
-}
-
-export interface ICreatePublicationTypeBody {
+    value?: number;
     name?: string;
 }
 
@@ -2748,7 +2666,7 @@ export class PublicationDto implements IPublicationDto {
     title?: string;
     publicationData?: string;
     urlDoi?: string | undefined;
-    publicationType?: PublicationTypeDto;
+    publicationType?: number;
     authors?: AuthorDto[];
 
     constructor(data?: IPublicationDto) {
@@ -2766,7 +2684,7 @@ export class PublicationDto implements IPublicationDto {
             this.title = _data["title"];
             this.publicationData = _data["publicationData"];
             this.urlDoi = _data["urlDoi"];
-            this.publicationType = _data["publicationType"] ? PublicationTypeDto.fromJS(_data["publicationType"]) : undefined as any;
+            this.publicationType = _data["publicationType"];
             if (Array.isArray(_data["authors"])) {
                 this.authors = [] as any;
                 for (let item of _data["authors"])
@@ -2788,7 +2706,7 @@ export class PublicationDto implements IPublicationDto {
         data["title"] = this.title;
         data["publicationData"] = this.publicationData;
         data["urlDoi"] = this.urlDoi;
-        data["publicationType"] = this.publicationType ? this.publicationType.toJSON() : undefined as any;
+        data["publicationType"] = this.publicationType;
         if (Array.isArray(this.authors)) {
             data["authors"] = [];
             for (let item of this.authors)
@@ -2803,7 +2721,7 @@ export interface IPublicationDto {
     title?: string;
     publicationData?: string;
     urlDoi?: string | undefined;
-    publicationType?: PublicationTypeDto;
+    publicationType?: number;
     authors?: AuthorDto[];
 }
 
@@ -2854,7 +2772,7 @@ export interface IAuthorDto {
 export class CreatePublicationCommand implements ICreatePublicationCommand {
     title?: string;
     publicationData?: string;
-    publicationTypeId?: string;
+    publicationType?: PublicationType;
     urlDoi?: string | undefined;
     additionalAuthorIds?: string[];
     additionalAuthorNames?: string[];
@@ -2873,7 +2791,7 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
         if (_data) {
             this.title = _data["title"];
             this.publicationData = _data["publicationData"];
-            this.publicationTypeId = _data["publicationTypeId"];
+            this.publicationType = _data["publicationType"];
             this.urlDoi = _data["urlDoi"];
             if (Array.isArray(_data["additionalAuthorIds"])) {
                 this.additionalAuthorIds = [] as any;
@@ -2904,7 +2822,7 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
         data = typeof data === 'object' ? data : {};
         data["title"] = this.title;
         data["publicationData"] = this.publicationData;
-        data["publicationTypeId"] = this.publicationTypeId;
+        data["publicationType"] = this.publicationType;
         data["urlDoi"] = this.urlDoi;
         if (Array.isArray(this.additionalAuthorIds)) {
             data["additionalAuthorIds"] = [];
@@ -2928,17 +2846,25 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
 export interface ICreatePublicationCommand {
     title?: string;
     publicationData?: string;
-    publicationTypeId?: string;
+    publicationType?: PublicationType;
     urlDoi?: string | undefined;
     additionalAuthorIds?: string[];
     additionalAuthorNames?: string[];
     additionalUserIds?: string[];
 }
 
+export enum PublicationType {
+    Diario = 0,
+    Libro = 1,
+    Monografía = 2,
+    Capítulo = 3,
+    Artículo_de_Divulgación = 4,
+}
+
 export class UpdatePublicationBody implements IUpdatePublicationBody {
     title?: string;
     publicationData?: string;
-    publicationTypeId?: string;
+    publicationType?: number;
     urlDoi?: string | undefined;
     additionalAuthorIds?: string[] | undefined;
     additionalAuthorNames?: string[] | undefined;
@@ -2957,7 +2883,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         if (_data) {
             this.title = _data["title"];
             this.publicationData = _data["publicationData"];
-            this.publicationTypeId = _data["publicationTypeId"];
+            this.publicationType = _data["publicationType"];
             this.urlDoi = _data["urlDoi"];
             if (Array.isArray(_data["additionalAuthorIds"])) {
                 this.additionalAuthorIds = [] as any;
@@ -2988,7 +2914,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         data = typeof data === 'object' ? data : {};
         data["title"] = this.title;
         data["publicationData"] = this.publicationData;
-        data["publicationTypeId"] = this.publicationTypeId;
+        data["publicationType"] = this.publicationType;
         data["urlDoi"] = this.urlDoi;
         if (Array.isArray(this.additionalAuthorIds)) {
             data["additionalAuthorIds"] = [];
@@ -3012,7 +2938,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
 export interface IUpdatePublicationBody {
     title?: string;
     publicationData?: string;
-    publicationTypeId?: string;
+    publicationType?: number;
     urlDoi?: string | undefined;
     additionalAuthorIds?: string[] | undefined;
     additionalAuthorNames?: string[] | undefined;

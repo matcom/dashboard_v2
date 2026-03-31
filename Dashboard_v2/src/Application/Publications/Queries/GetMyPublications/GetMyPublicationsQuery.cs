@@ -42,11 +42,7 @@ public class GetMyPublicationsQueryHandler : IRequestHandler<GetMyPublicationsQu
                 Title = p.Title,
                 PublicationData = p.PublicationData,
                 UrlDoi = p.UrlDoi,
-                PublicationType = new PublicationTypeDto
-                {
-                    Id = p.PublicationType.Id,
-                    Name = p.PublicationType.Name
-                },
+                PublicationType = (int)p.PublicationType,
                 Authors = p.AuthorPublications
                     .Select(ap => new AuthorDto
                     {

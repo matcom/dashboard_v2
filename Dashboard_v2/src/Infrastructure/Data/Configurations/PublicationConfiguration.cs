@@ -14,12 +14,6 @@ public class PublicationConfiguration : IEntityTypeConfiguration<Publication>
         builder.Property(p => p.Id).HasMaxLength(450);
         builder.Property(p => p.Title).IsRequired().HasMaxLength(500);
         builder.Property(p => p.PublicationData).IsRequired();
-        builder.Property(p => p.PublicationTypeId).IsRequired().HasMaxLength(450);
-
-        // Una publicación tiene exactamente un tipo (no se borra el tipo si hay publicaciones)
-        builder.HasOne(p => p.PublicationType)
-            .WithMany()
-            .HasForeignKey(p => p.PublicationTypeId)
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(p => p.PublicationType).IsRequired();
     }
 }

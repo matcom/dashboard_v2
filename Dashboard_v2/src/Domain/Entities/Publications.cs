@@ -8,9 +8,7 @@ public class Publication
     /// <summary>URL o DOI que identifica/enlaza la publicación (opcional).</summary>
     public string? UrlDoi { get; set; }
 
-    // FK hacia PublicationType (uno y solo uno)
-    public string PublicationTypeId { get; set; } = default!;
-    public PublicationType PublicationType { get; set; } = default!;
+    public PublicationType PublicationType { get; set; }
 
     // Navegación: autores de esta publicación
     public ICollection<AuthorPublication> AuthorPublications { get; set; } = new List<AuthorPublication>();
