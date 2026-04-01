@@ -37,6 +37,8 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IJwtService, JwtService>();
         builder.Services.AddScoped<IPermissionService, PermissionService>();
         builder.Services.AddScoped<IAuthorCleanupService, AuthorCleanupService>();
+        builder.Services.AddScoped<IAuthorResolutionService, AuthorResolutionService>();
+        builder.Services.AddScoped<IPublicationSpecializationService, PublicationSpecializationService>();
 
         builder.Services.AddAuthorization(options =>
             options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Superuser)));

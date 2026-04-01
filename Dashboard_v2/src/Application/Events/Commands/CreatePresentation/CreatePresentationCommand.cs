@@ -19,11 +19,16 @@ public class CreatePresentationCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly IAuthorResolutionService _authorResolution;
 
-    public CreatePresentationCommandHandler(IApplicationDbContext context, IUser currentUser)
+    public CreatePresentationCommandHandler(
+        IApplicationDbContext context,
+        IUser currentUser,
+        IAuthorResolutionService authorResolution)
     {
         _context = context;
         _currentUser = currentUser;
+        _authorResolution = authorResolution;
     }
 
     public async Task<(Result Result, int? PresentationId)> Handle(
@@ -37,25 +42,10 @@ public class CreatePresentationCommandHandler
         if (!eventExists)
             return (Result.Failure(["El evento seleccionado no existe."]), null);
 
-        // Find or create the author linked to the current user
-        var author = await _context.Authors
-            .FirstOrDefaultAsync(a => a.UserId == _currentUser.Id, cancellationToken);
-
+        // Obtener o crear el perfil de autor del usuario actual (delegado al servicio)
+        var author = await _authorResolution.ResolveOrCreateByUserIdAsync(_currentUser.Id!, cancellationToken);
         if (author is null)
-        {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == _currentUser.Id, cancellationToken);
-
-            author = new Author
-            {
-                Name = user is not null
-                    ? $"{user.UserName} {user.UserLastName1}".Trim()
-                    : "Autor desconocido",
-                UserId = _currentUser.Id,
-            };
-            _context.Authors.Add(author);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
+            return (Result.Failure(["Usuario no encontrado."]), null);
 
         var presentation = new Presentation
         {

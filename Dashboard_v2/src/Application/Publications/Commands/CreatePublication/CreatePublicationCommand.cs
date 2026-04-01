@@ -43,11 +43,19 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly IAuthorResolutionService _authorResolution;
+    private readonly IPublicationSpecializationService _specialization;
 
-    public CreatePublicationCommandHandler(IApplicationDbContext context, IUser currentUser)
+    public CreatePublicationCommandHandler(
+        IApplicationDbContext context,
+        IUser currentUser,
+        IAuthorResolutionService authorResolution,
+        IPublicationSpecializationService specialization)
     {
         _context = context;
         _currentUser = currentUser;
+        _authorResolution = authorResolution;
+        _specialization = specialization;
     }
 
     public async Task<(Result Result, string? PublicationId)> Handle(
@@ -57,44 +65,23 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
         if (!Enum.IsDefined(typeof(PublicationType), request.PublicationType))
             return (Result.Failure(["Tipo de publicación no válido."]), null);
 
-        // Validar campos de especialización
-        if (request.PublicationType == PublicationType.Diario)
-        {
-            if (string.IsNullOrWhiteSpace(request.JournalName) ||
-                string.IsNullOrWhiteSpace(request.DataBase) ||
-                request.Group is null or < 1 or > 4)
-                return (Result.Failure(["Datos de la revista son obligatorios: nombre, base de datos y grupo (1–4)."]), null);
-            if (request.Group == 1 && (request.Cuartil is null || !Enum.IsDefined(typeof(Cuartil), request.Cuartil.Value)))
-                return (Result.Failure(["Cuartil es obligatorio para revistas de grupo 1."]), null);
-        }
-        else if (string.IsNullOrWhiteSpace(request.Index))
-        {
-            return (Result.Failure(["La indexación es obligatoria para este tipo de publicación."]), null);
-        }
+        // Validar campos de especialización (delegado al servicio)
+        var specializationData = new PublicationSpecializationData(
+            request.PublicationType,
+            request.JournalName,
+            request.DataBase,
+            request.Group,
+            request.Cuartil,
+            request.Index);
+
+        var validationError = _specialization.Validate(specializationData);
+        if (validationError != null)
+            return (Result.Failure([validationError]), null);
 
         // Obtener o crear el perfil de autor del usuario actual
-        var author = await _context.Authors
-            .FirstOrDefaultAsync(a => a.UserId == _currentUser.Id, cancellationToken);
-
+        var author = await _authorResolution.ResolveOrCreateByUserIdAsync(_currentUser.Id!, cancellationToken);
         if (author == null)
-        {
-            // Crear perfil de autor usando el nombre completo del usuario
-            var user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == _currentUser.Id, cancellationToken);
-
-            if (user == null)
-                return (Result.Failure(["Usuario no encontrado."]), null);
-
-            author = new Author
-            {
-                Name = $"{user.UserName} {user.UserLastName1}{(string.IsNullOrEmpty(user.UserLastName2) ? string.Empty : " " + user.UserLastName2)}".Trim(),
-                UserId = user.Id
-            };
-            _context.Authors.Add(author);
-            // Guardar primero para tener el Id del autor antes de crear la publicación
-            await _context.SaveChangesAsync(cancellationToken);
-        }
+            return (Result.Failure(["Usuario no encontrado."]), null);
 
         // Construir la publicación con el usuario actual como primer autor
         var publication = new Publication
@@ -106,75 +93,18 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
             AuthorPublications = [new AuthorPublication { AuthorId = author.Id }]
         };
 
-        // Agregar coautores existentes por ID
-        foreach (var authorId in request.AdditionalAuthorIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            // Verificar que el autor no sea el mismo usuario actual y que exista
-            if (authorId != author.Id && await _context.Authors.AnyAsync(a => a.Id == authorId, cancellationToken))
-            {
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = authorId });
-            }
-        }
+        // Agregar coautores adicionales (delegado al servicio)
+        var coauthors = await _authorResolution.ResolveCoauthorsAsync(
+            author.Id,
+            request.AdditionalAuthorIds,
+            request.AdditionalAuthorNames,
+            request.AdditionalUserIds,
+            cancellationToken);
+        foreach (var ap in coauthors)
+            publication.AuthorPublications.Add(ap);
 
-        // Agregar coautores nuevos por nombre (se crean como autores sin cuenta vinculada)
-        foreach (var name in request.AdditionalAuthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
-        {
-            publication.AuthorPublications.Add(new AuthorPublication
-            {
-                Author = new Author { Name = name.Trim() }
-            });
-        }
-
-        // Agregar coautores referenciados como usuarios (find-or-create author vinculado)
-        foreach (var userId in request.AdditionalUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (userId == _currentUser.Id) continue; // ya es el autor principal
-
-            var coAuthor = await _context.Authors
-                .FirstOrDefaultAsync(a => a.UserId == userId, cancellationToken);
-
-            if (coAuthor == null)
-            {
-                var coUser = await _context.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-                if (coUser == null) continue;
-
-                coAuthor = new Author
-                {
-                    Name = $"{coUser.UserName} {coUser.UserLastName1}{(string.IsNullOrEmpty(coUser.UserLastName2) ? string.Empty : " " + coUser.UserLastName2)}".Trim(),
-                    UserId = coUser.Id
-                };
-                _context.Authors.Add(coAuthor);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-
-            if (publication.AuthorPublications.All(ap => ap.AuthorId != coAuthor.Id))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = coAuthor.Id });
-        }
-
-        // Agregar especialización según el tipo
-        if (request.PublicationType == PublicationType.Diario)
-        {
-            publication.JournalPublication = new JournalPublication
-            {
-                PublicationId = publication.Id,
-                Name = request.JournalName!.Trim(),
-                DataBase = request.DataBase!.Trim(),
-                Group = request.Group!.Value,
-                JournalGroup1Publication = request.Group == 1
-                    ? new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = request.Cuartil!.Value }
-                    : null
-            };
-        }
-        else
-        {
-            publication.IndexedPublication = new IndexedPublication
-            {
-                PublicationId = publication.Id,
-                Index = request.Index!.Trim()
-            };
-        }
+        // Vincular especialización según el tipo (delegado al servicio)
+        _specialization.AttachSpecialization(publication, specializationData);
 
         _context.Publications.Add(publication);
         await _context.SaveChangesAsync(cancellationToken);

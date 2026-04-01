@@ -39,15 +39,21 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
     private readonly IAuthorCleanupService _authorCleanup;
+    private readonly IAuthorResolutionService _authorResolution;
+    private readonly IPublicationSpecializationService _specialization;
 
     public UpdatePublicationCommandHandler(
         IApplicationDbContext context,
         IUser currentUser,
-        IAuthorCleanupService authorCleanup)
+        IAuthorCleanupService authorCleanup,
+        IAuthorResolutionService authorResolution,
+        IPublicationSpecializationService specialization)
     {
         _context = context;
         _currentUser = currentUser;
         _authorCleanup = authorCleanup;
+        _authorResolution = authorResolution;
+        _specialization = specialization;
     }
 
     public async Task<Result> Handle(UpdatePublicationCommand request, CancellationToken cancellationToken)
@@ -75,97 +81,30 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
         if (publication == null)
             return Result.Failure(["Publicación no encontrada."]);
 
-        // Validar que el nuevo tipo es válido
+        // Validar tipo y campos de especialización (delegado al servicio)
         if (!Enum.IsDefined(typeof(PublicationType), request.PublicationType))
             return Result.Failure(["Tipo de publicación no válido."]);
 
+        var specializationData = new PublicationSpecializationData(
+            request.PublicationType,
+            request.JournalName,
+            request.DataBase,
+            request.Group,
+            request.Cuartil,
+            request.Index);
+
+        var validationError = _specialization.Validate(specializationData);
+        if (validationError != null)
+            return Result.Failure([validationError]);
+
+        // Actualizar campos base
         publication.Title = request.Title.Trim();
         publication.PublicationData = request.PublicationData;
         publication.PublicationType = request.PublicationType;
         publication.UrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : request.UrlDoi.Trim();
 
-        // ── Actualizar especialización ────────────────────────────────────────────────────────
-        var isNowJournal = request.PublicationType == PublicationType.Diario;
-        var wasJournal = publication.JournalPublication != null;
-
-        if (isNowJournal)
-        {
-            if (string.IsNullOrWhiteSpace(request.JournalName) ||
-                string.IsNullOrWhiteSpace(request.DataBase) ||
-                request.Group is null or < 1 or > 4)
-                return Result.Failure(["Datos de la revista son obligatorios: nombre, base de datos y grupo (1–4)."]);
-            if (request.Group == 1 && (request.Cuartil is null || !Enum.IsDefined(typeof(Cuartil), request.Cuartil.Value)))
-                return Result.Failure(["Cuartil es obligatorio para revistas de grupo 1."]);
-        }
-        else if (string.IsNullOrWhiteSpace(request.Index))
-        {
-            return Result.Failure(["La indexación es obligatoria para este tipo de publicación."]);
-        }
-
-        if (wasJournal && !isNowJournal)
-        {
-            if (publication.JournalPublication!.JournalGroup1Publication != null)
-                _context.JournalGroup1Publications.Remove(publication.JournalPublication.JournalGroup1Publication);
-            _context.JournalPublications.Remove(publication.JournalPublication);
-            publication.JournalPublication = null;
-        }
-        else if (!wasJournal && isNowJournal && publication.IndexedPublication != null)
-        {
-            _context.IndexedPublications.Remove(publication.IndexedPublication);
-            publication.IndexedPublication = null;
-        }
-
-        if (isNowJournal)
-        {
-            if (publication.JournalPublication == null)
-            {
-                publication.JournalPublication = new JournalPublication
-                {
-                    PublicationId = publication.Id,
-                    Name = request.JournalName!.Trim(),
-                    DataBase = request.DataBase!.Trim(),
-                    Group = request.Group!.Value
-                };
-            }
-            else
-            {
-                publication.JournalPublication.Name = request.JournalName!.Trim();
-                publication.JournalPublication.DataBase = request.DataBase!.Trim();
-                publication.JournalPublication.Group = request.Group!.Value;
-            }
-
-            if (request.Group == 1)
-            {
-                if (publication.JournalPublication.JournalGroup1Publication == null)
-                {
-                    var g1 = new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = request.Cuartil!.Value };
-                    publication.JournalPublication.JournalGroup1Publication = g1;
-                    _context.JournalGroup1Publications.Add(g1);
-                }
-                else
-                {
-                    publication.JournalPublication.JournalGroup1Publication.Cuartil = request.Cuartil!.Value;
-                }
-            }
-            else if (publication.JournalPublication.JournalGroup1Publication != null)
-            {
-                _context.JournalGroup1Publications.Remove(publication.JournalPublication.JournalGroup1Publication);
-                publication.JournalPublication.JournalGroup1Publication = null;
-            }
-        }
-        else
-        {
-            if (publication.IndexedPublication == null)
-            {
-                var indexed = new IndexedPublication { PublicationId = publication.Id, Index = request.Index!.Trim() };
-                publication.IndexedPublication = indexed;
-                _context.IndexedPublications.Add(indexed);
-            }
-            else
-            {
-                publication.IndexedPublication.Index = request.Index!.Trim();
-            }
-        }
+        // Actualizar especialización (delegado al servicio)
+        await _specialization.ApplySpecializationUpdateAsync(publication, specializationData, cancellationToken);
 
         // Reemplazar coautores: conservar solo el autor actual y añadir los nuevos
         var removedAuthorIds = publication.AuthorPublications
@@ -178,53 +117,19 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
             publication.AuthorPublications.Remove(ap);
         }
 
-        // Agregar coautores existentes por ID
-        foreach (var authorId in request.AdditionalAuthorIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (authorId != currentAuthor.Id && await _context.Authors.AnyAsync(a => a.Id == authorId, cancellationToken))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = authorId });
-        }
-
-        // Agregar coautores nuevos por nombre
-        foreach (var name in request.AdditionalAuthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
-        {
-            publication.AuthorPublications.Add(new AuthorPublication
-            {
-                Author = new Author { Name = name.Trim() }
-            });
-        }
-
-        // Agregar coautores referenciados como usuarios (find-or-create author vinculado)
-        foreach (var userId in request.AdditionalUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (userId == _currentUser.Id) continue;
-
-            var coAuthor = await _context.Authors
-                .FirstOrDefaultAsync(a => a.UserId == userId, cancellationToken);
-
-            if (coAuthor == null)
-            {
-                var coUser = await _context.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-                if (coUser == null) continue;
-
-                coAuthor = new Author
-                {
-                    Name = $"{coUser.UserName} {coUser.UserLastName1}{(string.IsNullOrEmpty(coUser.UserLastName2) ? string.Empty : " " + coUser.UserLastName2)}".Trim(),
-                    UserId = coUser.Id
-                };
-                _context.Authors.Add(coAuthor);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-
-            if (publication.AuthorPublications.All(ap => ap.AuthorId != coAuthor.Id))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = coAuthor.Id });
-        }
+        // Agregar coautores adicionales (delegado al servicio)
+        var coauthors = await _authorResolution.ResolveCoauthorsAsync(
+            currentAuthor.Id,
+            request.AdditionalAuthorIds,
+            request.AdditionalAuthorNames,
+            request.AdditionalUserIds,
+            cancellationToken);
+        foreach (var ap in coauthors)
+            publication.AuthorPublications.Add(ap);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Eliminar autores que ya no tienen ninguna referencia y no están vinculados a un usuario
+        // Limpiar autores huérfanos que ya no tienen ninguna referencia
         await _authorCleanup.CleanupIfOrphanedAsync(removedAuthorIds, cancellationToken);
 
         return Result.Success();
