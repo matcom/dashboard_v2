@@ -1688,19 +1688,61 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "dataBase": {
-            "type": "string"
-          },
           "group": {
             "type": "integer",
             "format": "int32"
           },
+          "journals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JournalDto"
+            }
+          },
+          "databases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicationDatabaseDto"
+            }
+          }
+        }
+      },
+      "JournalDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "issn": {
+            "type": "string",
+            "nullable": true
+          },
+          "eissn": {
+            "type": "string",
+            "nullable": true
+          },
           "cuartil": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "PublicationDatabaseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
             "nullable": true
           }
         }
@@ -1748,7 +1790,19 @@
             "type": "string",
             "nullable": true
           },
-          "dataBase": {
+          "journalISSN": {
+            "type": "string",
+            "nullable": true
+          },
+          "journalEISSN": {
+            "type": "string",
+            "nullable": true
+          },
+          "databaseName": {
+            "type": "string",
+            "nullable": true
+          },
+          "databaseUrl": {
             "type": "string",
             "nullable": true
           },
@@ -1848,7 +1902,19 @@
             "type": "string",
             "nullable": true
           },
-          "dataBase": {
+          "journalISSN": {
+            "type": "string",
+            "nullable": true
+          },
+          "journalEISSN": {
+            "type": "string",
+            "nullable": true
+          },
+          "databaseName": {
+            "type": "string",
+            "nullable": true
+          },
+          "databaseUrl": {
             "type": "string",
             "nullable": true
           },

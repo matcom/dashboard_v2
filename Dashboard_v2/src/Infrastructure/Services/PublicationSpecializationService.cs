@@ -17,28 +17,39 @@ public class PublicationSpecializationService : IPublicationSpecializationServic
 
     /// <inheritdoc/>
     public string? Validate(PublicationSpecializationData data)
-        => ValidateFields(data.PublicationType, data.JournalName, data.DataBase,
-                          data.Group, data.Cuartil, data.Index);
+    {
+        if (data.PublicationType == PublicationType.Diario)
+        {
+            if (string.IsNullOrWhiteSpace(data.JournalName) || data.Group is null or < 1 or > 4)
+                return "Datos de la revista son obligatorios: nombre y grupo (1–4).";
+
+            if (IsScopusDatabase(data.DatabaseName) &&
+                (data.Cuartil is null || !Enum.IsDefined(typeof(Cuartil), data.Cuartil.Value)))
+                return "Cuartil es obligatorio cuando la base de datos es Scopus.";
+        }
+        else if (string.IsNullOrWhiteSpace(data.Index))
+        {
+            return "La indexación es obligatoria para este tipo de publicación.";
+        }
+
+        return null;
+    }
 
     /// <inheritdoc/>
     public void AttachSpecialization(Publication publication, PublicationSpecializationData data)
     {
         if (data.PublicationType == PublicationType.Diario)
         {
-            publication.JournalPublication = new JournalPublication
+            bool isScopus = IsScopusDatabase(data.DatabaseName);
+            var jp = new JournalPublication
             {
                 PublicationId = publication.Id,
-                Name = data.JournalName!.Trim(),
-                DataBase = data.DataBase!.Trim(),
-                Group = data.Group!.Value,
-                JournalGroup1Publication = data.Group == 1
-                    ? new JournalGroup1Publication
-                    {
-                        PublicationId = publication.Id,
-                        Cuartil = data.Cuartil!.Value
-                    }
-                    : null
+                Group = data.Group!.Value
             };
+            jp.Journals.Add(BuildJournal(publication.Id, data, isScopus));
+            if (!string.IsNullOrWhiteSpace(data.DatabaseName))
+                jp.Databases.Add(BuildDatabase(publication.Id, data));
+            publication.JournalPublication = jp;
         }
         else
         {
@@ -56,10 +67,9 @@ public class PublicationSpecializationService : IPublicationSpecializationServic
         PublicationSpecializationData data,
         CancellationToken cancellationToken = default)
     {
-        var isNowJournal = data.PublicationType == PublicationType.Diario;
-        var wasJournal = publication.JournalPublication != null;
+        bool isNowJournal = data.PublicationType == PublicationType.Diario;
+        bool wasJournal = publication.JournalPublication != null;
 
-        // Limpiar especialización anterior si el tipo cambió
         if (wasJournal && !isNowJournal)
         {
             RemoveJournalSpecialization(publication);
@@ -80,36 +90,41 @@ public class PublicationSpecializationService : IPublicationSpecializationServic
 
     // ── helpers privados ──────────────────────────────────────────────────────
 
-    private static string? ValidateFields(
-        PublicationType type,
-        string? journalName,
-        string? dataBase,
-        int? group,
-        Cuartil? cuartil,
-        string? index)
+    private static bool IsScopusDatabase(string? name)
+        => !string.IsNullOrWhiteSpace(name) &&
+           name.Contains("scopus", StringComparison.OrdinalIgnoreCase);
+
+    private static Journal BuildJournal(string jpId, PublicationSpecializationData data, bool isScopus)
     {
-        if (type == PublicationType.Diario)
+        var journalId = Guid.NewGuid().ToString();
+        return new Journal
         {
-            if (string.IsNullOrWhiteSpace(journalName) ||
-                string.IsNullOrWhiteSpace(dataBase) ||
-                group is null or < 1 or > 4)
-                return "Datos de la revista son obligatorios: nombre, base de datos y grupo (1–4).";
-
-            if (group == 1 && (cuartil is null || !Enum.IsDefined(typeof(Cuartil), cuartil.Value)))
-                return "Cuartil es obligatorio para revistas de grupo 1.";
-        }
-        else if (string.IsNullOrWhiteSpace(index))
-        {
-            return "La indexación es obligatoria para este tipo de publicación.";
-        }
-
-        return null;
+            Id = journalId,
+            JournalPublicationId = jpId,
+            Name = data.JournalName!.Trim(),
+            ISSN = string.IsNullOrWhiteSpace(data.JournalISSN) ? null : data.JournalISSN.Trim(),
+            EISSN = string.IsNullOrWhiteSpace(data.JournalEISSN) ? null : data.JournalEISSN.Trim(),
+            ScopusJournal = isScopus
+                ? new ScopusJournal { JournalId = journalId, Cuartil = data.Cuartil!.Value }
+                : null
+        };
     }
+
+    private static PublicationDatabase BuildDatabase(string jpId, PublicationSpecializationData data)
+        => new()
+        {
+            JournalPublicationId = jpId,
+            Name = data.DatabaseName!.Trim(),
+            Url = string.IsNullOrWhiteSpace(data.DatabaseUrl) ? null : data.DatabaseUrl.Trim()
+        };
 
     private void RemoveJournalSpecialization(Publication publication)
     {
-        if (publication.JournalPublication!.JournalGroup1Publication != null)
-            _context.JournalGroup1Publications.Remove(publication.JournalPublication.JournalGroup1Publication);
+        foreach (var j in publication.JournalPublication!.Journals.ToList())
+            _context.Journals.Remove(j); // ScopusJournal cascades
+
+        foreach (var db in publication.JournalPublication!.Databases.ToList())
+            _context.PublicationDatabases.Remove(db);
 
         _context.JournalPublications.Remove(publication.JournalPublication);
         publication.JournalPublication = null;
@@ -122,40 +137,29 @@ public class PublicationSpecializationService : IPublicationSpecializationServic
             publication.JournalPublication = new JournalPublication
             {
                 PublicationId = publication.Id,
-                Name = data.JournalName!.Trim(),
-                DataBase = data.DataBase!.Trim(),
                 Group = data.Group!.Value
             };
         }
         else
         {
-            publication.JournalPublication.Name = data.JournalName!.Trim();
-            publication.JournalPublication.DataBase = data.DataBase!.Trim();
             publication.JournalPublication.Group = data.Group!.Value;
+            // Replace old journals and databases with new ones
+            foreach (var j in publication.JournalPublication.Journals.ToList())
+                _context.Journals.Remove(j);
+            publication.JournalPublication.Journals.Clear();
+
+            foreach (var db in publication.JournalPublication.Databases.ToList())
+                _context.PublicationDatabases.Remove(db);
+            publication.JournalPublication.Databases.Clear();
         }
 
-        if (data.Group == 1)
-        {
-            if (publication.JournalPublication.JournalGroup1Publication == null)
-            {
-                var g1 = new JournalGroup1Publication
-                {
-                    PublicationId = publication.Id,
-                    Cuartil = data.Cuartil!.Value
-                };
-                publication.JournalPublication.JournalGroup1Publication = g1;
-                _context.JournalGroup1Publications.Add(g1);
-            }
-            else
-            {
-                publication.JournalPublication.JournalGroup1Publication.Cuartil = data.Cuartil!.Value;
-            }
-        }
-        else if (publication.JournalPublication.JournalGroup1Publication != null)
-        {
-            _context.JournalGroup1Publications.Remove(publication.JournalPublication.JournalGroup1Publication);
-            publication.JournalPublication.JournalGroup1Publication = null;
-        }
+        bool isScopus = IsScopusDatabase(data.DatabaseName);
+        publication.JournalPublication.Journals.Add(
+            BuildJournal(publication.JournalPublication.PublicationId, data, isScopus));
+
+        if (!string.IsNullOrWhiteSpace(data.DatabaseName))
+            publication.JournalPublication.Databases.Add(
+                BuildDatabase(publication.JournalPublication.PublicationId, data));
     }
 
     private void ApplyIndexedUpdate(Publication publication, PublicationSpecializationData data)

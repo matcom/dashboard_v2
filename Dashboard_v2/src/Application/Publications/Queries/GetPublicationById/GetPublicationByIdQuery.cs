@@ -55,12 +55,25 @@ public class GetPublicationByIdQueryHandler : IRequestHandler<GetPublicationById
                 },
                 JournalPublication = p.JournalPublication == null ? null : new JournalPublicationDto
                 {
-                    Name = p.JournalPublication.Name,
-                    DataBase = p.JournalPublication.DataBase,
                     Group = p.JournalPublication.Group,
-                    Cuartil = p.JournalPublication.JournalGroup1Publication != null
-                        ? (int?)p.JournalPublication.JournalGroup1Publication.Cuartil
-                        : null
+                    Journals = p.JournalPublication.Journals
+                        .Select(j => new JournalDto
+                        {
+                            Id = j.Id,
+                            Name = j.Name,
+                            ISSN = j.ISSN,
+                            EISSN = j.EISSN,
+                            Cuartil = j.ScopusJournal != null ? (int?)j.ScopusJournal.Cuartil : null
+                        })
+                        .ToList(),
+                    Databases = p.JournalPublication.Databases
+                        .Select(d => new PublicationDatabaseDto
+                        {
+                            Id = d.Id,
+                            Name = d.Name,
+                            Url = d.Url
+                        })
+                        .ToList()
                 }
             })
             .FirstOrDefaultAsync(cancellationToken);

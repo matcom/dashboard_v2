@@ -28,8 +28,16 @@ public record UpdatePublicationCommand : IRequest<Result>
 
     // ── Campos de especialización ─────────────────────────────────────────────────────────────
     public string? Index { get; init; }
+
+    // ── Revista (tipo Diario) ─────────────────────────────────────────────────────────────────
     public string? JournalName { get; init; }
-    public string? DataBase { get; init; }
+    public string? JournalISSN { get; init; }
+    public string? JournalEISSN { get; init; }
+
+    // ── Base de datos ─────────────────────────────────────────────────────────────────────────
+    public string? DatabaseName { get; init; }
+    public string? DatabaseUrl { get; init; }
+
     public int? Group { get; init; }
     public Cuartil? Cuartil { get; init; }
 }
@@ -74,7 +82,10 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
         var publication = await _context.Publications
             .Include(p => p.AuthorPublications)
             .Include(p => p.JournalPublication)
-                .ThenInclude(jp => jp!.JournalGroup1Publication)
+                .ThenInclude(jp => jp!.Journals)
+                    .ThenInclude(j => j.ScopusJournal)
+            .Include(p => p.JournalPublication)
+                .ThenInclude(jp => jp!.Databases)
             .Include(p => p.IndexedPublication)
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
@@ -88,7 +99,10 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
         var specializationData = new PublicationSpecializationData(
             request.PublicationType,
             request.JournalName,
-            request.DataBase,
+            request.JournalISSN,
+            request.JournalEISSN,
+            request.DatabaseName,
+            request.DatabaseUrl,
             request.Group,
             request.Cuartil,
             request.Index);

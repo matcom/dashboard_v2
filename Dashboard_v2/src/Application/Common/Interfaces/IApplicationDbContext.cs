@@ -19,7 +19,9 @@ public interface IApplicationDbContext
     DbSet<AuthorPresentation> AuthorPresentations { get; }
     DbSet<IndexedPublication> IndexedPublications { get; }
     DbSet<JournalPublication> JournalPublications { get; }
-    DbSet<JournalGroup1Publication> JournalGroup1Publications { get; }
+    DbSet<Journal> Journals { get; }
+    DbSet<ScopusJournal> ScopusJournals { get; }
+    DbSet<PublicationDatabase> PublicationDatabases { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

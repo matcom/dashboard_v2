@@ -6,7 +6,7 @@ import {
   Table, Button, Badge,
   Spinner, Alert,
   Modal, ModalHeader, ModalBody, ModalFooter,
-  Form, FormGroup, Label, Input,
+  Form, FormGroup, Label, Input, Row, Col,
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -46,7 +46,10 @@ const EMPTY_FORM = {
   index: '',
   // Revista (tipo 0)
   journalName: '',
-  dataBase: '',
+  journalISSN: '',
+  journalEISSN: '',
+  databaseName: '',
+  databaseUrl: '',
   group: '',
   cuartil: '',
 };
@@ -124,10 +127,13 @@ export default function PublicationsPage() {
       // Indexadas
       index: pub.indexedPublication?.index ?? '',
       // Revista
-      journalName: pub.journalPublication?.name ?? '',
-      dataBase: pub.journalPublication?.dataBase ?? '',
+      journalName: pub.journalPublication?.journals?.[0]?.name ?? '',
+      journalISSN: pub.journalPublication?.journals?.[0]?.issn ?? '',
+      journalEISSN: pub.journalPublication?.journals?.[0]?.eissn ?? '',
+      databaseName: pub.journalPublication?.databases?.[0]?.name ?? '',
+      databaseUrl: pub.journalPublication?.databases?.[0]?.url ?? '',
       group: pub.journalPublication?.group ?? '',
-      cuartil: pub.journalPublication?.cuartil ?? '',
+      cuartil: pub.journalPublication?.journals?.[0]?.cuartil ?? '',
     });
     setFormError('');
     // Pre-cargar coautores (todos excepto el usuario actual)
@@ -171,9 +177,13 @@ export default function PublicationsPage() {
             // Especialización
             index: parseInt(form.publicationType, 10) !== 0 ? form.index || null : null,
             journalName: parseInt(form.publicationType, 10) === 0 ? form.journalName || null : null,
-            dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
+            journalISSN: parseInt(form.publicationType, 10) === 0 ? form.journalISSN || null : null,
+            journalEISSN: parseInt(form.publicationType, 10) === 0 ? form.journalEISSN || null : null,
+            databaseName: parseInt(form.publicationType, 10) === 0 ? form.databaseName || null : null,
+            databaseUrl: parseInt(form.publicationType, 10) === 0 ? form.databaseUrl || null : null,
             group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
-            cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? parseInt(form.cuartil, 10) || null : null,
+            cuartil: parseInt(form.publicationType, 10) === 0 && form.databaseName?.toLowerCase().includes('scopus')
+              ? parseInt(form.cuartil, 10) || null : null,
           }),
         });
       } else {
@@ -191,9 +201,13 @@ export default function PublicationsPage() {
             // Especialización
             index: parseInt(form.publicationType, 10) !== 0 ? form.index || null : null,
             journalName: parseInt(form.publicationType, 10) === 0 ? form.journalName || null : null,
-            dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
+            journalISSN: parseInt(form.publicationType, 10) === 0 ? form.journalISSN || null : null,
+            journalEISSN: parseInt(form.publicationType, 10) === 0 ? form.journalEISSN || null : null,
+            databaseName: parseInt(form.publicationType, 10) === 0 ? form.databaseName || null : null,
+            databaseUrl: parseInt(form.publicationType, 10) === 0 ? form.databaseUrl || null : null,
             group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
-            cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? parseInt(form.cuartil, 10) || null : null,
+            cuartil: parseInt(form.publicationType, 10) === 0 && form.databaseName?.toLowerCase().includes('scopus')
+              ? parseInt(form.cuartil, 10) || null : null,
           }),
         });
       }
@@ -392,12 +406,12 @@ export default function PublicationsPage() {
                                     <tr key={pub.id}>
                                       <td>{pub.title}</td>
                                       <td>{pub.publicationData}</td>
-                                      <td>{pub.journalPublication?.name}</td>
-                                      <td>{pub.journalPublication?.dataBase}</td>
+                                      <td>{pub.journalPublication?.journals?.[0]?.name}</td>
+                                      <td>{pub.journalPublication?.databases?.[0]?.name ?? <span className="text-muted">—</span>}</td>
                                       {g === 1 && (
                                         <td>
-                                          {pub.journalPublication?.cuartil != null
-                                            ? <Badge color="info" pill className="text-dark">Q{pub.journalPublication.cuartil}</Badge>
+                                          {pub.journalPublication?.journals?.[0]?.cuartil != null
+                                            ? <Badge color="info" pill className="text-dark">Q{pub.journalPublication.journals[0].cuartil}</Badge>
                                             : <span className="text-muted">—</span>}
                                         </td>
                                       )}
@@ -514,26 +528,89 @@ export default function PublicationsPage() {
             {/* ── Campos dinámicos por tipo ── */}
             {parseInt(form.publicationType, 10) === 0 ? (
               <>
-                <FormGroup>
-                  <Label for="journalName">Nombre de la revista <span className="text-danger">*</span></Label>
-                  <Input
-                    id="journalName"
-                    name="journalName"
-                    value={form.journalName}
-                    onChange={handleFormChange}
-                    placeholder="Ej. Nature, Science..."
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="dataBase">Base de datos <span className="text-danger">*</span></Label>
-                  <Input
-                    id="dataBase"
-                    name="dataBase"
-                    value={form.dataBase}
-                    onChange={handleFormChange}
-                    placeholder="Ej. Scopus, Web of Science..."
-                  />
-                </FormGroup>
+                {/* ── Sección: Revista ── */}
+                <fieldset className="border rounded p-3 mb-3">
+                  <legend style={{ fontSize: '0.9em', fontWeight: 600 }}>Revista</legend>
+                  <FormGroup>
+                    <Label for="journalName">Nombre <span className="text-danger">*</span></Label>
+                    <Input
+                      id="journalName"
+                      name="journalName"
+                      value={form.journalName}
+                      onChange={handleFormChange}
+                      placeholder="Ej. Nature, Science, Revista Cubana de Informática..."
+                    />
+                  </FormGroup>
+                  <Row>
+                    <Col md={6}>
+                      <FormGroup>
+                        <Label for="journalISSN">ISSN</Label>
+                        <Input
+                          id="journalISSN"
+                          name="journalISSN"
+                          value={form.journalISSN}
+                          onChange={handleFormChange}
+                          placeholder="Ej. 1234-5678"
+                        />
+                      </FormGroup>
+                    </Col>
+                    <Col md={6}>
+                      <FormGroup>
+                        <Label for="journalEISSN">eISSN</Label>
+                        <Input
+                          id="journalEISSN"
+                          name="journalEISSN"
+                          value={form.journalEISSN}
+                          onChange={handleFormChange}
+                          placeholder="Ej. 1234-567X"
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                  {form.databaseName?.toLowerCase().includes('scopus') && (
+                    <FormGroup>
+                      <Label for="cuartil">Cuartil Scimago <span className="text-danger">*</span></Label>
+                      <Input
+                        type="select"
+                        id="cuartil"
+                        name="cuartil"
+                        value={form.cuartil}
+                        onChange={handleFormChange}
+                      >
+                        <option value="">Selecciona cuartil...</option>
+                        {[1, 2, 3, 4].map(q => (
+                          <option key={q} value={q}>Q{q}</option>
+                        ))}
+                      </Input>
+                    </FormGroup>
+                  )}
+                </fieldset>
+
+                {/* ── Sección: Base de datos ── */}
+                <fieldset className="border rounded p-3 mb-3">
+                  <legend style={{ fontSize: '0.9em', fontWeight: 600 }}>Base de datos</legend>
+                  <FormGroup>
+                    <Label for="databaseName">Nombre</Label>
+                    <Input
+                      id="databaseName"
+                      name="databaseName"
+                      value={form.databaseName}
+                      onChange={handleFormChange}
+                      placeholder="Ej. Scopus, Web of Science, Latindex..."
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <Label for="databaseUrl">URL</Label>
+                    <Input
+                      id="databaseUrl"
+                      name="databaseUrl"
+                      value={form.databaseUrl}
+                      onChange={handleFormChange}
+                      placeholder="https://..."
+                    />
+                  </FormGroup>
+                </fieldset>
+
                 <FormGroup>
                   <Label for="group">Grupo (1–4) <span className="text-danger">*</span></Label>
                   <Input
@@ -549,23 +626,6 @@ export default function PublicationsPage() {
                     ))}
                   </Input>
                 </FormGroup>
-                {parseInt(form.group, 10) === 1 && (
-                  <FormGroup>
-                    <Label for="cuartil">Cuartil Scimago <span className="text-danger">*</span></Label>
-                    <Input
-                      type="select"
-                      id="cuartil"
-                      name="cuartil"
-                      value={form.cuartil}
-                      onChange={handleFormChange}
-                    >
-                      <option value="">Selecciona cuartil...</option>
-                      {[1, 2, 3, 4].map(q => (
-                        <option key={q} value={q}>Q{q}</option>
-                      ))}
-                    </Input>
-                  </FormGroup>
-                )}
               </>
             ) : (
               <FormGroup>

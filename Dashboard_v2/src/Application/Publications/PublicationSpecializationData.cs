@@ -9,8 +9,16 @@ namespace Dashboard_v2.Application.Publications;
 /// </summary>
 public record PublicationSpecializationData(
     PublicationType PublicationType,
+    // ── Revista ──────────────────────────────────────────────────────────────
     string? JournalName,
-    string? DataBase,
+    string? JournalISSN,
+    string? JournalEISSN,
+    // ── Base de datos ─────────────────────────────────────────────────────────
+    string? DatabaseName,
+    string? DatabaseUrl,
+    // ── Clasificación ────────────────────────────────────────────────────────
     int? Group,
+    /// <summary>Obligatorio cuando DatabaseName contiene "scopus" (insensible a mayúsculas).</summary>
     Cuartil? Cuartil,
+    // ── Indexación (tipos no-Diario) ──────────────────────────────────────────
     string? Index);

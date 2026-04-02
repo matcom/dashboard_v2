@@ -15,14 +15,31 @@ public record IndexedPublicationDto
     public string Index { get; init; } = default!;
 }
 
+/// <summary>Datos de una revista académica.</summary>
+public record JournalDto
+{
+    public string Id { get; init; } = default!;
+    public string Name { get; init; } = default!;
+    public string? ISSN { get; init; }
+    public string? EISSN { get; init; }
+    /// <summary>Cuartil Scimago (1–4). Solo presente si la revista está en Scopus.</summary>
+    public int? Cuartil { get; init; }
+}
+
+/// <summary>Datos de una base de datos bibliográfica.</summary>
+public record PublicationDatabaseDto
+{
+    public string Id { get; init; } = default!;
+    public string Name { get; init; } = default!;
+    public string? Url { get; init; }
+}
+
 /// <summary>Datos de revista para publicaciones de tipo Diario (journal).</summary>
 public record JournalPublicationDto
 {
-    public string Name { get; init; } = default!;
-    public string DataBase { get; init; } = default!;
     public int Group { get; init; }
-    /// <summary>Cuartil Scimago (1–4). Solo presente cuando Group == 1.</summary>
-    public int? Cuartil { get; init; }
+    public List<JournalDto> Journals { get; init; } = [];
+    public List<PublicationDatabaseDto> Databases { get; init; } = [];
 }
 
 /// <summary>Datos completos de una publicación.</summary>

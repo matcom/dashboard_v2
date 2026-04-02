@@ -2814,10 +2814,9 @@ export interface IIndexedPublicationDto {
 }
 
 export class JournalPublicationDto implements IJournalPublicationDto {
-    name?: string;
-    dataBase?: string;
     group?: number;
-    cuartil?: number | undefined;
+    journals?: JournalDto[];
+    databases?: PublicationDatabaseDto[];
 
     constructor(data?: IJournalPublicationDto) {
         if (data) {
@@ -2830,10 +2829,17 @@ export class JournalPublicationDto implements IJournalPublicationDto {
 
     init(_data?: any) {
         if (_data) {
-            this.name = _data["name"];
-            this.dataBase = _data["dataBase"];
             this.group = _data["group"];
-            this.cuartil = _data["cuartil"];
+            if (Array.isArray(_data["journals"])) {
+                this.journals = [] as any;
+                for (let item of _data["journals"])
+                    this.journals!.push(JournalDto.fromJS(item));
+            }
+            if (Array.isArray(_data["databases"])) {
+                this.databases = [] as any;
+                for (let item of _data["databases"])
+                    this.databases!.push(PublicationDatabaseDto.fromJS(item));
+            }
         }
     }
 
@@ -2846,19 +2852,121 @@ export class JournalPublicationDto implements IJournalPublicationDto {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["name"] = this.name;
-        data["dataBase"] = this.dataBase;
         data["group"] = this.group;
-        data["cuartil"] = this.cuartil;
+        if (Array.isArray(this.journals)) {
+            data["journals"] = [];
+            for (let item of this.journals)
+                data["journals"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.databases)) {
+            data["databases"] = [];
+            for (let item of this.databases)
+                data["databases"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
 
 export interface IJournalPublicationDto {
-    name?: string;
-    dataBase?: string;
     group?: number;
+    journals?: JournalDto[];
+    databases?: PublicationDatabaseDto[];
+}
+
+export class JournalDto implements IJournalDto {
+    id?: string;
+    name?: string;
+    issn?: string | undefined;
+    eissn?: string | undefined;
     cuartil?: number | undefined;
+
+    constructor(data?: IJournalDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.issn = _data["issn"];
+            this.eissn = _data["eissn"];
+            this.cuartil = _data["cuartil"];
+        }
+    }
+
+    static fromJS(data: any): JournalDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new JournalDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["issn"] = this.issn;
+        data["eissn"] = this.eissn;
+        data["cuartil"] = this.cuartil;
+        return data;
+    }
+}
+
+export interface IJournalDto {
+    id?: string;
+    name?: string;
+    issn?: string | undefined;
+    eissn?: string | undefined;
+    cuartil?: number | undefined;
+}
+
+export class PublicationDatabaseDto implements IPublicationDatabaseDto {
+    id?: string;
+    name?: string;
+    url?: string | undefined;
+
+    constructor(data?: IPublicationDatabaseDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.url = _data["url"];
+        }
+    }
+
+    static fromJS(data: any): PublicationDatabaseDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicationDatabaseDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["url"] = this.url;
+        return data;
+    }
+}
+
+export interface IPublicationDatabaseDto {
+    id?: string;
+    name?: string;
+    url?: string | undefined;
 }
 
 export class CreatePublicationCommand implements ICreatePublicationCommand {
@@ -2871,7 +2979,10 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
     additionalUserIds?: string[];
     index?: string | undefined;
     journalName?: string | undefined;
-    dataBase?: string | undefined;
+    journalISSN?: string | undefined;
+    journalEISSN?: string | undefined;
+    databaseName?: string | undefined;
+    databaseUrl?: string | undefined;
     group?: number | undefined;
     cuartil?: Cuartil | undefined;
 
@@ -2907,7 +3018,10 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
             }
             this.index = _data["index"];
             this.journalName = _data["journalName"];
-            this.dataBase = _data["dataBase"];
+            this.journalISSN = _data["journalISSN"];
+            this.journalEISSN = _data["journalEISSN"];
+            this.databaseName = _data["databaseName"];
+            this.databaseUrl = _data["databaseUrl"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
         }
@@ -2943,7 +3057,10 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
         }
         data["index"] = this.index;
         data["journalName"] = this.journalName;
-        data["dataBase"] = this.dataBase;
+        data["journalISSN"] = this.journalISSN;
+        data["journalEISSN"] = this.journalEISSN;
+        data["databaseName"] = this.databaseName;
+        data["databaseUrl"] = this.databaseUrl;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
         return data;
@@ -2960,7 +3077,10 @@ export interface ICreatePublicationCommand {
     additionalUserIds?: string[];
     index?: string | undefined;
     journalName?: string | undefined;
-    dataBase?: string | undefined;
+    journalISSN?: string | undefined;
+    journalEISSN?: string | undefined;
+    databaseName?: string | undefined;
+    databaseUrl?: string | undefined;
     group?: number | undefined;
     cuartil?: Cuartil | undefined;
 }
@@ -2990,7 +3110,10 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     additionalUserIds?: string[] | undefined;
     index?: string | undefined;
     journalName?: string | undefined;
-    dataBase?: string | undefined;
+    journalISSN?: string | undefined;
+    journalEISSN?: string | undefined;
+    databaseName?: string | undefined;
+    databaseUrl?: string | undefined;
     group?: number | undefined;
     cuartil?: number | undefined;
 
@@ -3026,7 +3149,10 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
             }
             this.index = _data["index"];
             this.journalName = _data["journalName"];
-            this.dataBase = _data["dataBase"];
+            this.journalISSN = _data["journalISSN"];
+            this.journalEISSN = _data["journalEISSN"];
+            this.databaseName = _data["databaseName"];
+            this.databaseUrl = _data["databaseUrl"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
         }
@@ -3062,7 +3188,10 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         }
         data["index"] = this.index;
         data["journalName"] = this.journalName;
-        data["dataBase"] = this.dataBase;
+        data["journalISSN"] = this.journalISSN;
+        data["journalEISSN"] = this.journalEISSN;
+        data["databaseName"] = this.databaseName;
+        data["databaseUrl"] = this.databaseUrl;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
         return data;
@@ -3079,7 +3208,10 @@ export interface IUpdatePublicationBody {
     additionalUserIds?: string[] | undefined;
     index?: string | undefined;
     journalName?: string | undefined;
-    dataBase?: string | undefined;
+    journalISSN?: string | undefined;
+    journalEISSN?: string | undefined;
+    databaseName?: string | undefined;
+    databaseUrl?: string | undefined;
     group?: number | undefined;
     cuartil?: number | undefined;
 }

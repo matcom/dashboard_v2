@@ -29,13 +29,20 @@ public record CreatePublicationCommand : IRequest<(Result Result, string? Public
     // ── Campos de especialización ─────────────────────────────────────────────────────────────
     /// <summary>Indexación. Obligatorio para tipos Libro, Monografía, Capítulo, Artículo de Divulgación.</summary>
     public string? Index { get; init; }
+
+    // ── Revista (tipo Diario) ─────────────────────────────────────────────────────────────────
     /// <summary>Nombre de la revista. Obligatorio para tipo Diario.</summary>
     public string? JournalName { get; init; }
-    /// <summary>Base de datos donde aparece la revista. Obligatorio para tipo Diario.</summary>
-    public string? DataBase { get; init; }
+    public string? JournalISSN { get; init; }
+    public string? JournalEISSN { get; init; }
+
+    // ── Base de datos ─────────────────────────────────────────────────────────────────────────
+    public string? DatabaseName { get; init; }
+    public string? DatabaseUrl { get; init; }
+
     /// <summary>Grupo de la revista (1–4). Obligatorio para tipo Diario.</summary>
     public int? Group { get; init; }
-    /// <summary>Cuartil Scimago. Obligatorio para tipo Diario con grupo 1.</summary>
+    /// <summary>Cuartil Scimago. Obligatorio para tipo Diario cuando la base de datos es Scopus.</summary>
     public Cuartil? Cuartil { get; init; }
 }
 
@@ -69,7 +76,10 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
         var specializationData = new PublicationSpecializationData(
             request.PublicationType,
             request.JournalName,
-            request.DataBase,
+            request.JournalISSN,
+            request.JournalEISSN,
+            request.DatabaseName,
+            request.DatabaseUrl,
             request.Group,
             request.Cuartil,
             request.Index);

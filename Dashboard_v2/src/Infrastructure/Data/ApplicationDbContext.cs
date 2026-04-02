@@ -23,7 +23,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AuthorPresentation> AuthorPresentations => Set<AuthorPresentation>();
     public DbSet<IndexedPublication> IndexedPublications => Set<IndexedPublication>();
     public DbSet<JournalPublication> JournalPublications => Set<JournalPublication>();
-    public DbSet<JournalGroup1Publication> JournalGroup1Publications => Set<JournalGroup1Publication>();
+    public DbSet<Journal> Journals => Set<Journal>();
+    public DbSet<ScopusJournal> ScopusJournals => Set<ScopusJournal>();
+    public DbSet<PublicationDatabase> PublicationDatabases => Set<PublicationDatabase>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
