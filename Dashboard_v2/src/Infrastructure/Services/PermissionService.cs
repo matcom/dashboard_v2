@@ -1,5 +1,4 @@
 using Dashboard_v2.Application.Common.Interfaces;
-using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -7,10 +6,10 @@ namespace Dashboard_v2.Infrastructure.Services;
 
 public class PermissionService : IPermissionService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IApplicationDbContext _context;
     private readonly ILogger<PermissionService> _logger;
 
-    public PermissionService(ApplicationDbContext context, ILogger<PermissionService> logger)
+    public PermissionService(IApplicationDbContext context, ILogger<PermissionService> logger)
     {
         _context = context;
         _logger = logger;

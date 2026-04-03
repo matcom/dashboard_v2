@@ -43,11 +43,16 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly IAuthorResolutionService _authorResolution;
 
-    public CreatePublicationCommandHandler(IApplicationDbContext context, IUser currentUser)
+    public CreatePublicationCommandHandler(
+        IApplicationDbContext context,
+        IUser currentUser,
+        IAuthorResolutionService authorResolution)
     {
         _context = context;
         _currentUser = currentUser;
+        _authorResolution = authorResolution;
     }
 
     public async Task<(Result Result, string? PublicationId)> Handle(
@@ -73,28 +78,10 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
         }
 
         // Obtener o crear el perfil de autor del usuario actual
-        var author = await _context.Authors
-            .FirstOrDefaultAsync(a => a.UserId == _currentUser.Id, cancellationToken);
+        var author = await _authorResolution.GetOrCreateForUserAsync(_currentUser.Id!, cancellationToken);
 
         if (author == null)
-        {
-            // Crear perfil de autor usando el nombre completo del usuario
-            var user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == _currentUser.Id, cancellationToken);
-
-            if (user == null)
-                return (Result.Failure(["Usuario no encontrado."]), null);
-
-            author = new Author
-            {
-                Name = $"{user.UserName} {user.UserLastName1}{(string.IsNullOrEmpty(user.UserLastName2) ? string.Empty : " " + user.UserLastName2)}".Trim(),
-                UserId = user.Id
-            };
-            _context.Authors.Add(author);
-            // Guardar primero para tener el Id del autor antes de crear la publicación
-            await _context.SaveChangesAsync(cancellationToken);
-        }
+            return (Result.Failure(["Usuario no encontrado."]), null);
 
         // Construir la publicación con el usuario actual como primer autor
         var publication = new Publication
@@ -109,11 +96,8 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
         // Agregar coautores existentes por ID
         foreach (var authorId in request.AdditionalAuthorIds.Where(id => !string.IsNullOrWhiteSpace(id)))
         {
-            // Verificar que el autor no sea el mismo usuario actual y que exista
             if (authorId != author.Id && await _context.Authors.AnyAsync(a => a.Id == authorId, cancellationToken))
-            {
                 publication.AuthorPublications.Add(new AuthorPublication { AuthorId = authorId });
-            }
         }
 
         // Agregar coautores nuevos por nombre (se crean como autores sin cuenta vinculada)
@@ -130,24 +114,8 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
         {
             if (userId == _currentUser.Id) continue; // ya es el autor principal
 
-            var coAuthor = await _context.Authors
-                .FirstOrDefaultAsync(a => a.UserId == userId, cancellationToken);
-
-            if (coAuthor == null)
-            {
-                var coUser = await _context.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-                if (coUser == null) continue;
-
-                coAuthor = new Author
-                {
-                    Name = $"{coUser.UserName} {coUser.UserLastName1}{(string.IsNullOrEmpty(coUser.UserLastName2) ? string.Empty : " " + coUser.UserLastName2)}".Trim(),
-                    UserId = coUser.Id
-                };
-                _context.Authors.Add(coAuthor);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
+            var coAuthor = await _authorResolution.GetOrCreateForUserAsync(userId, cancellationToken);
+            if (coAuthor == null) continue;
 
             if (publication.AuthorPublications.All(ap => ap.AuthorId != coAuthor.Id))
                 publication.AuthorPublications.Add(new AuthorPublication { AuthorId = coAuthor.Id });

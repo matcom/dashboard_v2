@@ -208,6 +208,40 @@ dotnet ef migrations remove --project src/Infrastructure --startup-project src/W
 - **Usar migraciones para todos los cambios de esquema de BD**
 - **Versionar las migraciones en Git**
 - **Revisar el código de migración generado antes de aplicarlo**
+- **Cumplir los principios SOLID en toda implementación** (ver sección abajo)
+
+## Principios SOLID — Obligatorios en toda implementación
+
+Todo código nuevo o modificado debe cumplir los 5 principios. Ante cualquier duda, analiza el código frente a cada punto antes de hacer un commit.
+
+### S — Single Responsibility Principle
+Cada clase/servicio tiene **una sola razón para cambiar**.
+- Los handlers de comando solo orquestan: delegan validación compleja, lógica de dominio y operaciones reutilizables a servicios específicos.
+- No duplicar lógica entre handlers. Si la misma operación aparece en dos lugares, extráela a un servicio con interfaz en `Application/Common/Interfaces/`.
+- Ejemplo aplicado: `IAuthorResolutionService` centraliza "find-or-create author"; `IPublicationSpecializationService` centraliza la lógica de especialización, evitando duplicación en `CreatePublicationCommandHandler` y `UpdatePublicationCommandHandler`.
+
+### O — Open/Closed Principle
+El código está **abierto para extensión, cerrado para modificación**.
+- Evitar condicionales `if (tipo == X) { ... } else if (tipo == Y) { ... }` dispersos por handlers. Concentrarlos en un servicio específico de modo que extender un nuevo tipo solo requiera modificar ese servicio.
+- Usar interfaces + inyección de dependencias para permitir comportamiento intercambiable sin tocar el código que lo consume.
+- Ejemplo aplicado: `IPublicationSpecializationService` encapsula toda la lógica condicional por `PublicationType`; agregar un nuevo tipo de especialización solo requiere modificar su implementación.
+
+### L — Liskov Substitution Principle
+Las implementaciones son **sustituibles por su interfaz** sin alterar el comportamiento del sistema.
+- No añadir comportamiento adicional en implementaciones que rompa el contrato declarado en la interfaz.
+- `ApplicationDbContext` debe satisfacer completamente `IApplicationDbContext`.
+
+### I — Interface Segregation Principle
+Las interfaces son **específicas al cliente que las usa**, no monolíticas.
+- Preferir varias interfaces pequeñas y cohesivas sobre una grande.
+- `IApplicationDbContext` es una excepción aceptada (patrón EF Core + CQRS), pero los servicios de dominio deben tener interfaces granulares.
+- No inyectar `IApplicationDbContext` completo en código que solo necesita uno o dos `DbSet`.
+
+### D — Dependency Inversion Principle
+Los módulos de alto nivel dependen de **abstracciones**, no de implementaciones concretas.
+- Toda dependencia en Application debe ser una interfaz definida en `Application/Common/Interfaces/`.
+- Infrastructure implementa las interfaces; nunca al revés.
+- Web solo depende de `ISender` (MediatR) y los contratos de Application.
 
 ## Comandos Útiles
 

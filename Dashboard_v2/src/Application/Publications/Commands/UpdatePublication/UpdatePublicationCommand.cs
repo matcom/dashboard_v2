@@ -39,22 +39,24 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
     private readonly IAuthorCleanupService _authorCleanup;
+    private readonly IAuthorResolutionService _authorResolution;
 
     public UpdatePublicationCommandHandler(
         IApplicationDbContext context,
         IUser currentUser,
-        IAuthorCleanupService authorCleanup)
+        IAuthorCleanupService authorCleanup,
+        IAuthorResolutionService authorResolution)
     {
         _context = context;
         _currentUser = currentUser;
         _authorCleanup = authorCleanup;
+        _authorResolution = authorResolution;
     }
 
     public async Task<Result> Handle(UpdatePublicationCommand request, CancellationToken cancellationToken)
     {
         // Verificar que el usuario tiene perfil de autor y es autor de esta publicación
-        var currentAuthor = await _context.Authors
-            .FirstOrDefaultAsync(a => a.UserId == _currentUser.Id, cancellationToken);
+        var currentAuthor = await _authorResolution.GetOrCreateForUserAsync(_currentUser.Id!, cancellationToken);
 
         if (currentAuthor == null)
             return Result.Failure(["Publicación no encontrada o no tienes permiso para editarla."]);
@@ -199,24 +201,8 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
         {
             if (userId == _currentUser.Id) continue;
 
-            var coAuthor = await _context.Authors
-                .FirstOrDefaultAsync(a => a.UserId == userId, cancellationToken);
-
-            if (coAuthor == null)
-            {
-                var coUser = await _context.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-                if (coUser == null) continue;
-
-                coAuthor = new Author
-                {
-                    Name = $"{coUser.UserName} {coUser.UserLastName1}{(string.IsNullOrEmpty(coUser.UserLastName2) ? string.Empty : " " + coUser.UserLastName2)}".Trim(),
-                    UserId = coUser.Id
-                };
-                _context.Authors.Add(coAuthor);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
+            var coAuthor = await _authorResolution.GetOrCreateForUserAsync(userId, cancellationToken);
+            if (coAuthor == null) continue;
 
             if (publication.AuthorPublications.All(ap => ap.AuthorId != coAuthor.Id))
                 publication.AuthorPublications.Add(new AuthorPublication { AuthorId = coAuthor.Id });
