@@ -45,7 +45,6 @@ const EMPTY_FORM = {
   // Indexadas (tipos 1-4)
   index: '',
   // Revista (tipo 0)
-  journalName: '',
   dataBase: '',
   group: '',
   cuartil: '',
@@ -124,7 +123,6 @@ export default function PublicationsPage() {
       // Indexadas
       index: pub.indexedPublication?.index ?? '',
       // Revista
-      journalName: pub.journalPublication?.name ?? '',
       dataBase: pub.journalPublication?.dataBase ?? '',
       group: pub.journalPublication?.group ?? '',
       cuartil: pub.journalPublication?.cuartil ?? '',
@@ -170,10 +168,9 @@ export default function PublicationsPage() {
             additionalUserIds: coauthorTags.filter(t => t.type === 'user').map(t => t.id),
             // Especialización
             index: parseInt(form.publicationType, 10) !== 0 ? form.index || null : null,
-            journalName: parseInt(form.publicationType, 10) === 0 ? form.journalName || null : null,
             dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
             group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
-            cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? parseInt(form.cuartil, 10) || null : null,
+            cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
           }),
         });
       } else {
@@ -190,10 +187,9 @@ export default function PublicationsPage() {
             additionalUserIds: coauthorTags.filter(t => t.type === 'user').map(t => t.id),
             // Especialización
             index: parseInt(form.publicationType, 10) !== 0 ? form.index || null : null,
-            journalName: parseInt(form.publicationType, 10) === 0 ? form.journalName || null : null,
             dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
             group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
-            cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? parseInt(form.cuartil, 10) || null : null,
+            cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
           }),
         });
       }
@@ -379,7 +375,6 @@ export default function PublicationsPage() {
                                   <tr>
                                     <th>Título</th>
                                     <th>Datos de pub.</th>
-                                    <th>Revista</th>
                                     <th>Base de datos</th>
                                     {g === 1 && <th>Cuartil</th>}
                                     <th>URL / DOI</th>
@@ -392,12 +387,11 @@ export default function PublicationsPage() {
                                     <tr key={pub.id}>
                                       <td>{pub.title}</td>
                                       <td>{pub.publicationData}</td>
-                                      <td>{pub.journalPublication?.name}</td>
                                       <td>{pub.journalPublication?.dataBase}</td>
                                       {g === 1 && (
                                         <td>
                                           {pub.journalPublication?.cuartil != null
-                                            ? <Badge color="info" pill className="text-dark">Q{pub.journalPublication.cuartil}</Badge>
+                                            ? <Badge color="info" pill className="text-dark">{pub.journalPublication.cuartil}</Badge>
                                             : <span className="text-muted">—</span>}
                                         </td>
                                       )}
@@ -515,16 +509,6 @@ export default function PublicationsPage() {
             {parseInt(form.publicationType, 10) === 0 ? (
               <>
                 <FormGroup>
-                  <Label for="journalName">Nombre de la revista <span className="text-danger">*</span></Label>
-                  <Input
-                    id="journalName"
-                    name="journalName"
-                    value={form.journalName}
-                    onChange={handleFormChange}
-                    placeholder="Ej. Nature, Science..."
-                  />
-                </FormGroup>
-                <FormGroup>
                   <Label for="dataBase">Base de datos <span className="text-danger">*</span></Label>
                   <Input
                     id="dataBase"
@@ -561,7 +545,7 @@ export default function PublicationsPage() {
                     >
                       <option value="">Selecciona cuartil...</option>
                       {[1, 2, 3, 4].map(q => (
-                        <option key={q} value={q}>Q{q}</option>
+                        <option key={q} value={`Q${q}`}>Q{q}</option>
                       ))}
                     </Input>
                   </FormGroup>

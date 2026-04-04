@@ -1,5 +1,3 @@
-using Dashboard_v2.Domain.Enums;
-
 namespace Dashboard_v2.Domain.Entities;
 
 public class Event
@@ -14,7 +12,8 @@ public class Event
     public int CountryId { get; set; }
     public Country Country { get; set; } = null!;
 
-    public EventTypeEnum EventType { get; set; }
+    public int EventTypeId { get; set; }
+    public EventType EventType { get; set; } = default!;
 
     public ICollection<Presentation> Presentations { get; set; } = new List<Presentation>();
 }

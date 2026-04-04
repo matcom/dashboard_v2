@@ -8,8 +8,8 @@ public record AwardDto
     /// <summary>Id de la fila UserAwarded (se usa para PUT/DELETE).</summary>
     public int Id { get; init; }
     public string AwardName { get; init; } = default!;
-    /// <summary>Valor numérico del enum AwardType.</summary>
-    public int AwardType { get; init; }
+    public int AwardTypeId { get; init; }
+    public string AwardTypeName { get; init; } = default!;
     public int Year { get; init; }
     public DateTime AwardedAt { get; init; }
 }

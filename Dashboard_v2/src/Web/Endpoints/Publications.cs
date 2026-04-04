@@ -101,10 +101,9 @@ public class Publications : EndpointGroupBase
             AdditionalAuthorNames = body.AdditionalAuthorNames ?? [],
             AdditionalUserIds = body.AdditionalUserIds ?? [],
             Index = body.Index,
-            JournalName = body.JournalName,
             DataBase = body.DataBase,
             Group = body.Group,
-            Cuartil = body.Cuartil.HasValue ? (Cuartil)body.Cuartil.Value : null
+            Cuartil = body.Cuartil
         });
 
         if (!result.Succeeded)
@@ -135,7 +134,6 @@ public record UpdatePublicationBody(
     List<string>? AdditionalUserIds,
     // Especialización
     string? Index,
-    string? JournalName,
     string? DataBase,
     int? Group,
-    int? Cuartil);
+    string? Cuartil);

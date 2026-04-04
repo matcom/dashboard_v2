@@ -28,10 +28,9 @@ public record UpdatePublicationCommand : IRequest<Result>
 
     // ── Campos de especialización ─────────────────────────────────────────────────────────────
     public string? Index { get; init; }
-    public string? JournalName { get; init; }
     public string? DataBase { get; init; }
     public int? Group { get; init; }
-    public Cuartil? Cuartil { get; init; }
+    public string? Cuartil { get; init; }
 }
 
 public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublicationCommand, Result>
@@ -77,7 +76,7 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
         if (publication == null)
             return Result.Failure(["Publicación no encontrada."]);
 
-        // Validar que el nuevo tipo es válido
+        // Verificar que el nuevo tipo es válido
         if (!Enum.IsDefined(typeof(PublicationType), request.PublicationType))
             return Result.Failure(["Tipo de publicación no válido."]);
 
@@ -86,17 +85,16 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
         publication.PublicationType = request.PublicationType;
         publication.UrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : request.UrlDoi.Trim();
 
-        // ── Actualizar especialización ────────────────────────────────────────────────────────
+        // ── Actualizar especialización ───────────────────────────────────────────────────────────────────────────────────────
         var isNowJournal = request.PublicationType == PublicationType.Diario;
         var wasJournal = publication.JournalPublication != null;
 
         if (isNowJournal)
         {
-            if (string.IsNullOrWhiteSpace(request.JournalName) ||
-                string.IsNullOrWhiteSpace(request.DataBase) ||
+            if (string.IsNullOrWhiteSpace(request.DataBase) ||
                 request.Group is null or < 1 or > 4)
-                return Result.Failure(["Datos de la revista son obligatorios: nombre, base de datos y grupo (1–4)."]);
-            if (request.Group == 1 && (request.Cuartil is null || !Enum.IsDefined(typeof(Cuartil), request.Cuartil.Value)))
+                return Result.Failure(["Datos de la revista son obligatorios: base de datos y grupo (1–4)."]);
+            if (request.Group == 1 && string.IsNullOrWhiteSpace(request.Cuartil))
                 return Result.Failure(["Cuartil es obligatorio para revistas de grupo 1."]);
         }
         else if (string.IsNullOrWhiteSpace(request.Index))
@@ -124,14 +122,12 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
                 publication.JournalPublication = new JournalPublication
                 {
                     PublicationId = publication.Id,
-                    Name = request.JournalName!.Trim(),
                     DataBase = request.DataBase!.Trim(),
                     Group = request.Group!.Value
                 };
             }
             else
             {
-                publication.JournalPublication.Name = request.JournalName!.Trim();
                 publication.JournalPublication.DataBase = request.DataBase!.Trim();
                 publication.JournalPublication.Group = request.Group!.Value;
             }
@@ -140,13 +136,13 @@ public class UpdatePublicationCommandHandler : IRequestHandler<UpdatePublication
             {
                 if (publication.JournalPublication.JournalGroup1Publication == null)
                 {
-                    var g1 = new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = request.Cuartil!.Value };
+                    var g1 = new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = request.Cuartil! };
                     publication.JournalPublication.JournalGroup1Publication = g1;
                     _context.JournalGroup1Publications.Add(g1);
                 }
                 else
                 {
-                    publication.JournalPublication.JournalGroup1Publication.Cuartil = request.Cuartil!.Value;
+                    publication.JournalPublication.JournalGroup1Publication.Cuartil = request.Cuartil!;
                 }
             }
             else if (publication.JournalPublication.JournalGroup1Publication != null)

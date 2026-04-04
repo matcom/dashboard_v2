@@ -1354,9 +1354,12 @@
           "awardName": {
             "type": "string"
           },
-          "awardType": {
+          "awardTypeId": {
             "type": "integer",
             "format": "int32"
+          },
+          "awardTypeName": {
+            "type": "string"
           },
           "year": {
             "type": "integer",
@@ -1428,9 +1431,12 @@
           "countryName": {
             "type": "string"
           },
-          "eventType": {
+          "eventTypeId": {
             "type": "integer",
             "format": "int32"
+          },
+          "eventTypeName": {
+            "type": "string"
           },
           "institutions": {
             "type": "array",
@@ -1470,7 +1476,7 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "value": {
+          "id": {
             "type": "integer",
             "format": "int32"
           },
@@ -1688,9 +1694,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "name": {
-            "type": "string"
-          },
           "dataBase": {
             "type": "string"
           },
@@ -1699,8 +1702,7 @@
             "format": "int32"
           },
           "cuartil": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
             "nullable": true
           }
         }
@@ -1744,10 +1746,6 @@
             "type": "string",
             "nullable": true
           },
-          "journalName": {
-            "type": "string",
-            "nullable": true
-          },
           "dataBase": {
             "type": "string",
             "nullable": true
@@ -1758,12 +1756,8 @@
             "nullable": true
           },
           "cuartil": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Cuartil"
-              }
-            ]
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -1779,22 +1773,6 @@
         ],
         "enum": [
           0,
-          1,
-          2,
-          3,
-          4
-        ]
-      },
-      "Cuartil": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Q1",
-          "Q2",
-          "Q3",
-          "Q4"
-        ],
-        "enum": [
           1,
           2,
           3,
@@ -1844,10 +1822,6 @@
             "type": "string",
             "nullable": true
           },
-          "journalName": {
-            "type": "string",
-            "nullable": true
-          },
           "dataBase": {
             "type": "string",
             "nullable": true
@@ -1858,8 +1832,7 @@
             "nullable": true
           },
           "cuartil": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
             "nullable": true
           }
         }

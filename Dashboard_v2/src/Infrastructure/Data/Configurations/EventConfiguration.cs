@@ -12,11 +12,15 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Name).IsRequired().HasMaxLength(500);
         builder.Property(e => e.Institutions).HasColumnType("text[]");
-        builder.Property(e => e.EventType).IsRequired();
 
         builder.HasOne(e => e.Country)
             .WithMany(c => c.Events)
             .HasForeignKey(e => e.CountryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.EventType)
+            .WithMany(t => t.Events)
+            .HasForeignKey(e => e.EventTypeId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

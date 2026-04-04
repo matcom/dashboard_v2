@@ -29,14 +29,12 @@ public record CreatePublicationCommand : IRequest<(Result Result, string? Public
     // ── Campos de especialización ─────────────────────────────────────────────────────────────
     /// <summary>Indexación. Obligatorio para tipos Libro, Monografía, Capítulo, Artículo de Divulgación.</summary>
     public string? Index { get; init; }
-    /// <summary>Nombre de la revista. Obligatorio para tipo Diario.</summary>
-    public string? JournalName { get; init; }
     /// <summary>Base de datos donde aparece la revista. Obligatorio para tipo Diario.</summary>
     public string? DataBase { get; init; }
     /// <summary>Grupo de la revista (1–4). Obligatorio para tipo Diario.</summary>
     public int? Group { get; init; }
     /// <summary>Cuartil Scimago. Obligatorio para tipo Diario con grupo 1.</summary>
-    public Cuartil? Cuartil { get; init; }
+    public string? Cuartil { get; init; }
 }
 
 public class CreatePublicationCommandHandler : IRequestHandler<CreatePublicationCommand, (Result Result, string? PublicationId)>
@@ -58,18 +56,16 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
     public async Task<(Result Result, string? PublicationId)> Handle(
         CreatePublicationCommand request, CancellationToken cancellationToken)
     {
-        // Validar que el tipo de publicación es válido
         if (!Enum.IsDefined(typeof(PublicationType), request.PublicationType))
             return (Result.Failure(["Tipo de publicación no válido."]), null);
 
         // Validar campos de especialización
         if (request.PublicationType == PublicationType.Diario)
         {
-            if (string.IsNullOrWhiteSpace(request.JournalName) ||
-                string.IsNullOrWhiteSpace(request.DataBase) ||
+            if (string.IsNullOrWhiteSpace(request.DataBase) ||
                 request.Group is null or < 1 or > 4)
-                return (Result.Failure(["Datos de la revista son obligatorios: nombre, base de datos y grupo (1–4)."]), null);
-            if (request.Group == 1 && (request.Cuartil is null || !Enum.IsDefined(typeof(Cuartil), request.Cuartil.Value)))
+                return (Result.Failure(["Datos de la revista son obligatorios: base de datos y grupo (1–4)."]), null);
+            if (request.Group == 1 && string.IsNullOrWhiteSpace(request.Cuartil))
                 return (Result.Failure(["Cuartil es obligatorio para revistas de grupo 1."]), null);
         }
         else if (string.IsNullOrWhiteSpace(request.Index))
@@ -127,11 +123,10 @@ public class CreatePublicationCommandHandler : IRequestHandler<CreatePublication
             publication.JournalPublication = new JournalPublication
             {
                 PublicationId = publication.Id,
-                Name = request.JournalName!.Trim(),
                 DataBase = request.DataBase!.Trim(),
                 Group = request.Group!.Value,
                 JournalGroup1Publication = request.Group == 1
-                    ? new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = request.Cuartil!.Value }
+                    ? new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = request.Cuartil! }
                     : null
             };
         }

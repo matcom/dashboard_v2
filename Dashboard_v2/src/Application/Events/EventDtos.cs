@@ -1,10 +1,8 @@
-using Dashboard_v2.Domain.Enums;
-
 namespace Dashboard_v2.Application.Events;
 
 public record CountryDto(int Id, string Name);
 
-public record EventTypeDto(int Value, string Name);
+public record EventTypeDto(int Id, string Name);
 
 public record EventDto
 {
@@ -12,7 +10,8 @@ public record EventDto
     public string Name { get; init; } = default!;
     public int CountryId { get; init; }
     public string CountryName { get; init; } = default!;
-    public int EventType { get; init; }
+    public int EventTypeId { get; init; }
+    public string EventTypeName { get; init; } = default!;
     public List<string> Institutions { get; init; } = [];
     public int PresentationCount { get; init; }
 }

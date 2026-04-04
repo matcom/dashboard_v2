@@ -7,7 +7,6 @@ using Dashboard_v2.Application.Events.Queries.GetAllEvents;
 using Dashboard_v2.Application.Events.Queries.GetCountries;
 using Dashboard_v2.Application.Events.Queries.GetEventTypes;
 using Dashboard_v2.Application.Events.Queries.GetMyEvents;
-using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Web.Endpoints;
 
@@ -88,7 +87,7 @@ public class Events : EndpointGroupBase
         {
             Name = body.Name,
             CountryId = body.CountryId,
-            EventType = (EventTypeEnum)body.EventType,
+            EventTypeId = body.EventType,
             Institutions = body.Institutions,
         });
 
@@ -105,7 +104,7 @@ public class Events : EndpointGroupBase
             Id = id,
             Name = body.Name,
             CountryId = body.CountryId,
-            EventType = (EventTypeEnum)body.EventType,
+            EventTypeId = body.EventType,
             Institutions = body.Institutions,
         });
 

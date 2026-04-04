@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260403035556_EnumsToEntities")]
+    partial class EnumsToEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,10 +217,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
-                    b.Property<string>("Cuartil")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                    b.Property<int>("Cuartil")
+                        .HasColumnType("integer");
 
                     b.HasKey("PublicationId");
 
@@ -237,6 +238,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
 
                     b.Property<int>("Group")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("PublicationId");
 
@@ -276,7 +282,7 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("PublicationType")
+                    b.Property<int>("PublicationTypeId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
@@ -289,7 +295,30 @@ namespace Dashboard_v2.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PublicationTypeId");
+
                     b.ToTable("Publications", (string)null);
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.PublicationType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsJournal")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PublicationTypes", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Resource", b =>
@@ -574,6 +603,17 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Publication", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.PublicationType", "PublicationType")
+                        .WithMany("Publications")
+                        .HasForeignKey("PublicationTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PublicationType");
+                });
+
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Resource", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.User", "Owner")
@@ -664,6 +704,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("IndexedPublication");
 
                     b.Navigation("JournalPublication");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.PublicationType", b =>
+                {
+                    b.Navigation("Publications");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.User", b =>

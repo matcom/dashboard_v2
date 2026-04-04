@@ -55,7 +55,7 @@ public class Awards : EndpointGroupBase
         var (result, id) = await sender.Send(new CreateAwardCommand
         {
             AwardName = body.AwardName,
-            AwardType = body.AwardType,
+            AwardTypeId = body.AwardType,
             Year = body.Year,
             AwardedAt = body.AwardedAt,
         });
@@ -72,7 +72,7 @@ public class Awards : EndpointGroupBase
         {
             Id = id,
             AwardName = body.AwardName,
-            AwardType = body.AwardType,
+            AwardTypeId = body.AwardType,
             Year = body.Year,
             AwardedAt = body.AwardedAt,
         });

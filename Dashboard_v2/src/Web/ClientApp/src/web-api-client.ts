@@ -1992,7 +1992,8 @@ export interface IPotentialAuthorMatchDto {
 export class AwardDto implements IAwardDto {
     id?: number;
     awardName?: string;
-    awardType?: number;
+    awardTypeId?: number;
+    awardTypeName?: string;
     year?: number;
     awardedAt?: Date;
 
@@ -2009,7 +2010,8 @@ export class AwardDto implements IAwardDto {
         if (_data) {
             this.id = _data["id"];
             this.awardName = _data["awardName"];
-            this.awardType = _data["awardType"];
+            this.awardTypeId = _data["awardTypeId"];
+            this.awardTypeName = _data["awardTypeName"];
             this.year = _data["year"];
             this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
         }
@@ -2026,7 +2028,8 @@ export class AwardDto implements IAwardDto {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["awardName"] = this.awardName;
-        data["awardType"] = this.awardType;
+        data["awardTypeId"] = this.awardTypeId;
+        data["awardTypeName"] = this.awardTypeName;
         data["year"] = this.year;
         data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
         return data;
@@ -2036,7 +2039,8 @@ export class AwardDto implements IAwardDto {
 export interface IAwardDto {
     id?: number;
     awardName?: string;
-    awardType?: number;
+    awardTypeId?: number;
+    awardTypeName?: string;
     year?: number;
     awardedAt?: Date;
 }
@@ -2142,7 +2146,8 @@ export class EventDto implements IEventDto {
     name?: string;
     countryId?: number;
     countryName?: string;
-    eventType?: number;
+    eventTypeId?: number;
+    eventTypeName?: string;
     institutions?: string[];
     presentationCount?: number;
 
@@ -2161,7 +2166,8 @@ export class EventDto implements IEventDto {
             this.name = _data["name"];
             this.countryId = _data["countryId"];
             this.countryName = _data["countryName"];
-            this.eventType = _data["eventType"];
+            this.eventTypeId = _data["eventTypeId"];
+            this.eventTypeName = _data["eventTypeName"];
             if (Array.isArray(_data["institutions"])) {
                 this.institutions = [] as any;
                 for (let item of _data["institutions"])
@@ -2184,7 +2190,8 @@ export class EventDto implements IEventDto {
         data["name"] = this.name;
         data["countryId"] = this.countryId;
         data["countryName"] = this.countryName;
-        data["eventType"] = this.eventType;
+        data["eventTypeId"] = this.eventTypeId;
+        data["eventTypeName"] = this.eventTypeName;
         if (Array.isArray(this.institutions)) {
             data["institutions"] = [];
             for (let item of this.institutions)
@@ -2200,7 +2207,8 @@ export interface IEventDto {
     name?: string;
     countryId?: number;
     countryName?: string;
-    eventType?: number;
+    eventTypeId?: number;
+    eventTypeName?: string;
     institutions?: string[];
     presentationCount?: number;
 }
@@ -2282,7 +2290,7 @@ export interface ICreateCountryBody {
 }
 
 export class EventTypeDto implements IEventTypeDto {
-    value?: number;
+    id?: number;
     name?: string;
 
     constructor(data?: IEventTypeDto) {
@@ -2296,7 +2304,7 @@ export class EventTypeDto implements IEventTypeDto {
 
     init(_data?: any) {
         if (_data) {
-            this.value = _data["value"];
+            this.id = _data["id"];
             this.name = _data["name"];
         }
     }
@@ -2310,14 +2318,14 @@ export class EventTypeDto implements IEventTypeDto {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["value"] = this.value;
+        data["id"] = this.id;
         data["name"] = this.name;
         return data;
     }
 }
 
 export interface IEventTypeDto {
-    value?: number;
+    id?: number;
     name?: string;
 }
 
@@ -2814,10 +2822,9 @@ export interface IIndexedPublicationDto {
 }
 
 export class JournalPublicationDto implements IJournalPublicationDto {
-    name?: string;
     dataBase?: string;
     group?: number;
-    cuartil?: number | undefined;
+    cuartil?: string | undefined;
 
     constructor(data?: IJournalPublicationDto) {
         if (data) {
@@ -2830,7 +2837,6 @@ export class JournalPublicationDto implements IJournalPublicationDto {
 
     init(_data?: any) {
         if (_data) {
-            this.name = _data["name"];
             this.dataBase = _data["dataBase"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
@@ -2846,7 +2852,6 @@ export class JournalPublicationDto implements IJournalPublicationDto {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["name"] = this.name;
         data["dataBase"] = this.dataBase;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
@@ -2855,10 +2860,9 @@ export class JournalPublicationDto implements IJournalPublicationDto {
 }
 
 export interface IJournalPublicationDto {
-    name?: string;
     dataBase?: string;
     group?: number;
-    cuartil?: number | undefined;
+    cuartil?: string | undefined;
 }
 
 export class CreatePublicationCommand implements ICreatePublicationCommand {
@@ -2870,10 +2874,9 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
     additionalAuthorNames?: string[];
     additionalUserIds?: string[];
     index?: string | undefined;
-    journalName?: string | undefined;
     dataBase?: string | undefined;
     group?: number | undefined;
-    cuartil?: Cuartil | undefined;
+    cuartil?: string | undefined;
 
     constructor(data?: ICreatePublicationCommand) {
         if (data) {
@@ -2906,7 +2909,6 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
                     this.additionalUserIds!.push(item);
             }
             this.index = _data["index"];
-            this.journalName = _data["journalName"];
             this.dataBase = _data["dataBase"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
@@ -2942,7 +2944,6 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
                 data["additionalUserIds"].push(item);
         }
         data["index"] = this.index;
-        data["journalName"] = this.journalName;
         data["dataBase"] = this.dataBase;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
@@ -2959,10 +2960,9 @@ export interface ICreatePublicationCommand {
     additionalAuthorNames?: string[];
     additionalUserIds?: string[];
     index?: string | undefined;
-    journalName?: string | undefined;
     dataBase?: string | undefined;
     group?: number | undefined;
-    cuartil?: Cuartil | undefined;
+    cuartil?: string | undefined;
 }
 
 export enum PublicationType {
@@ -2971,13 +2971,6 @@ export enum PublicationType {
     Monografía = 2,
     Capítulo = 3,
     Artículo_de_Divulgación = 4,
-}
-
-export enum Cuartil {
-    Q1 = 1,
-    Q2 = 2,
-    Q3 = 3,
-    Q4 = 4,
 }
 
 export class UpdatePublicationBody implements IUpdatePublicationBody {
@@ -2989,10 +2982,9 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     additionalAuthorNames?: string[] | undefined;
     additionalUserIds?: string[] | undefined;
     index?: string | undefined;
-    journalName?: string | undefined;
     dataBase?: string | undefined;
     group?: number | undefined;
-    cuartil?: number | undefined;
+    cuartil?: string | undefined;
 
     constructor(data?: IUpdatePublicationBody) {
         if (data) {
@@ -3025,7 +3017,6 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
                     this.additionalUserIds!.push(item);
             }
             this.index = _data["index"];
-            this.journalName = _data["journalName"];
             this.dataBase = _data["dataBase"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
@@ -3061,7 +3052,6 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
                 data["additionalUserIds"].push(item);
         }
         data["index"] = this.index;
-        data["journalName"] = this.journalName;
         data["dataBase"] = this.dataBase;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
@@ -3078,10 +3068,9 @@ export interface IUpdatePublicationBody {
     additionalAuthorNames?: string[] | undefined;
     additionalUserIds?: string[] | undefined;
     index?: string | undefined;
-    journalName?: string | undefined;
     dataBase?: string | undefined;
     group?: number | undefined;
-    cuartil?: number | undefined;
+    cuartil?: string | undefined;
 }
 
 export class RoleDto implements IRoleDto {

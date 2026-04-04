@@ -10,13 +10,13 @@ public class JournalGroup1PublicationConfiguration : IEntityTypeConfiguration<Jo
     {
         builder.ToTable("JournalGroup1Publications");
 
-        builder.HasKey(jg => jg.PublicationId);
-        builder.Property(jg => jg.PublicationId).HasMaxLength(450);
-        builder.Property(jg => jg.Cuartil).IsRequired();
+        builder.HasKey(g1 => g1.PublicationId);
+        builder.Property(g1 => g1.PublicationId).HasMaxLength(450);
+        builder.Property(g1 => g1.Cuartil).IsRequired().HasMaxLength(10);
 
-        builder.HasOne(jg => jg.JournalPublication)
+        builder.HasOne(g1 => g1.JournalPublication)
             .WithOne(jp => jp.JournalGroup1Publication)
-            .HasForeignKey<JournalGroup1Publication>(jg => jg.PublicationId)
+            .HasForeignKey<JournalGroup1Publication>(g1 => g1.PublicationId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

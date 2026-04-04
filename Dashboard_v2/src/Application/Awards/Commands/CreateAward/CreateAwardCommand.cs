@@ -12,8 +12,8 @@ namespace Dashboard_v2.Application.Awards.Commands.CreateAward;
 public record CreateAwardCommand : IRequest<(Result Result, int? AwardedId)>
 {
     public string AwardName { get; init; } = default!;
-    /// <summary>Valor numérico del enum AwardType (0–7).</summary>
-    public int AwardType { get; init; }
+    /// <summary>Id del tipo de premio (tabla AwardTypes).</summary>
+    public int AwardTypeId { get; init; }
     public int Year { get; init; }
     public DateTime AwardedAt { get; init; }
 }
@@ -35,13 +35,13 @@ public class CreateAwardCommandHandler : IRequestHandler<CreateAwardCommand, (Re
         if (string.IsNullOrWhiteSpace(request.AwardName))
             return (Result.Failure(["El nombre del premio es obligatorio."]), null);
 
-        if (!Enum.IsDefined(typeof(AwardType), request.AwardType))
+        if (!await _context.AwardTypes.AnyAsync(t => t.Id == request.AwardTypeId, cancellationToken))
             return (Result.Failure(["Tipo de premio inválido."]), null);
 
         var award = new Award
         {
             Name = request.AwardName.Trim(),
-            AwardType = (AwardType)request.AwardType,
+            AwardTypeId = request.AwardTypeId,
         };
         _context.Awards.Add(award);
         await _context.SaveChangesAsync(cancellationToken);

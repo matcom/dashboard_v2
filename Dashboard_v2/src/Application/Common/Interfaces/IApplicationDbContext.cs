@@ -12,9 +12,11 @@ public interface IApplicationDbContext
     DbSet<Author> Authors { get; }
     DbSet<AuthorPublication> AuthorPublications { get; }
     DbSet<Award> Awards { get; }
+    DbSet<AwardType> AwardTypes { get; }
     DbSet<UserAwarded> UserAwardeds { get; }
     DbSet<Country> Countries { get; }
     DbSet<Event> Events { get; }
+    DbSet<EventType> EventTypes { get; }
     DbSet<Presentation> Presentations { get; }
     DbSet<AuthorPresentation> AuthorPresentations { get; }
     DbSet<IndexedPublication> IndexedPublications { get; }

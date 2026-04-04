@@ -110,5 +110,33 @@ public class ApplicationDbContextInitialiser
             _context.UserRoles.Add(new UserRole { UserId = superuser.Id, Role = Roles.Superuser });
             await _context.SaveChangesAsync();
         }
+
+        // ── Seed AwardTypes ───────────────────────────────────────────────────────────────────
+        if (!await _context.AwardTypes.AnyAsync())
+        {
+            _context.AwardTypes.AddRange(
+                new AwardType { Id = 0, Name = "Premio de la Academia de Ciencias"                  },
+                new AwardType { Id = 1, Name = "Premio MES"                                         },
+                new AwardType { Id = 2, Name = "Premio CITMA Innovación Tecnológica"                },
+                new AwardType { Id = 3, Name = "Premio CITMA Estudiantes y Jóvenes Investigadores"  },
+                new AwardType { Id = 4, Name = "Premio Forum Ciencia y Técnica"                     },
+                new AwardType { Id = 5, Name = "Premio Investigación UH"                            },
+                new AwardType { Id = 6, Name = "Otros premios (prensa, salud, sociedad, etc.)"      },
+                new AwardType { Id = 7, Name = "Premio Internacional"                               }
+            );
+            await _context.SaveChangesAsync();
+        }
+
+        // ── Seed EventTypes ───────────────────────────────────────────────────────────────────
+        if (!await _context.EventTypes.AnyAsync())
+        {
+            _context.EventTypes.AddRange(
+                new EventType { Id = 0, Name = "Internacional" },
+                new EventType { Id = 1, Name = "Nacional"      },
+                new EventType { Id = 2, Name = "Regional"      },
+                new EventType { Id = 3, Name = "Local"         }
+            );
+            await _context.SaveChangesAsync();
+        }
     }
 }

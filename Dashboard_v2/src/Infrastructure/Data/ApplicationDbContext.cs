@@ -16,9 +16,11 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Author> Authors => Set<Author>();
     public DbSet<AuthorPublication> AuthorPublications => Set<AuthorPublication>();
     public DbSet<Award> Awards => Set<Award>();
+    public DbSet<AwardType> AwardTypes => Set<AwardType>();
     public DbSet<UserAwarded> UserAwardeds => Set<UserAwarded>();
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Event> Events => Set<Event>();
+    public DbSet<EventType> EventTypes => Set<EventType>();
     public DbSet<Presentation> Presentations => Set<Presentation>();
     public DbSet<AuthorPresentation> AuthorPresentations => Set<AuthorPresentation>();
     public DbSet<IndexedPublication> IndexedPublications => Set<IndexedPublication>();

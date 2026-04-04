@@ -1,6 +1,5 @@
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
-using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Application.Events.Commands.UpdateEvent;
 
@@ -9,7 +8,8 @@ public record UpdateEventCommand : IRequest<Result>
     public int Id { get; init; }
     public string Name { get; init; } = default!;
     public int CountryId { get; init; }
-    public EventTypeEnum EventType { get; init; }
+    /// <summary>Id del tipo de evento (tabla EventTypes).</summary>
+    public int EventTypeId { get; init; }
     public List<string> Institutions { get; init; } = [];
 }
 
@@ -32,12 +32,12 @@ public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand, Res
         if (!await _context.Countries.AnyAsync(c => c.Id == request.CountryId, cancellationToken))
             return Result.Failure(["País no válido."]);
 
-        if (!Enum.IsDefined(typeof(EventTypeEnum), request.EventType))
+        if (!await _context.EventTypes.AnyAsync(t => t.Id == request.EventTypeId, cancellationToken))
             return Result.Failure(["Tipo de evento no válido."]);
 
         ev.Name = request.Name.Trim();
         ev.CountryId = request.CountryId;
-        ev.EventType = request.EventType;
+        ev.EventTypeId = request.EventTypeId;
         ev.Institutions = request.Institutions
             .Where(i => !string.IsNullOrWhiteSpace(i))
             .Select(i => i.Trim())

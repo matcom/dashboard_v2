@@ -26,7 +26,8 @@ public class GetMyAwardsQueryHandler : IRequestHandler<GetMyAwardsQuery, List<Aw
             {
                 Id = ua.Id,
                 AwardName = ua.Award.Name,
-                AwardType = (int)ua.Award.AwardType,
+                AwardTypeId = ua.Award.AwardTypeId,
+                AwardTypeName = ua.Award.AwardType.Name,
                 Year = ua.Year,
                 AwardedAt = ua.AwardedAt,
             })

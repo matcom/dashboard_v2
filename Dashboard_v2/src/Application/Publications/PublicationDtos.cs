@@ -18,11 +18,10 @@ public record IndexedPublicationDto
 /// <summary>Datos de revista para publicaciones de tipo Diario (journal).</summary>
 public record JournalPublicationDto
 {
-    public string Name { get; init; } = default!;
     public string DataBase { get; init; } = default!;
     public int Group { get; init; }
-    /// <summary>Cuartil Scimago (1–4). Solo presente cuando Group == 1.</summary>
-    public int? Cuartil { get; init; }
+    /// <summary>Cuartil Scimago (Q1–Q4). Solo presente cuando Group == 1.</summary>
+    public string? Cuartil { get; init; }
 }
 
 /// <summary>Datos completos de una publicación.</summary>
@@ -34,9 +33,9 @@ public record PublicationDto
     public string? UrlDoi { get; init; }
     public int PublicationType { get; init; }
     public List<AuthorDto> Authors { get; init; } = [];
-    /// <summary>Presente cuando PublicationType ∈ {1,2,3,4}.</summary>
+    /// <summary>Presente cuando PublicationType != Diario.</summary>
     public IndexedPublicationDto? IndexedPublication { get; init; }
-    /// <summary>Presente cuando PublicationType == 0 (Diario).</summary>
+    /// <summary>Presente cuando PublicationType == Diario.</summary>
     public JournalPublicationDto? JournalPublication { get; init; }
 }
 

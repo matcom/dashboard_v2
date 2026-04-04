@@ -1,3 +1,5 @@
+using Dashboard_v2.Domain.Enums;
+
 namespace Dashboard_v2.Domain.Entities;
 
 public class Publication

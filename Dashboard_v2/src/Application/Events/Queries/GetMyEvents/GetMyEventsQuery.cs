@@ -38,7 +38,8 @@ public class GetMyEventsQueryHandler : IRequestHandler<GetMyEventsQuery, List<Ev
                 Name = e.Name,
                 CountryId = e.CountryId,
                 CountryName = e.Country.Name,
-                EventType = (int)e.EventType,
+                EventTypeId = e.EventTypeId,
+                EventTypeName = e.EventType.Name,
                 Institutions = e.Institutions,
                 PresentationCount = e.Presentations.Count(p =>
                     p.AuthorPresentations.Any(ap => ap.AuthorId == authorId)),

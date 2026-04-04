@@ -57,11 +57,10 @@ public class GetMyPublicationsQueryHandler : IRequestHandler<GetMyPublicationsQu
                 },
                 JournalPublication = p.JournalPublication == null ? null : new JournalPublicationDto
                 {
-                    Name = p.JournalPublication.Name,
                     DataBase = p.JournalPublication.DataBase,
                     Group = p.JournalPublication.Group,
                     Cuartil = p.JournalPublication.JournalGroup1Publication != null
-                        ? (int?)p.JournalPublication.JournalGroup1Publication.Cuartil
+                        ? p.JournalPublication.JournalGroup1Publication.Cuartil
                         : null
                 }
             })

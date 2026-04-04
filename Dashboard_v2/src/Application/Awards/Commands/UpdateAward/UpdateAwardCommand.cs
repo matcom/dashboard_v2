@@ -13,8 +13,8 @@ public record UpdateAwardCommand : IRequest<Result>
     /// <summary>Id de la fila UserAwarded a actualizar.</summary>
     public int Id { get; init; }
     public string AwardName { get; init; } = default!;
-    /// <summary>Valor numérico del enum AwardType (0–7).</summary>
-    public int AwardType { get; init; }
+    /// <summary>Id del tipo de premio (tabla AwardTypes).</summary>
+    public int AwardTypeId { get; init; }
     public int Year { get; init; }
     public DateTime AwardedAt { get; init; }
 }
@@ -35,7 +35,7 @@ public class UpdateAwardCommandHandler : IRequestHandler<UpdateAwardCommand, Res
         if (string.IsNullOrWhiteSpace(request.AwardName))
             return Result.Failure(["El nombre del premio es obligatorio."]);
 
-        if (!Enum.IsDefined(typeof(AwardType), request.AwardType))
+        if (!await _context.AwardTypes.AnyAsync(t => t.Id == request.AwardTypeId, cancellationToken))
             return Result.Failure(["Tipo de premio inválido."]);
 
         var userAwarded = await _context.UserAwardeds
@@ -49,7 +49,7 @@ public class UpdateAwardCommandHandler : IRequestHandler<UpdateAwardCommand, Res
             return Result.Failure(["No tienes permiso para modificar este premio."]);
 
         userAwarded.Award.Name = request.AwardName.Trim();
-        userAwarded.Award.AwardType = (AwardType)request.AwardType;
+        userAwarded.Award.AwardTypeId = request.AwardTypeId;
         userAwarded.Year = request.Year;
         userAwarded.AwardedAt = request.AwardedAt;
 

@@ -12,6 +12,10 @@ public class AwardsConfiguration : IEntityTypeConfiguration<Award>
 
         builder.HasKey(a => a.Id);
         builder.Property(a => a.Name).IsRequired().HasMaxLength(300);
-        builder.Property(a => a.AwardType).IsRequired();
+
+        builder.HasOne(a => a.AwardType)
+            .WithMany(t => t.Awards)
+            .HasForeignKey(a => a.AwardTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
