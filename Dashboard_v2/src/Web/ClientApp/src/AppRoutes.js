@@ -4,6 +4,9 @@ import UsersPage from "./pages/UsersPage";
 import PublicationsPage from "./pages/PublicationsPage";
 import AwardsPage from "./pages/AwardsPage";
 import EventsPage from "./pages/EventsPage";
+import UniversidadesPage from "./pages/UniversidadesPage";
+import AreasPage from "./pages/AreasPage";
+import GruposDeInvestigacionPage from "./pages/GruposDeInvestigacionPage";
 
 const AppRoutes = [
   {
@@ -39,6 +42,24 @@ const AppRoutes = [
     element: <EventsPage />,
     pageTitle: 'Mis eventos y presentaciones',
     profesorOnly: true,
+  },
+  {
+    path: '/universidades',
+    element: <UniversidadesPage />,
+    pageTitle: 'Universidades',
+    adminOnly: true,
+  },
+  {
+    path: '/areas',
+    element: <AreasPage />,
+    pageTitle: 'Áreas',
+    adminOnly: true,
+  },
+  {
+    path: '/grupos-investigacion',
+    element: <GruposDeInvestigacionPage />,
+    pageTitle: 'Grupos de Investigación',
+    adminOnly: true,
   },
 ];
 

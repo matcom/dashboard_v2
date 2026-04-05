@@ -31,6 +31,14 @@ const adminGroups = [
     ],
   },
   {
+    heading: 'Estructura académica',
+    items: [
+      { to: '/universidades', icon: 'bi-building', label: 'Universidades' },
+      { to: '/areas', icon: 'bi-diagram-3', label: 'Áreas' },
+      { to: '/grupos-investigacion', icon: 'bi-people-fill', label: 'Grupos de Investigación' },
+    ],
+  },
+  {
     heading: 'Sistema',
     items: [
       { to: '/settings', icon: 'bi-gear', label: 'Configuración' },

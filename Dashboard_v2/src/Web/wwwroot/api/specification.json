@@ -6,6 +6,150 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/Areas": {
+      "get": {
+        "tags": [
+          "Areas"
+        ],
+        "operationId": "GetAreas",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AreaDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Areas"
+        ],
+        "operationId": "CreateArea",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAreaBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Areas/{id}": {
+      "put": {
+        "tags": [
+          "Areas"
+        ],
+        "operationId": "UpdateArea",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAreaBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Areas"
+        ],
+        "operationId": "DeleteArea",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Auth/register": {
       "post": {
         "tags": [
@@ -642,6 +786,150 @@
         }
       }
     },
+    "/api/GruposDeInvestigacion": {
+      "get": {
+        "tags": [
+          "GruposDeInvestigacion"
+        ],
+        "operationId": "GetGruposDeInvestigacion",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GrupoDeInvestigacionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GruposDeInvestigacion"
+        ],
+        "operationId": "CreateGrupoDeInvestigacion",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGrupoDeInvestigacionBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/GruposDeInvestigacion/{id}": {
+      "put": {
+        "tags": [
+          "GruposDeInvestigacion"
+        ],
+        "operationId": "UpdateGrupoDeInvestigacion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGrupoDeInvestigacionBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GruposDeInvestigacion"
+        ],
+        "operationId": "DeleteGrupoDeInvestigacion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Presentations": {
       "get": {
         "tags": [
@@ -1017,6 +1305,150 @@
         }
       }
     },
+    "/api/Universidades": {
+      "get": {
+        "tags": [
+          "Universidades"
+        ],
+        "operationId": "GetUniversidades",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UniversidadDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Universidades"
+        ],
+        "operationId": "CreateUniversidad",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUniversidadBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Universidades/{id}": {
+      "put": {
+        "tags": [
+          "Universidades"
+        ],
+        "operationId": "UpdateUniversidad",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUniversidadBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Universidades"
+        ],
+        "operationId": "DeleteUniversidad",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Users": {
       "get": {
         "tags": [
@@ -1132,6 +1564,30 @@
   },
   "components": {
     "schemas": {
+      "AreaDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "universidadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "universidadNombre": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "ProblemDetails": {
         "type": "object",
         "additionalProperties": {
@@ -1156,6 +1612,40 @@
             "nullable": true
           },
           "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateAreaBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "universidadId": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateAreaBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "universidadId": {
             "type": "string",
             "nullable": true
           }
@@ -1531,6 +2021,48 @@
           }
         }
       },
+      "GrupoDeInvestigacionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "areaId": {
+            "type": "string"
+          },
+          "areaNombre": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateGrupoDeInvestigacionBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "areaId": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateGrupoDeInvestigacionBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "areaId": {
+            "type": "string"
+          }
+        }
+      },
       "PresentationDto": {
         "type": "object",
         "additionalProperties": false,
@@ -1842,6 +2374,36 @@
         "additionalProperties": false,
         "properties": {
           "name": {
+            "type": "string"
+          }
+        }
+      },
+      "UniversidadDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateUniversidadBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateUniversidadBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
             "type": "string"
           }
         }

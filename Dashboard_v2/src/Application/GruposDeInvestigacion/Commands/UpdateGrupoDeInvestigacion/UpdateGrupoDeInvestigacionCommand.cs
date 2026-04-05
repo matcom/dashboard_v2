@@ -1,0 +1,44 @@
+using Dashboard_v2.Application.Common.Interfaces;
+using Dashboard_v2.Application.Common.Models;
+
+namespace Dashboard_v2.Application.GruposDeInvestigacion.Commands.UpdateGrupoDeInvestigacion;
+
+public record UpdateGrupoDeInvestigacionCommand : IRequest<Result>
+{
+    public string Id { get; init; } = default!;
+    public string Nombre { get; init; } = default!;
+    /// <summary>Cambiar el Área a la que pertenece el grupo.</summary>
+    public string AreaId { get; init; } = default!;
+}
+
+public class UpdateGrupoDeInvestigacionCommandHandler : IRequestHandler<UpdateGrupoDeInvestigacionCommand, Result>
+{
+    private readonly IApplicationDbContext _context;
+
+    public UpdateGrupoDeInvestigacionCommandHandler(IApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<Result> Handle(UpdateGrupoDeInvestigacionCommand request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Nombre))
+            return Result.Failure(["El nombre es obligatorio."]);
+
+        var grupo = await _context.GruposDeInvestigacion
+            .FirstOrDefaultAsync(g => g.Id == request.Id, cancellationToken);
+
+        if (grupo is null)
+            return Result.Failure(["Grupo de investigación no encontrado."]);
+
+        if (!await _context.Areas.AnyAsync(a => a.Id == request.AreaId, cancellationToken))
+            return Result.Failure(["El área indicada no existe."]);
+
+        grupo.Nombre = request.Nombre.Trim();
+        grupo.AreaId = request.AreaId;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+}
