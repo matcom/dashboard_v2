@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260406202207_AddAreaDelConocimientoAndRelations")]
+    partial class AddAreaDelConocimientoAndRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,21 +25,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("AreaDelConocimientoLineaDeInvestigacion", b =>
-                {
-                    b.Property<string>("AreaDelConocimientoId")
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("LineaDeInvestigacionId")
-                        .HasColumnType("character varying(450)");
-
-                    b.HasKey("AreaDelConocimientoId", "LineaDeInvestigacionId");
-
-                    b.HasIndex("LineaDeInvestigacionId");
-
-                    b.ToTable("AreasDelConocimientoLineasDeInvestigacion", (string)null);
-                });
 
             modelBuilder.Entity("AreaInvestigaAreaDelConocimiento", b =>
                 {
@@ -346,6 +334,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
+                    b.Property<string>("AreaDelConocimientoId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text");
 
@@ -355,6 +348,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AreaDelConocimientoId");
 
                     b.ToTable("LineasDeInvestigacion", (string)null);
                 });
@@ -598,21 +593,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("GruposDeInvestigacionLineasDeInvestigacion", (string)null);
                 });
 
-            modelBuilder.Entity("AreaDelConocimientoLineaDeInvestigacion", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.AreaDelConocimiento", null)
-                        .WithMany()
-                        .HasForeignKey("AreaDelConocimientoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.LineaDeInvestigacion", null)
-                        .WithMany()
-                        .HasForeignKey("LineaDeInvestigacionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("AreaInvestigaAreaDelConocimiento", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.AreaDelConocimiento", null)
@@ -760,6 +740,17 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Publication");
                 });
 
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.LineaDeInvestigacion", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.AreaDelConocimiento", "AreaDelConocimiento")
+                        .WithMany("LineasDeInvestigacion")
+                        .HasForeignKey("AreaDelConocimientoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AreaDelConocimiento");
+                });
+
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Presentation", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.Event", "Event")
@@ -830,6 +821,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Area", b =>
                 {
                     b.Navigation("GruposDeInvestigacion");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AreaDelConocimiento", b =>
+                {
+                    b.Navigation("LineasDeInvestigacion");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Author", b =>

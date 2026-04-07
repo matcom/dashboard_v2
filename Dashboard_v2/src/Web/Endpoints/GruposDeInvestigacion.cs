@@ -51,7 +51,8 @@ public class GruposDeInvestigacion : EndpointGroupBase
         var (result, id) = await sender.Send(new CreateGrupoDeInvestigacionCommand
         {
             Nombre = body.Nombre,
-            AreaId = body.AreaId
+            AreaId = body.AreaId,
+            LineasDeInvestigacionIds = body.LineasDeInvestigacionIds ?? []
         });
 
         if (!result.Succeeded)
@@ -66,7 +67,8 @@ public class GruposDeInvestigacion : EndpointGroupBase
         {
             Id = id,
             Nombre = body.Nombre,
-            AreaId = body.AreaId
+            AreaId = body.AreaId,
+            LineasDeInvestigacionIds = body.LineasDeInvestigacionIds ?? []
         });
 
         if (!result.Succeeded)
@@ -88,5 +90,5 @@ public class GruposDeInvestigacion : EndpointGroupBase
     }
 }
 
-public record CreateGrupoDeInvestigacionBody(string Nombre, string AreaId);
-public record UpdateGrupoDeInvestigacionBody(string Nombre, string AreaId);
+public record CreateGrupoDeInvestigacionBody(string Nombre, string AreaId, IList<string>? LineasDeInvestigacionIds);
+public record UpdateGrupoDeInvestigacionBody(string Nombre, string AreaId, IList<string>? LineasDeInvestigacionIds);

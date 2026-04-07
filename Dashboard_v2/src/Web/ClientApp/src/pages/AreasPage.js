@@ -3,7 +3,7 @@ import {
   Card, CardBody, CardHeader,
   Table, Button, Spinner, Alert, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
-  Form, FormGroup, Label, Input,
+  Form, FormGroup, Label, Input, FormText,
 } from 'reactstrap';
 
 async function apiFetch(url, options = {}) {
@@ -20,11 +20,12 @@ async function apiFetch(url, options = {}) {
   return data;
 }
 
-const emptyForm = { nombre: '', descripcion: '', universidadId: '' };
+const emptyForm = { nombre: '', descripcion: '', universidadId: '', areasDelConocimientoIds: [] };
 
 export default function AreasPage() {
   const [items, setItems] = useState([]);
   const [universidades, setUniversidades] = useState([]);
+  const [areasDelConocimiento, setAreasDelConocimiento] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -38,12 +39,14 @@ export default function AreasPage() {
     setLoading(true);
     setError('');
     try {
-      const [areasData, univData] = await Promise.all([
+      const [areasData, univData, areasConocimientoData] = await Promise.all([
         apiFetch('/api/Areas'),
         apiFetch('/api/Universidades'),
+        apiFetch('/api/AreasDelConocimiento'),
       ]);
       setItems(areasData);
       setUniversidades(univData);
+      setAreasDelConocimiento(areasConocimientoData);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -66,6 +69,7 @@ export default function AreasPage() {
       nombre: item.nombre,
       descripcion: item.descripcion ?? '',
       universidadId: item.universidadId ?? '',
+      areasDelConocimientoIds: item.areasDelConocimientoIds ?? [],
     });
     setFormError('');
     setModal(true);
@@ -78,6 +82,7 @@ export default function AreasPage() {
       nombre: form.nombre,
       descripcion: form.descripcion || null,
       universidadId: form.universidadId || null,
+      areasDelConocimientoIds: form.areasDelConocimientoIds,
     };
     try {
       if (editing) {
@@ -208,6 +213,30 @@ export default function AreasPage() {
                   <option key={u.id} value={u.id}>{u.nombre}</option>
                 ))}
               </Input>
+            </FormGroup>
+            <FormGroup>
+              <Label>Áreas del conocimiento que investiga</Label>
+              {areasDelConocimiento.length === 0
+                ? <FormText color="muted">No hay áreas del conocimiento registradas.</FormText>
+                : <div className="border rounded p-2" style={{ maxHeight: '160px', overflowY: 'auto' }}>
+                    {areasDelConocimiento.map(ac => (
+                      <FormGroup check key={ac.id} className="mb-1">
+                        <Input
+                          type="checkbox"
+                          id={`ac-${ac.id}`}
+                          checked={form.areasDelConocimientoIds.includes(ac.id)}
+                          onChange={e => {
+                            const ids = e.target.checked
+                              ? [...form.areasDelConocimientoIds, ac.id]
+                              : form.areasDelConocimientoIds.filter(id => id !== ac.id);
+                            setForm(f => ({ ...f, areasDelConocimientoIds: ids }));
+                          }}
+                        />
+                        <Label check for={`ac-${ac.id}`}>{ac.nombre}</Label>
+                      </FormGroup>
+                    ))}
+                  </div>
+              }
             </FormGroup>
           </Form>
         </ModalBody>

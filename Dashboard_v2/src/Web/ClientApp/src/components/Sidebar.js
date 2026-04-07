@@ -36,6 +36,8 @@ const adminGroups = [
       { to: '/universidades', icon: 'bi-building', label: 'Universidades' },
       { to: '/areas', icon: 'bi-diagram-3', label: 'Áreas' },
       { to: '/grupos-investigacion', icon: 'bi-people-fill', label: 'Grupos de Investigación' },
+      { to: '/areas-conocimiento', icon: 'bi-book', label: 'Áreas del Conocimiento' },
+      { to: '/lineas-investigacion', icon: 'bi-lightbulb', label: 'Líneas de Investigación' },
     ],
   },
   {

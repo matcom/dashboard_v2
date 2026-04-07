@@ -20,5 +20,28 @@ public class GrupoDeInvestigacionConfiguration : IEntityTypeConfiguration<GrupoD
             .WithMany(a => a.GruposDeInvestigacion)
             .HasForeignKey(g => g.AreaId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Estudia: GrupoDeInvestigacion ↔ LineaDeInvestigacion (0:N)
+        builder.HasMany(g => g.LineasDeInvestigacion)
+            .WithMany(l => l.GruposDeInvestigacion)
+            .UsingEntity<Dictionary<string, object>>(
+                "GrupoDeInvestigacionLineaDeInvestigacion",
+                right => right
+                    .HasOne<LineaDeInvestigacion>()
+                    .WithMany()
+                    .HasForeignKey("LineaDeInvestigacionId")
+                    .HasPrincipalKey(l => l.Id)
+                    .OnDelete(DeleteBehavior.Cascade),
+                left => left
+                    .HasOne<GrupoDeInvestigacion>()
+                    .WithMany()
+                    .HasForeignKey("GrupoDeInvestigacionId")
+                    .HasPrincipalKey(g => g.Id)
+                    .OnDelete(DeleteBehavior.Cascade),
+                join =>
+                {
+                    join.ToTable("GruposDeInvestigacionLineasDeInvestigacion");
+                    join.HasKey("GrupoDeInvestigacionId", "LineaDeInvestigacionId");
+                });
     }
 }

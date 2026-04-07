@@ -9,6 +9,8 @@ public record UpdateGrupoDeInvestigacionCommand : IRequest<Result>
     public string Nombre { get; init; } = default!;
     /// <summary>Cambiar el Área a la que pertenece el grupo.</summary>
     public string AreaId { get; init; } = default!;
+    /// <summary>Ids de las Líneas de Investigación que estudia este grupo (relación N:N). Reemplaza la selección anterior.</summary>
+    public IList<string> LineasDeInvestigacionIds { get; init; } = [];
 }
 
 public class UpdateGrupoDeInvestigacionCommandHandler : IRequestHandler<UpdateGrupoDeInvestigacionCommand, Result>
@@ -26,6 +28,7 @@ public class UpdateGrupoDeInvestigacionCommandHandler : IRequestHandler<UpdateGr
             return Result.Failure(["El nombre es obligatorio."]);
 
         var grupo = await _context.GruposDeInvestigacion
+            .Include(g => g.LineasDeInvestigacion)
             .FirstOrDefaultAsync(g => g.Id == request.Id, cancellationToken);
 
         if (grupo is null)
@@ -36,6 +39,13 @@ public class UpdateGrupoDeInvestigacionCommandHandler : IRequestHandler<UpdateGr
 
         grupo.Nombre = request.Nombre.Trim();
         grupo.AreaId = request.AreaId;
+
+        var newLineas = await _context.LineasDeInvestigacion
+            .Where(l => request.LineasDeInvestigacionIds.Contains(l.Id))
+            .ToListAsync(cancellationToken);
+        grupo.LineasDeInvestigacion.Clear();
+        foreach (var linea in newLineas)
+            grupo.LineasDeInvestigacion.Add(linea);
 
         await _context.SaveChangesAsync(cancellationToken);
 

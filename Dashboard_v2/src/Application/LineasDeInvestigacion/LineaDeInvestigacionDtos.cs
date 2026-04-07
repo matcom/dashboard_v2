@@ -1,11 +1,10 @@
-namespace Dashboard_v2.Application.Areas;
+namespace Dashboard_v2.Application.LineasDeInvestigacion;
 
-public record AreaDto
+public record LineaDeInvestigacionDto
 {
     public string Id { get; init; } = default!;
     public string Nombre { get; init; } = default!;
     public string? Descripcion { get; init; }
-    public string? UniversidadId { get; init; }
-    public string? UniversidadNombre { get; init; }
     public IReadOnlyList<string> AreasDelConocimientoIds { get; init; } = [];
+    public IReadOnlyList<string> AreasDelConocimientoNombres { get; init; } = [];
 }

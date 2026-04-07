@@ -8,6 +8,8 @@ public record CreateGrupoDeInvestigacionCommand : IRequest<(Result Result, strin
 {
     public string Nombre { get; init; } = default!;
     public string AreaId { get; init; } = default!;
+    /// <summary>Ids de las Líneas de Investigación que estudia este grupo (relación N:N).</summary>
+    public IList<string> LineasDeInvestigacionIds { get; init; } = [];
 }
 
 public class CreateGrupoDeInvestigacionCommandHandler
@@ -34,6 +36,14 @@ public class CreateGrupoDeInvestigacionCommandHandler
             Nombre = request.Nombre.Trim(),
             AreaId = request.AreaId
         };
+
+        if (request.LineasDeInvestigacionIds.Count > 0)
+        {
+            var lineas = await _context.LineasDeInvestigacion
+                .Where(l => request.LineasDeInvestigacionIds.Contains(l.Id))
+                .ToListAsync(cancellationToken);
+            grupo.LineasDeInvestigacion = lineas;
+        }
 
         _context.GruposDeInvestigacion.Add(grupo);
         await _context.SaveChangesAsync(cancellationToken);

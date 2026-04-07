@@ -53,7 +53,8 @@ public class Areas : EndpointGroupBase
         {
             Nombre = body.Nombre,
             Descripcion = body.Descripcion,
-            UniversidadId = body.UniversidadId
+            UniversidadId = body.UniversidadId,
+            AreasDelConocimientoIds = body.AreasDelConocimientoIds ?? []
         });
 
         if (!result.Succeeded)
@@ -69,7 +70,8 @@ public class Areas : EndpointGroupBase
             Id = id,
             Nombre = body.Nombre,
             Descripcion = body.Descripcion,
-            UniversidadId = body.UniversidadId
+            UniversidadId = body.UniversidadId,
+            AreasDelConocimientoIds = body.AreasDelConocimientoIds ?? []
         });
 
         if (!result.Succeeded)
@@ -91,5 +93,5 @@ public class Areas : EndpointGroupBase
     }
 }
 
-public record CreateAreaBody(string Nombre, string? Descripcion, string? UniversidadId);
-public record UpdateAreaBody(string Nombre, string? Descripcion, string? UniversidadId);
+public record CreateAreaBody(string Nombre, string? Descripcion, string? UniversidadId, IList<string>? AreasDelConocimientoIds);
+public record UpdateAreaBody(string Nombre, string? Descripcion, string? UniversidadId, IList<string>? AreasDelConocimientoIds);

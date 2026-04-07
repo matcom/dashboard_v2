@@ -13,6 +13,8 @@ public record UpdateAreaCommand : IRequest<Result>
     /// Pasar null desvincula el Área de cualquier Universidad.
     /// </summary>
     public string? UniversidadId { get; init; }
+    /// <summary>Ids de las Áreas del Conocimiento que investiga esta Área (relación N:N). Reemplaza la selección anterior.</summary>
+    public IList<string> AreasDelConocimientoIds { get; init; } = [];
 }
 
 public class UpdateAreaCommandHandler : IRequestHandler<UpdateAreaCommand, Result>
@@ -30,6 +32,7 @@ public class UpdateAreaCommandHandler : IRequestHandler<UpdateAreaCommand, Resul
             return Result.Failure(["El nombre es obligatorio."]);
 
         var area = await _context.Areas
+            .Include(a => a.AreasDelConocimiento)
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken);
 
         if (area is null)
@@ -42,6 +45,13 @@ public class UpdateAreaCommandHandler : IRequestHandler<UpdateAreaCommand, Resul
         area.Nombre = request.Nombre.Trim();
         area.Descripcion = request.Descripcion?.Trim();
         area.UniversidadId = request.UniversidadId;
+
+        var newAreasConocimiento = await _context.AreasDelConocimiento
+            .Where(a => request.AreasDelConocimientoIds.Contains(a.Id))
+            .ToListAsync(cancellationToken);
+        area.AreasDelConocimiento.Clear();
+        foreach (var ac in newAreasConocimiento)
+            area.AreasDelConocimiento.Add(ac);
 
         await _context.SaveChangesAsync(cancellationToken);
 

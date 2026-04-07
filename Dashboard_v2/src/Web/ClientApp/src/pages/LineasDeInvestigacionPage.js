@@ -20,12 +20,11 @@ async function apiFetch(url, options = {}) {
   return data;
 }
 
-const emptyForm = { nombre: '', areaId: '', lineasDeInvestigacionIds: [] };
+const emptyForm = { nombre: '', descripcion: '', areasDelConocimientoIds: [] };
 
-export default function GruposDeInvestigacionPage() {
+export default function LineasDeInvestigacionPage() {
   const [items, setItems] = useState([]);
-  const [areas, setAreas] = useState([]);
-  const [lineasDeInvestigacion, setLineasDeInvestigacion] = useState([]);
+  const [areasDelConocimiento, setAreasDelConocimiento] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -39,14 +38,12 @@ export default function GruposDeInvestigacionPage() {
     setLoading(true);
     setError('');
     try {
-      const [gruposData, areasData, lineasData] = await Promise.all([
-        apiFetch('/api/GruposDeInvestigacion'),
-        apiFetch('/api/Areas'),
+      const [lineasData, areasData] = await Promise.all([
         apiFetch('/api/LineasDeInvestigacion'),
+        apiFetch('/api/AreasDelConocimiento'),
       ]);
-      setItems(gruposData);
-      setAreas(areasData);
-      setLineasDeInvestigacion(lineasData);
+      setItems(lineasData);
+      setAreasDelConocimiento(areasData);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -58,14 +55,14 @@ export default function GruposDeInvestigacionPage() {
 
   function openCreate() {
     setEditing(null);
-    setForm({ nombre: '', areaId: areas.length > 0 ? areas[0].id : '', lineasDeInvestigacionIds: [] });
+    setForm(emptyForm);
     setFormError('');
     setModal(true);
   }
 
   function openEdit(item) {
     setEditing(item);
-    setForm({ nombre: item.nombre, areaId: item.areaId, lineasDeInvestigacionIds: item.lineasDeInvestigacionIds ?? [] });
+    setForm({ nombre: item.nombre, descripcion: item.descripcion ?? '', areasDelConocimientoIds: item.areasDelConocimientoIds ?? [] });
     setFormError('');
     setModal(true);
   }
@@ -73,12 +70,16 @@ export default function GruposDeInvestigacionPage() {
   async function handleSave() {
     setSaving(true);
     setFormError('');
-    const body = { nombre: form.nombre, areaId: form.areaId, lineasDeInvestigacionIds: form.lineasDeInvestigacionIds };
+    const body = {
+      nombre: form.nombre,
+      descripcion: form.descripcion || null,
+      areasDelConocimientoIds: form.areasDelConocimientoIds,
+    };
     try {
       if (editing) {
-        await apiFetch(`/api/GruposDeInvestigacion/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) });
+        await apiFetch(`/api/LineasDeInvestigacion/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) });
       } else {
-        await apiFetch('/api/GruposDeInvestigacion', { method: 'POST', body: JSON.stringify(body) });
+        await apiFetch('/api/LineasDeInvestigacion', { method: 'POST', body: JSON.stringify(body) });
       }
       setModal(false);
       await load();
@@ -90,9 +91,9 @@ export default function GruposDeInvestigacionPage() {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('¿Eliminar este grupo de investigación?')) return;
+    if (!window.confirm('¿Eliminar esta línea de investigación?')) return;
     try {
-      await apiFetch(`/api/GruposDeInvestigacion/${id}`, { method: 'DELETE' });
+      await apiFetch(`/api/LineasDeInvestigacion/${id}`, { method: 'DELETE' });
       await load();
     } catch (e) {
       setError(e.message);
@@ -110,23 +111,17 @@ export default function GruposDeInvestigacionPage() {
   return (
     <>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Grupos de Investigación</h2>
-        <Button color="primary" onClick={openCreate} disabled={areas.length === 0}>
-          + Nuevo grupo
+        <h2 className="mb-0">Líneas de Investigación</h2>
+        <Button color="primary" onClick={openCreate}>
+          + Nueva línea
         </Button>
       </div>
-
-      {areas.length === 0 && (
-        <Alert color="warning">
-          Debes crear al menos un <strong>Área</strong> antes de poder añadir grupos de investigación.
-        </Alert>
-      )}
 
       {error && <Alert color="danger" toggle={() => setError('')}>{error}</Alert>}
 
       <Card>
         <CardHeader>
-          <strong>Grupos registrados</strong>
+          <strong>Líneas de investigación registradas</strong>
           <small className="text-muted ms-2">({items.length})</small>
         </CardHeader>
         <CardBody className="p-0">
@@ -134,23 +129,30 @@ export default function GruposDeInvestigacionPage() {
             <thead className="table-light">
               <tr>
                 <th>Nombre</th>
-                <th>Área</th>
+                <th>Descripción</th>
+                <th>Áreas del conocimiento</th>
                 <th className="text-end">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="text-center text-muted py-4">
-                    No hay grupos de investigación registrados.
+                  <td colSpan={4} className="text-center text-muted py-4">
+                    No hay líneas de investigación registradas.
                   </td>
                 </tr>
               )}
               {items.map(item => (
                 <tr key={item.id}>
                   <td className="align-middle fw-semibold">{item.nombre}</td>
+                  <td className="align-middle text-muted small">{item.descripcion ?? '—'}</td>
                   <td className="align-middle">
-                    <Badge color="secondary" pill>{item.areaNombre}</Badge>
+                    {item.areasDelConocimientoNombres && item.areasDelConocimientoNombres.length > 0
+                      ? item.areasDelConocimientoNombres.map(n => (
+                          <Badge color="secondary" pill className="me-1" key={n}>{n}</Badge>
+                        ))
+                      : <span className="text-muted small">Sin área asignada</span>
+                    }
                   </td>
                   <td className="align-middle text-end">
                     <Button size="sm" color="outline-secondary" className="me-2" onClick={() => openEdit(item)}>
@@ -169,7 +171,7 @@ export default function GruposDeInvestigacionPage() {
 
       <Modal isOpen={modal} toggle={() => setModal(false)}>
         <ModalHeader toggle={() => setModal(false)}>
-          {editing ? 'Editar grupo de investigación' : 'Nuevo grupo de investigación'}
+          {editing ? 'Editar línea de investigación' : 'Nueva línea de investigación'}
         </ModalHeader>
         <ModalBody>
           {formError && <Alert color="danger">{formError}</Alert>}
@@ -180,45 +182,39 @@ export default function GruposDeInvestigacionPage() {
                 id="nombre"
                 value={form.nombre}
                 onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                placeholder="Nombre del grupo"
+                placeholder="Nombre de la línea de investigación"
               />
             </FormGroup>
             <FormGroup>
-              <Label for="areaId">Área *</Label>
+              <Label for="descripcion">Descripción</Label>
               <Input
-                id="areaId"
-                type="select"
-                value={form.areaId}
-                onChange={e => setForm(f => ({ ...f, areaId: e.target.value }))}
-              >
-                <option value="">— Selecciona un área —</option>
-                {areas.map(a => (
-                  <option key={a.id} value={a.id}>{a.nombre}</option>
-                ))}
-              </Input>
+                id="descripcion"
+                type="textarea"
+                rows={3}
+                value={form.descripcion}
+                onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
+                placeholder="Descripción opcional"
+              />
             </FormGroup>
             <FormGroup>
-              <Label>Líneas de investigación que estudia</Label>
-              {lineasDeInvestigacion.length === 0
-                ? <FormText color="muted">No hay líneas de investigación registradas.</FormText>
+              <Label>Áreas del conocimiento</Label>
+              {areasDelConocimiento.length === 0
+                ? <FormText color="muted">No hay áreas del conocimiento registradas.</FormText>
                 : <div className="border rounded p-2" style={{ maxHeight: '160px', overflowY: 'auto' }}>
-                    {lineasDeInvestigacion.map(l => (
-                      <FormGroup check key={l.id} className="mb-1">
+                    {areasDelConocimiento.map(a => (
+                      <FormGroup check key={a.id} className="mb-1">
                         <Input
                           type="checkbox"
-                          id={`linea-${l.id}`}
-                          checked={form.lineasDeInvestigacionIds.includes(l.id)}
+                          id={`ac-${a.id}`}
+                          checked={form.areasDelConocimientoIds.includes(a.id)}
                           onChange={e => {
                             const ids = e.target.checked
-                              ? [...form.lineasDeInvestigacionIds, l.id]
-                              : form.lineasDeInvestigacionIds.filter(id => id !== l.id);
-                            setForm(f => ({ ...f, lineasDeInvestigacionIds: ids }));
+                              ? [...form.areasDelConocimientoIds, a.id]
+                              : form.areasDelConocimientoIds.filter(id => id !== a.id);
+                            setForm(f => ({ ...f, areasDelConocimientoIds: ids }));
                           }}
                         />
-                        <Label check for={`linea-${l.id}`}>
-                          {l.nombre}
-                          <small className="text-muted ms-1">({l.areaDelConocimientoNombre})</small>
-                        </Label>
+                        <Label check for={`ac-${a.id}`}>{a.nombre}</Label>
                       </FormGroup>
                     ))}
                   </div>

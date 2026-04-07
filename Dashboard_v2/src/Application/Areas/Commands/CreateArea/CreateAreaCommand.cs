@@ -10,6 +10,8 @@ public record CreateAreaCommand : IRequest<(Result Result, string? Id)>
     public string? Descripcion { get; init; }
     /// <summary>Id de la Universidad a la que pertenece el Área. Opcional.</summary>
     public string? UniversidadId { get; init; }
+    /// <summary>Ids de las Áreas del Conocimiento que investiga esta Área (relación N:N).</summary>
+    public IList<string> AreasDelConocimientoIds { get; init; } = [];
 }
 
 public class CreateAreaCommandHandler : IRequestHandler<CreateAreaCommand, (Result Result, string? Id)>
@@ -36,6 +38,14 @@ public class CreateAreaCommandHandler : IRequestHandler<CreateAreaCommand, (Resu
             Descripcion = request.Descripcion?.Trim(),
             UniversidadId = request.UniversidadId
         };
+
+        if (request.AreasDelConocimientoIds.Count > 0)
+        {
+            var areasConocimiento = await _context.AreasDelConocimiento
+                .Where(a => request.AreasDelConocimientoIds.Contains(a.Id))
+                .ToListAsync(cancellationToken);
+            area.AreasDelConocimiento = areasConocimiento;
+        }
 
         _context.Areas.Add(area);
         await _context.SaveChangesAsync(cancellationToken);

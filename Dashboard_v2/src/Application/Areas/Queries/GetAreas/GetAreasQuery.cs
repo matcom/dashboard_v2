@@ -23,7 +23,8 @@ public class GetAreasQueryHandler : IRequestHandler<GetAreasQuery, List<AreaDto>
                 Nombre = a.Nombre,
                 Descripcion = a.Descripcion,
                 UniversidadId = a.UniversidadId,
-                UniversidadNombre = a.Universidad != null ? a.Universidad.Nombre : null
+                UniversidadNombre = a.Universidad != null ? a.Universidad.Nombre : null,
+                AreasDelConocimientoIds = a.AreasDelConocimiento.Select(ac => ac.Id).ToList()
             })
             .ToListAsync(cancellationToken);
     }

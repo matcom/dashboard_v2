@@ -8,4 +8,7 @@ public class GrupoDeInvestigacion
     // un Grupo de Investigación pertenece a un Área
     public string AreaId { get; set; } = default!;
     public Area Area { get; set; } = default!;
+
+    // un Grupo de Investigación estudia 0 o muchas Líneas de Investigación
+    public ICollection<LineaDeInvestigacion> LineasDeInvestigacion { get; set; } = new List<LineaDeInvestigacion>();
 }

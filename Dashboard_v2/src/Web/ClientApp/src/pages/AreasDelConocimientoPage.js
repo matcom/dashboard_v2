@@ -20,11 +20,10 @@ async function apiFetch(url, options = {}) {
   return data;
 }
 
-const emptyForm = { nombre: '', areaId: '', lineasDeInvestigacionIds: [] };
+const emptyForm = { nombre: '', descripcion: '', lineasDeInvestigacionIds: [] };
 
-export default function GruposDeInvestigacionPage() {
+export default function AreasDelConocimientoPage() {
   const [items, setItems] = useState([]);
-  const [areas, setAreas] = useState([]);
   const [lineasDeInvestigacion, setLineasDeInvestigacion] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,13 +38,11 @@ export default function GruposDeInvestigacionPage() {
     setLoading(true);
     setError('');
     try {
-      const [gruposData, areasData, lineasData] = await Promise.all([
-        apiFetch('/api/GruposDeInvestigacion'),
-        apiFetch('/api/Areas'),
+      const [areasData, lineasData] = await Promise.all([
+        apiFetch('/api/AreasDelConocimiento'),
         apiFetch('/api/LineasDeInvestigacion'),
       ]);
-      setItems(gruposData);
-      setAreas(areasData);
+      setItems(areasData);
       setLineasDeInvestigacion(lineasData);
     } catch (e) {
       setError(e.message);
@@ -58,14 +55,14 @@ export default function GruposDeInvestigacionPage() {
 
   function openCreate() {
     setEditing(null);
-    setForm({ nombre: '', areaId: areas.length > 0 ? areas[0].id : '', lineasDeInvestigacionIds: [] });
+    setForm(emptyForm);
     setFormError('');
     setModal(true);
   }
 
   function openEdit(item) {
     setEditing(item);
-    setForm({ nombre: item.nombre, areaId: item.areaId, lineasDeInvestigacionIds: item.lineasDeInvestigacionIds ?? [] });
+    setForm({ nombre: item.nombre, descripcion: item.descripcion ?? '', lineasDeInvestigacionIds: item.lineasDeInvestigacionIds ?? [] });
     setFormError('');
     setModal(true);
   }
@@ -73,12 +70,12 @@ export default function GruposDeInvestigacionPage() {
   async function handleSave() {
     setSaving(true);
     setFormError('');
-    const body = { nombre: form.nombre, areaId: form.areaId, lineasDeInvestigacionIds: form.lineasDeInvestigacionIds };
+    const body = { nombre: form.nombre, descripcion: form.descripcion || null, lineasDeInvestigacionIds: form.lineasDeInvestigacionIds };
     try {
       if (editing) {
-        await apiFetch(`/api/GruposDeInvestigacion/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) });
+        await apiFetch(`/api/AreasDelConocimiento/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) });
       } else {
-        await apiFetch('/api/GruposDeInvestigacion', { method: 'POST', body: JSON.stringify(body) });
+        await apiFetch('/api/AreasDelConocimiento', { method: 'POST', body: JSON.stringify(body) });
       }
       setModal(false);
       await load();
@@ -90,9 +87,9 @@ export default function GruposDeInvestigacionPage() {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('¿Eliminar este grupo de investigación?')) return;
+    if (!window.confirm('¿Eliminar esta área del conocimiento? Se eliminarán también sus líneas de investigación.')) return;
     try {
-      await apiFetch(`/api/GruposDeInvestigacion/${id}`, { method: 'DELETE' });
+      await apiFetch(`/api/AreasDelConocimiento/${id}`, { method: 'DELETE' });
       await load();
     } catch (e) {
       setError(e.message);
@@ -110,23 +107,15 @@ export default function GruposDeInvestigacionPage() {
   return (
     <>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Grupos de Investigación</h2>
-        <Button color="primary" onClick={openCreate} disabled={areas.length === 0}>
-          + Nuevo grupo
-        </Button>
+        <h2 className="mb-0">Áreas del Conocimiento</h2>
+        <Button color="primary" onClick={openCreate}>+ Nueva área del conocimiento</Button>
       </div>
-
-      {areas.length === 0 && (
-        <Alert color="warning">
-          Debes crear al menos un <strong>Área</strong> antes de poder añadir grupos de investigación.
-        </Alert>
-      )}
 
       {error && <Alert color="danger" toggle={() => setError('')}>{error}</Alert>}
 
       <Card>
         <CardHeader>
-          <strong>Grupos registrados</strong>
+          <strong>Áreas del conocimiento registradas</strong>
           <small className="text-muted ms-2">({items.length})</small>
         </CardHeader>
         <CardBody className="p-0">
@@ -134,23 +123,30 @@ export default function GruposDeInvestigacionPage() {
             <thead className="table-light">
               <tr>
                 <th>Nombre</th>
-                <th>Área</th>
+                <th>Descripción</th>
+                <th>Líneas de investigación</th>
                 <th className="text-end">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="text-center text-muted py-4">
-                    No hay grupos de investigación registrados.
+                  <td colSpan={4} className="text-center text-muted py-4">
+                    No hay áreas del conocimiento registradas.
                   </td>
                 </tr>
               )}
               {items.map(item => (
                 <tr key={item.id}>
                   <td className="align-middle fw-semibold">{item.nombre}</td>
+                  <td className="align-middle text-muted small">{item.descripcion ?? '—'}</td>
                   <td className="align-middle">
-                    <Badge color="secondary" pill>{item.areaNombre}</Badge>
+                    {item.lineasDeInvestigacionIds && item.lineasDeInvestigacionIds.length > 0
+                      ? lineasDeInvestigacion
+                          .filter(l => item.lineasDeInvestigacionIds.includes(l.id))
+                          .map(l => <Badge color="info" pill className="me-1" key={l.id}>{l.nombre}</Badge>)
+                      : <span className="text-muted small">Sin líneas</span>
+                    }
                   </td>
                   <td className="align-middle text-end">
                     <Button size="sm" color="outline-secondary" className="me-2" onClick={() => openEdit(item)}>
@@ -169,7 +165,7 @@ export default function GruposDeInvestigacionPage() {
 
       <Modal isOpen={modal} toggle={() => setModal(false)}>
         <ModalHeader toggle={() => setModal(false)}>
-          {editing ? 'Editar grupo de investigación' : 'Nuevo grupo de investigación'}
+          {editing ? 'Editar área del conocimiento' : 'Nueva área del conocimiento'}
         </ModalHeader>
         <ModalBody>
           {formError && <Alert color="danger">{formError}</Alert>}
@@ -180,25 +176,22 @@ export default function GruposDeInvestigacionPage() {
                 id="nombre"
                 value={form.nombre}
                 onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                placeholder="Nombre del grupo"
+                placeholder="Nombre del área del conocimiento"
               />
             </FormGroup>
             <FormGroup>
-              <Label for="areaId">Área *</Label>
+              <Label for="descripcion">Descripción</Label>
               <Input
-                id="areaId"
-                type="select"
-                value={form.areaId}
-                onChange={e => setForm(f => ({ ...f, areaId: e.target.value }))}
-              >
-                <option value="">— Selecciona un área —</option>
-                {areas.map(a => (
-                  <option key={a.id} value={a.id}>{a.nombre}</option>
-                ))}
-              </Input>
+                id="descripcion"
+                type="textarea"
+                rows={3}
+                value={form.descripcion}
+                onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
+                placeholder="Descripción opcional"
+              />
             </FormGroup>
             <FormGroup>
-              <Label>Líneas de investigación que estudia</Label>
+              <Label>Líneas de investigación que posee</Label>
               {lineasDeInvestigacion.length === 0
                 ? <FormText color="muted">No hay líneas de investigación registradas.</FormText>
                 : <div className="border rounded p-2" style={{ maxHeight: '160px', overflowY: 'auto' }}>
@@ -215,10 +208,7 @@ export default function GruposDeInvestigacionPage() {
                             setForm(f => ({ ...f, lineasDeInvestigacionIds: ids }));
                           }}
                         />
-                        <Label check for={`linea-${l.id}`}>
-                          {l.nombre}
-                          <small className="text-muted ms-1">({l.areaDelConocimientoNombre})</small>
-                        </Label>
+                        <Label check for={`linea-${l.id}`}>{l.nombre}</Label>
                       </FormGroup>
                     ))}
                   </div>
