@@ -24,7 +24,8 @@ public class GetGruposDeInvestigacionQueryHandler : IRequestHandler<GetGruposDeI
                 Nombre = g.Nombre,
                 AreaId = g.AreaId,
                 AreaNombre = g.Area.Nombre,
-                LineasDeInvestigacionIds = g.LineasDeInvestigacion.Select(l => l.Id).ToList()
+                LineasDeInvestigacionIds = g.LineasDeInvestigacion.Select(l => l.Id).ToList(),
+                UsuariosIds = g.Usuarios.Select(u => u.Id).ToList()
             })
             .ToListAsync(cancellationToken);
     }

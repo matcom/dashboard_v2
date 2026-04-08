@@ -3,8 +3,9 @@ import {
   Card, CardBody, CardHeader,
   Table, Button, Spinner, Alert, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
-  Form, FormGroup, Label, Input, FormText,
+  Form, FormGroup, Label, Input,
 } from 'reactstrap';
+import Select from 'react-select';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -192,27 +193,19 @@ export default function AreasDelConocimientoPage() {
             </FormGroup>
             <FormGroup>
               <Label>Líneas de investigación que posee</Label>
-              {lineasDeInvestigacion.length === 0
-                ? <FormText color="muted">No hay líneas de investigación registradas.</FormText>
-                : <div className="border rounded p-2" style={{ maxHeight: '160px', overflowY: 'auto' }}>
-                    {lineasDeInvestigacion.map(l => (
-                      <FormGroup check key={l.id} className="mb-1">
-                        <Input
-                          type="checkbox"
-                          id={`linea-${l.id}`}
-                          checked={form.lineasDeInvestigacionIds.includes(l.id)}
-                          onChange={e => {
-                            const ids = e.target.checked
-                              ? [...form.lineasDeInvestigacionIds, l.id]
-                              : form.lineasDeInvestigacionIds.filter(id => id !== l.id);
-                            setForm(f => ({ ...f, lineasDeInvestigacionIds: ids }));
-                          }}
-                        />
-                        <Label check for={`linea-${l.id}`}>{l.nombre}</Label>
-                      </FormGroup>
-                    ))}
-                  </div>
-              }
+              <Select
+                isMulti
+                options={lineasDeInvestigacion.map(l => ({ value: l.id, label: l.nombre }))}
+                value={form.lineasDeInvestigacionIds.map(id => {
+                  const l = lineasDeInvestigacion.find(x => x.id === id);
+                  return l ? { value: l.id, label: l.nombre } : null;
+                }).filter(Boolean)}
+                onChange={sel => setForm(f => ({ ...f, lineasDeInvestigacionIds: sel.map(s => s.value) }))}
+                placeholder="Buscar línea..."
+                noOptionsMessage={() => 'Sin resultados'}
+                menuPortalTarget={document.body}
+                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+              />
             </FormGroup>
           </Form>
         </ModalBody>

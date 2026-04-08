@@ -6,8 +6,7 @@ import AwardsPage from "./pages/AwardsPage";
 import EventsPage from "./pages/EventsPage";
 import UniversidadesPage from "./pages/UniversidadesPage";
 import AreasPage from "./pages/AreasPage";
-import GruposDeInvestigacionPage from "./pages/GruposDeInvestigacionPage";
-import AreasDelConocimientoPage from "./pages/AreasDelConocimientoPage";
+import GruposDeInvestigacionPage from "./pages/GruposDeInvestigacionPage";import MisGruposDeInvestigacionPage from './pages/MisGruposDeInvestigacionPage';import AreasDelConocimientoPage from "./pages/AreasDelConocimientoPage";
 import LineasDeInvestigacionPage from "./pages/LineasDeInvestigacionPage";
 
 const AppRoutes = [
@@ -62,6 +61,11 @@ const AppRoutes = [
     element: <GruposDeInvestigacionPage />,
     pageTitle: 'Grupos de Investigación',
     adminOnly: true,
+  },
+  {
+    path: '/mis-grupos',
+    element: <MisGruposDeInvestigacionPage />,
+    pageTitle: 'Mis Grupos de Investigación',
   },
   {
     path: '/areas-conocimiento',

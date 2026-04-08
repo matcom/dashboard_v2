@@ -3,8 +3,9 @@ import {
   Card, CardBody, CardHeader,
   Table, Button, Spinner, Alert, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
-  Form, FormGroup, Label, Input, FormText,
+  Form, FormGroup, Label, Input,
 } from 'reactstrap';
+import Select from 'react-select';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -198,27 +199,19 @@ export default function LineasDeInvestigacionPage() {
             </FormGroup>
             <FormGroup>
               <Label>Áreas del conocimiento</Label>
-              {areasDelConocimiento.length === 0
-                ? <FormText color="muted">No hay áreas del conocimiento registradas.</FormText>
-                : <div className="border rounded p-2" style={{ maxHeight: '160px', overflowY: 'auto' }}>
-                    {areasDelConocimiento.map(a => (
-                      <FormGroup check key={a.id} className="mb-1">
-                        <Input
-                          type="checkbox"
-                          id={`ac-${a.id}`}
-                          checked={form.areasDelConocimientoIds.includes(a.id)}
-                          onChange={e => {
-                            const ids = e.target.checked
-                              ? [...form.areasDelConocimientoIds, a.id]
-                              : form.areasDelConocimientoIds.filter(id => id !== a.id);
-                            setForm(f => ({ ...f, areasDelConocimientoIds: ids }));
-                          }}
-                        />
-                        <Label check for={`ac-${a.id}`}>{a.nombre}</Label>
-                      </FormGroup>
-                    ))}
-                  </div>
-              }
+              <Select
+                isMulti
+                options={areasDelConocimiento.map(a => ({ value: a.id, label: a.nombre }))}
+                value={form.areasDelConocimientoIds.map(id => {
+                  const a = areasDelConocimiento.find(x => x.id === id);
+                  return a ? { value: a.id, label: a.nombre } : null;
+                }).filter(Boolean)}
+                onChange={sel => setForm(f => ({ ...f, areasDelConocimientoIds: sel.map(s => s.value) }))}
+                placeholder="Buscar área..."
+                noOptionsMessage={() => 'Sin resultados'}
+                menuPortalTarget={document.body}
+                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+              />
             </FormGroup>
           </Form>
         </ModalBody>

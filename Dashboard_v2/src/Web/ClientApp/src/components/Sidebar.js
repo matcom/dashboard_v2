@@ -22,6 +22,24 @@ const profesorGroups = [
   },
 ];
 
+const investigacionGroups = [
+  {
+    heading: 'Investigación',
+    items: [
+      { to: '/mis-grupos', icon: 'bi-people-fill', label: 'Mis Grupos de Investigación' },
+    ],
+  },
+];
+
+const jefeGroups = [
+  {
+    heading: 'Investigación',
+    items: [
+      { to: '/mis-grupos', icon: 'bi-people-fill', label: 'Mis Grupos de Investigación' },
+    ],
+  },
+];
+
 const adminGroups = [
   {
     heading: 'Administración',
@@ -53,7 +71,8 @@ export default function Sidebar({ collapsed, onToggle }) {
 
   const groups = [
     ...baseGroups,
-    ...(user?.role === 'Profesor' ? profesorGroups : []),
+    ...(user?.role === 'Profesor' ? [...profesorGroups, ...investigacionGroups] : []),
+    ...(user?.role === 'Jefe_de_Grupo_de_investigacion' ? jefeGroups : []),
     ...(user?.role === 'Superuser' ? adminGroups : []),
   ];
 

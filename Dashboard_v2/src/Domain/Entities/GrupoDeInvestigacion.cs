@@ -11,4 +11,7 @@ public class GrupoDeInvestigacion
 
     // un Grupo de Investigación estudia 0 o muchas Líneas de Investigación
     public ICollection<LineaDeInvestigacion> LineasDeInvestigacion { get; set; } = new List<LineaDeInvestigacion>();
+
+    // un Grupo de Investigación tiene como miembros a 0 o muchos Usuarios
+    public ICollection<User> Usuarios { get; set; } = new List<User>();
 }

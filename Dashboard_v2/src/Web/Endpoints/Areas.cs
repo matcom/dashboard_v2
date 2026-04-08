@@ -17,7 +17,7 @@ public class Areas : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetAreas)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization()
             .WithName("GetAreas")
             .Produces<List<AreaDto>>(200);
 

@@ -16,7 +16,7 @@ public class LineasDeInvestigacion : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetLineasDeInvestigacion)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization()
             .WithName("GetLineasDeInvestigacion")
             .Produces<List<LineaDeInvestigacionDto>>(200);
 

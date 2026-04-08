@@ -986,6 +986,29 @@
         }
       }
     },
+    "/api/GruposDeInvestigacion/mine": {
+      "get": {
+        "tags": [
+          "GruposDeInvestigacion"
+        ],
+        "operationId": "GetMisGruposDeInvestigacion",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GrupoDeInvestigacionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/GruposDeInvestigacion/{id}": {
       "put": {
         "tags": [
@@ -1060,6 +1083,62 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/GruposDeInvestigacion/{id}/miembros": {
+      "put": {
+        "tags": [
+          "GruposDeInvestigacion"
+        ],
+        "operationId": "SetGrupoMiembros",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetGrupoMiembrosBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": "",
@@ -2412,6 +2491,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "usuariosIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -2445,6 +2530,19 @@
             "type": "string"
           },
           "lineasDeInvestigacionIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SetGrupoMiembrosBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "usuariosIds": {
             "type": "array",
             "nullable": true,
             "items": {

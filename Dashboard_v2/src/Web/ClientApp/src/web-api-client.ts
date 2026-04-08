@@ -1370,6 +1370,48 @@ export class GruposDeInvestigacionClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getMisGruposDeInvestigacion(): Promise<GrupoDeInvestigacionDto[]> {
+        let url_ = this.baseUrl + "/api/GruposDeInvestigacion/mine";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMisGruposDeInvestigacion(_response);
+        });
+    }
+
+    protected processGetMisGruposDeInvestigacion(response: Response): Promise<GrupoDeInvestigacionDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GrupoDeInvestigacionDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrupoDeInvestigacionDto[]>(null as any);
+    }
+
     updateGrupoDeInvestigacion(id: string, body: UpdateGrupoDeInvestigacionBody): Promise<void> {
         let url_ = this.baseUrl + "/api/GruposDeInvestigacion/{id}";
         if (id === undefined || id === null)
@@ -1447,6 +1489,58 @@ export class GruposDeInvestigacionClient {
         if (status === 200) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    setGrupoMiembros(id: string, body: SetGrupoMiembrosBody): Promise<void> {
+        let url_ = this.baseUrl + "/api/GruposDeInvestigacion/{id}/miembros";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSetGrupoMiembros(_response);
+        });
+    }
+
+    protected processSetGrupoMiembros(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -3723,6 +3817,7 @@ export class GrupoDeInvestigacionDto implements IGrupoDeInvestigacionDto {
     areaId?: string;
     areaNombre?: string;
     lineasDeInvestigacionIds?: string[];
+    usuariosIds?: string[];
 
     constructor(data?: IGrupoDeInvestigacionDto) {
         if (data) {
@@ -3743,6 +3838,11 @@ export class GrupoDeInvestigacionDto implements IGrupoDeInvestigacionDto {
                 this.lineasDeInvestigacionIds = [] as any;
                 for (let item of _data["lineasDeInvestigacionIds"])
                     this.lineasDeInvestigacionIds!.push(item);
+            }
+            if (Array.isArray(_data["usuariosIds"])) {
+                this.usuariosIds = [] as any;
+                for (let item of _data["usuariosIds"])
+                    this.usuariosIds!.push(item);
             }
         }
     }
@@ -3765,6 +3865,11 @@ export class GrupoDeInvestigacionDto implements IGrupoDeInvestigacionDto {
             for (let item of this.lineasDeInvestigacionIds)
                 data["lineasDeInvestigacionIds"].push(item);
         }
+        if (Array.isArray(this.usuariosIds)) {
+            data["usuariosIds"] = [];
+            for (let item of this.usuariosIds)
+                data["usuariosIds"].push(item);
+        }
         return data;
     }
 }
@@ -3775,6 +3880,7 @@ export interface IGrupoDeInvestigacionDto {
     areaId?: string;
     areaNombre?: string;
     lineasDeInvestigacionIds?: string[];
+    usuariosIds?: string[];
 }
 
 export class CreateGrupoDeInvestigacionBody implements ICreateGrupoDeInvestigacionBody {
@@ -3879,6 +3985,50 @@ export interface IUpdateGrupoDeInvestigacionBody {
     nombre?: string;
     areaId?: string;
     lineasDeInvestigacionIds?: string[] | undefined;
+}
+
+export class SetGrupoMiembrosBody implements ISetGrupoMiembrosBody {
+    usuariosIds?: string[] | undefined;
+
+    constructor(data?: ISetGrupoMiembrosBody) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["usuariosIds"])) {
+                this.usuariosIds = [] as any;
+                for (let item of _data["usuariosIds"])
+                    this.usuariosIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): SetGrupoMiembrosBody {
+        data = typeof data === 'object' ? data : {};
+        let result = new SetGrupoMiembrosBody();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.usuariosIds)) {
+            data["usuariosIds"] = [];
+            for (let item of this.usuariosIds)
+                data["usuariosIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface ISetGrupoMiembrosBody {
+    usuariosIds?: string[] | undefined;
 }
 
 export class LineaDeInvestigacionDto implements ILineaDeInvestigacionDto {
