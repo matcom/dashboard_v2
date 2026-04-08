@@ -23,6 +23,80 @@ namespace Dashboard_v2.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AreaDelConocimientoLineaDeInvestigacion", b =>
+                {
+                    b.Property<string>("AreaDelConocimientoId")
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("LineaDeInvestigacionId")
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("AreaDelConocimientoId", "LineaDeInvestigacionId");
+
+                    b.HasIndex("LineaDeInvestigacionId");
+
+                    b.ToTable("AreasDelConocimientoLineasDeInvestigacion", (string)null);
+                });
+
+            modelBuilder.Entity("AreaInvestigaAreaDelConocimiento", b =>
+                {
+                    b.Property<string>("AreaId")
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("AreaDelConocimientoId")
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("AreaId", "AreaDelConocimientoId");
+
+                    b.HasIndex("AreaDelConocimientoId");
+
+                    b.ToTable("AreasInvestiganAreasDelConocimiento", (string)null);
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Area", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("UniversidadId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UniversidadId");
+
+                    b.ToTable("Areas", (string)null);
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AreaDelConocimiento", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AreasDelConocimiento", (string)null);
+                });
+
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Author", b =>
                 {
                     b.Property<string>("Id")
@@ -193,6 +267,35 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("EventTypes", (string)null);
                 });
 
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.GrupoDeInvestigacion", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("AreaId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("CreadorId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AreaId");
+
+                    b.HasIndex("CreadorId");
+
+                    b.ToTable("GruposDeInvestigacion", (string)null);
+                });
+
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.IndexedPublication", b =>
                 {
                     b.Property<string>("PublicationId")
@@ -241,6 +344,25 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasKey("PublicationId");
 
                     b.ToTable("JournalPublications", (string)null);
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.LineaDeInvestigacion", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LineasDeInvestigacion", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Presentation", b =>
@@ -339,6 +461,22 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasIndex("Type", "OwnerId");
 
                     b.ToTable("Resources");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Universidad", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Universidades", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.User", b =>
@@ -451,6 +589,76 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("GrupoDeInvestigacionLineaDeInvestigacion", b =>
+                {
+                    b.Property<string>("GrupoDeInvestigacionId")
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("LineaDeInvestigacionId")
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("GrupoDeInvestigacionId", "LineaDeInvestigacionId");
+
+                    b.HasIndex("LineaDeInvestigacionId");
+
+                    b.ToTable("GruposDeInvestigacionLineasDeInvestigacion", (string)null);
+                });
+
+            modelBuilder.Entity("GrupoDeInvestigacionUsuario", b =>
+                {
+                    b.Property<string>("GrupoDeInvestigacionId")
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("UsuarioId")
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("GrupoDeInvestigacionId", "UsuarioId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("GruposDeInvestigacionUsuarios", (string)null);
+                });
+
+            modelBuilder.Entity("AreaDelConocimientoLineaDeInvestigacion", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.AreaDelConocimiento", null)
+                        .WithMany()
+                        .HasForeignKey("AreaDelConocimientoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.LineaDeInvestigacion", null)
+                        .WithMany()
+                        .HasForeignKey("LineaDeInvestigacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AreaInvestigaAreaDelConocimiento", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.AreaDelConocimiento", null)
+                        .WithMany()
+                        .HasForeignKey("AreaDelConocimientoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.Area", null)
+                        .WithMany()
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Area", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.Universidad", "Universidad")
+                        .WithMany("Areas")
+                        .HasForeignKey("UniversidadId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Universidad");
+                });
+
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Author", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.User", "User")
@@ -527,6 +735,24 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Country");
 
                     b.Navigation("EventType");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.GrupoDeInvestigacion", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.Area", "Area")
+                        .WithMany("GruposDeInvestigacion")
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.User", "Creador")
+                        .WithMany()
+                        .HasForeignKey("CreadorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Area");
+
+                    b.Navigation("Creador");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.IndexedPublication", b =>
@@ -614,6 +840,41 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GrupoDeInvestigacionLineaDeInvestigacion", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.GrupoDeInvestigacion", null)
+                        .WithMany()
+                        .HasForeignKey("GrupoDeInvestigacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.LineaDeInvestigacion", null)
+                        .WithMany()
+                        .HasForeignKey("LineaDeInvestigacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GrupoDeInvestigacionUsuario", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.GrupoDeInvestigacion", null)
+                        .WithMany()
+                        .HasForeignKey("GrupoDeInvestigacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Area", b =>
+                {
+                    b.Navigation("GruposDeInvestigacion");
+                });
+
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Author", b =>
                 {
                     b.Navigation("AuthorPresentations");
@@ -663,6 +924,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("IndexedPublication");
 
                     b.Navigation("JournalPublication");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Universidad", b =>
+                {
+                    b.Navigation("Areas");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.User", b =>

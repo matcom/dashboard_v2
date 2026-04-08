@@ -22,12 +22,40 @@ const profesorGroups = [
   },
 ];
 
+const investigacionGroups = [
+  {
+    heading: 'Investigación',
+    items: [
+      { to: '/mis-grupos', icon: 'bi-people-fill', label: 'Mis Grupos de Investigación' },
+    ],
+  },
+];
+
+const jefeGroups = [
+  {
+    heading: 'Investigación',
+    items: [
+      { to: '/grupos-investigacion', icon: 'bi-people-fill', label: 'Grupos de Investigación' },
+    ],
+  },
+];
+
 const adminGroups = [
   {
     heading: 'Administración',
     items: [
       { to: '/users', icon: 'bi-people', label: 'Usuarios' },
       { to: '/roles', icon: 'bi-shield-lock', label: 'Roles y permisos' },
+    ],
+  },
+  {
+    heading: 'Estructura académica',
+    items: [
+      { to: '/universidades', icon: 'bi-building', label: 'Universidades' },
+      { to: '/areas', icon: 'bi-diagram-3', label: 'Áreas' },
+      { to: '/grupos-investigacion', icon: 'bi-people-fill', label: 'Grupos de Investigación' },
+      { to: '/areas-conocimiento', icon: 'bi-book', label: 'Áreas del Conocimiento' },
+      { to: '/lineas-investigacion', icon: 'bi-lightbulb', label: 'Líneas de Investigación' },
     ],
   },
   {
@@ -43,7 +71,8 @@ export default function Sidebar({ collapsed, onToggle }) {
 
   const groups = [
     ...baseGroups,
-    ...(user?.role === 'Profesor' ? profesorGroups : []),
+    ...(user?.role === 'Profesor' ? [...profesorGroups, ...investigacionGroups] : []),
+    ...(user?.role === 'Jefe_de_Grupo_de_investigacion' ? jefeGroups : []),
     ...(user?.role === 'Superuser' ? adminGroups : []),
   ];
 

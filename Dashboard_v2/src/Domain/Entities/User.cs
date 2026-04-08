@@ -31,4 +31,7 @@ public class User
 
     // Si el usuario es también un autor académico registrado, este es su perfil.
     public Author? AuthorProfile { get; set; }
+
+    // Grupos de investigación a los que pertenece este usuario
+    public ICollection<GrupoDeInvestigacion> GruposDeInvestigacion { get; set; } = new List<GrupoDeInvestigacion>();
 }

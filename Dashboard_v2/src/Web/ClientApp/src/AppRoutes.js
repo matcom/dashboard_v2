@@ -4,6 +4,10 @@ import UsersPage from "./pages/UsersPage";
 import PublicationsPage from "./pages/PublicationsPage";
 import AwardsPage from "./pages/AwardsPage";
 import EventsPage from "./pages/EventsPage";
+import UniversidadesPage from "./pages/UniversidadesPage";
+import AreasPage from "./pages/AreasPage";
+import GruposDeInvestigacionPage from "./pages/GruposDeInvestigacionPage";import MisGruposDeInvestigacionPage from './pages/MisGruposDeInvestigacionPage';import AreasDelConocimientoPage from "./pages/AreasDelConocimientoPage";
+import LineasDeInvestigacionPage from "./pages/LineasDeInvestigacionPage";
 
 const AppRoutes = [
   {
@@ -39,6 +43,41 @@ const AppRoutes = [
     element: <EventsPage />,
     pageTitle: 'Mis eventos y presentaciones',
     profesorOnly: true,
+  },
+  {
+    path: '/universidades',
+    element: <UniversidadesPage />,
+    pageTitle: 'Universidades',
+    adminOnly: true,
+  },
+  {
+    path: '/areas',
+    element: <AreasPage />,
+    pageTitle: 'Áreas',
+    adminOnly: true,
+  },
+  {
+    path: '/grupos-investigacion',
+    element: <GruposDeInvestigacionPage />,
+    pageTitle: 'Grupos de Investigación',
+    jefeOrAdminOnly: true,
+  },
+  {
+    path: '/mis-grupos',
+    element: <MisGruposDeInvestigacionPage />,
+    pageTitle: 'Mis Grupos de Investigación',
+  },
+  {
+    path: '/areas-conocimiento',
+    element: <AreasDelConocimientoPage />,
+    pageTitle: 'Áreas del Conocimiento',
+    adminOnly: true,
+  },
+  {
+    path: '/lineas-investigacion',
+    element: <LineasDeInvestigacionPage />,
+    pageTitle: 'Líneas de Investigación',
+    adminOnly: true,
   },
 ];
 
