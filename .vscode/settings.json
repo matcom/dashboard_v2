@@ -1,0 +1,14 @@
+{
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "Dashboard_v2",
+            "database": "Dashboard_v2Db",
+            "username": "admin"
+        }
+    ]
+}
