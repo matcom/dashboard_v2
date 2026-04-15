@@ -1,0 +1,637 @@
+using Dashboard_v2.Application.Proyectos;
+using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoApoyoPrograma;
+using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoColabInternacional;
+using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoDesarrolloLocal;
+using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoEmpresarial;
+using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoEnRevision;
+using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoNoEmpresarial;
+using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoPNAP;
+using Dashboard_v2.Application.Proyectos.Commands.DeleteProyecto;
+using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoApoyoPrograma;
+using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoColabInternacional;
+using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoDesarrolloLocal;
+using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoEmpresarial;
+using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoEnRevision;
+using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoNoEmpresarial;
+using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoPNAP;
+using Dashboard_v2.Application.Proyectos.Queries.GetProyectoApoyoPrograma;
+using Dashboard_v2.Application.Proyectos.Queries.GetProyectoColabInternacional;
+using Dashboard_v2.Application.Proyectos.Queries.GetProyectoDesarrolloLocal;
+using Dashboard_v2.Application.Proyectos.Queries.GetProyectoEmpresarial;
+using Dashboard_v2.Application.Proyectos.Queries.GetProyectoEnRevision;
+using Dashboard_v2.Application.Proyectos.Queries.GetProyectoNoEmpresarial;
+using Dashboard_v2.Application.Proyectos.Queries.GetProyectoPNAP;
+using Dashboard_v2.Application.Proyectos.Queries.GetProyectos;
+using Dashboard_v2.Domain.Enums;
+using Dashboard_v2.Web.Infrastructure;
+
+namespace Dashboard_v2.Web.Endpoints;
+
+/// <summary>CRUD de Proyectos bajo /api/Proyectos. Solo Superuser.</summary>
+public class Proyectos : EndpointGroupBase
+{
+    public override void Map(RouteGroupBuilder g)
+    {
+        // ── Listado general ───────────────────────────────────────────
+        g.MapGet("", GetProyectos)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetProyectos")
+            .Produces<List<ProyectoResumenDto>>(200);
+
+        // ── Delete compartido ─────────────────────────────────────────
+        g.MapDelete("{id}", DeleteProyecto)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("DeleteProyecto")
+            .Produces(200)
+            .ProducesProblem(404);
+
+        // ── En Revisión ───────────────────────────────────────────────
+        g.MapGet("en-revision/{id}", GetEnRevision)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetProyectoEnRevision")
+            .Produces<ProyectoEnRevisionDto>(200).ProducesProblem(404);
+
+        g.MapPost("en-revision", CreateEnRevision)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("CreateProyectoEnRevision")
+            .Produces(201).ProducesProblem(400);
+
+        g.MapPut("en-revision/{id}", UpdateEnRevision)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("UpdateProyectoEnRevision")
+            .Produces(200).ProducesProblem(400).ProducesProblem(404);
+
+        // ── Empresarial (PE) ──────────────────────────────────────────
+        g.MapGet("empresariales/{id}", GetEmpresarial)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetProyectoEmpresarial")
+            .Produces<ProyectoEmpresarialDto>(200).ProducesProblem(404);
+
+        g.MapPost("empresariales", CreateEmpresarial)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("CreateProyectoEmpresarial")
+            .Produces(201).ProducesProblem(400);
+
+        g.MapPut("empresariales/{id}", UpdateEmpresarial)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("UpdateProyectoEmpresarial")
+            .Produces(200).ProducesProblem(400).ProducesProblem(404);
+
+        // ── Apoyo a Programa (PAP) ────────────────────────────────────
+        g.MapGet("apoyo-programa/{id}", GetApoyoPrograma)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetProyectoApoyoPrograma")
+            .Produces<ProyectoApoyoProgramaDto>(200).ProducesProblem(404);
+
+        g.MapPost("apoyo-programa", CreateApoyoPrograma)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("CreateProyectoApoyoPrograma")
+            .Produces(201).ProducesProblem(400);
+
+        g.MapPut("apoyo-programa/{id}", UpdateApoyoPrograma)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("UpdateProyectoApoyoPrograma")
+            .Produces(200).ProducesProblem(400).ProducesProblem(404);
+
+        // ── Desarrollo Local (PDL) ────────────────────────────────────
+        g.MapGet("desarrollo-local/{id}", GetDesarrolloLocal)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetProyectoDesarrolloLocal")
+            .Produces<ProyectoDesarrolloLocalDto>(200).ProducesProblem(404);
+
+        g.MapPost("desarrollo-local", CreateDesarrolloLocal)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("CreateProyectoDesarrolloLocal")
+            .Produces(201).ProducesProblem(400);
+
+        g.MapPut("desarrollo-local/{id}", UpdateDesarrolloLocal)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("UpdateProyectoDesarrolloLocal")
+            .Produces(200).ProducesProblem(400).ProducesProblem(404);
+
+        // ── No Empresarial (PNE) ──────────────────────────────────────
+        g.MapGet("no-empresariales/{id}", GetNoEmpresarial)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetProyectoNoEmpresarial")
+            .Produces<ProyectoNoEmpresarialDto>(200).ProducesProblem(404);
+
+        g.MapPost("no-empresariales", CreateNoEmpresarial)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("CreateProyectoNoEmpresarial")
+            .Produces(201).ProducesProblem(400);
+
+        g.MapPut("no-empresariales/{id}", UpdateNoEmpresarial)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("UpdateProyectoNoEmpresarial")
+            .Produces(200).ProducesProblem(400).ProducesProblem(404);
+
+        // ── Colaboración Internacional (PRCI) ─────────────────────────
+        g.MapGet("colaboracion-internacional/{id}", GetColabInternacional)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetProyectoColabInternacional")
+            .Produces<ProyectoColabInternacionalDto>(200).ProducesProblem(404);
+
+        g.MapPost("colaboracion-internacional", CreateColabInternacional)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("CreateProyectoColabInternacional")
+            .Produces(201).ProducesProblem(400);
+
+        g.MapPut("colaboracion-internacional/{id}", UpdateColabInternacional)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("UpdateProyectoColabInternacional")
+            .Produces(200).ProducesProblem(400).ProducesProblem(404);
+
+        // ── PNAP ──────────────────────────────────────────────────────
+        g.MapGet("pnap/{id}", GetPNAP)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetProyectoPNAP")
+            .Produces<ProyectoPNAPDto>(200).ProducesProblem(404);
+
+        g.MapPost("pnap", CreatePNAP)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("CreateProyectoPNAP")
+            .Produces(201).ProducesProblem(400);
+
+        g.MapPut("pnap/{id}", UpdatePNAP)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("UpdateProyectoPNAP")
+            .Produces(200).ProducesProblem(400).ProducesProblem(404);
+    }
+
+    // ── Listado / Delete ───────────────────────────────────────────────
+    private static async Task<IResult> GetProyectos(ISender sender)
+        => Results.Ok(await sender.Send(new GetProyectosQuery()));
+
+    private static async Task<IResult> DeleteProyecto(ISender sender, string id)
+    {
+        var result = await sender.Send(new DeleteProyectoCommand(id));
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Contains("Proyecto no encontrado."))
+                return Results.NotFound(new { errors = result.Errors });
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Proyecto eliminado." });
+    }
+
+    // ── En Revisión ───────────────────────────────────────────────────
+    private static async Task<IResult> GetEnRevision(ISender sender, string id)
+    {
+        var dto = await sender.Send(new GetProyectoEnRevisionQuery(id));
+        return dto is null ? Results.NotFound() : Results.Ok(dto);
+    }
+
+    private static async Task<IResult> CreateEnRevision(ISender sender, ProyectoEnRevisionBody b)
+    {
+        var (result, id) = await sender.Send(new CreateProyectoEnRevisionCommand
+        {
+            Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId, Situacion = b.Situacion, Tipo = b.Tipo,
+        });
+        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
+        return Results.Created($"/api/Proyectos/en-revision/{id}", new { id });
+    }
+
+    private static async Task<IResult> UpdateEnRevision(ISender sender, string id, ProyectoEnRevisionBody b)
+    {
+        var result = await sender.Send(new UpdateProyectoEnRevisionCommand
+        {
+            Id = id, Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId, Situacion = b.Situacion, Tipo = b.Tipo,
+        });
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Proyecto actualizado." });
+    }
+
+    // ── Empresarial ───────────────────────────────────────────────────
+    private static async Task<IResult> GetEmpresarial(ISender sender, string id)
+    {
+        var dto = await sender.Send(new GetProyectoEmpresarialQuery(id));
+        return dto is null ? Results.NotFound() : Results.Ok(dto);
+    }
+
+    private static async Task<IResult> CreateEmpresarial(ISender sender, ProyectoEmpresarialBody b)
+    {
+        var (result, id) = await sender.Send(new CreateProyectoEmpresarialCommand
+        {
+            Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            Empresa = b.Empresa,
+        });
+        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
+        return Results.Created($"/api/Proyectos/empresariales/{id}", new { id });
+    }
+
+    private static async Task<IResult> UpdateEmpresarial(ISender sender, string id, ProyectoEmpresarialBody b)
+    {
+        var result = await sender.Send(new UpdateProyectoEmpresarialCommand
+        {
+            Id = id, Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            Empresa = b.Empresa,
+        });
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Proyecto actualizado." });
+    }
+
+    // ── Apoyo a Programa ──────────────────────────────────────────────
+    private static async Task<IResult> GetApoyoPrograma(ISender sender, string id)
+    {
+        var dto = await sender.Send(new GetProyectoApoyoProgramaQuery(id));
+        return dto is null ? Results.NotFound() : Results.Ok(dto);
+    }
+
+    private static async Task<IResult> CreateApoyoPrograma(ISender sender, ProyectoApoyoProgramaBody b)
+    {
+        var (result, id) = await sender.Send(new CreateProyectoApoyoProgramaCommand
+        {
+            Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            NombrePrograma = b.NombrePrograma, TipoPAP = b.TipoPAP,
+        });
+        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
+        return Results.Created($"/api/Proyectos/apoyo-programa/{id}", new { id });
+    }
+
+    private static async Task<IResult> UpdateApoyoPrograma(ISender sender, string id, ProyectoApoyoProgramaBody b)
+    {
+        var result = await sender.Send(new UpdateProyectoApoyoProgramaCommand
+        {
+            Id = id, Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            NombrePrograma = b.NombrePrograma, TipoPAP = b.TipoPAP,
+        });
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Proyecto actualizado." });
+    }
+
+    // ── Desarrollo Local ──────────────────────────────────────────────
+    private static async Task<IResult> GetDesarrolloLocal(ISender sender, string id)
+    {
+        var dto = await sender.Send(new GetProyectoDesarrolloLocalQuery(id));
+        return dto is null ? Results.NotFound() : Results.Ok(dto);
+    }
+
+    private static async Task<IResult> CreateDesarrolloLocal(ISender sender, ProyectoDesarrolloLocalBody b)
+    {
+        var (result, id) = await sender.Send(new CreateProyectoDesarrolloLocalCommand
+        {
+            Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            Municipio = b.Municipio,
+        });
+        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
+        return Results.Created($"/api/Proyectos/desarrollo-local/{id}", new { id });
+    }
+
+    private static async Task<IResult> UpdateDesarrolloLocal(ISender sender, string id, ProyectoDesarrolloLocalBody b)
+    {
+        var result = await sender.Send(new UpdateProyectoDesarrolloLocalCommand
+        {
+            Id = id, Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            Municipio = b.Municipio,
+        });
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Proyecto actualizado." });
+    }
+
+    // ── No Empresarial ────────────────────────────────────────────────
+    private static async Task<IResult> GetNoEmpresarial(ISender sender, string id)
+    {
+        var dto = await sender.Send(new GetProyectoNoEmpresarialQuery(id));
+        return dto is null ? Results.NotFound() : Results.Ok(dto);
+    }
+
+    private static async Task<IResult> CreateNoEmpresarial(ISender sender, ProyectoNoEmpresarialBody b)
+    {
+        var (result, id) = await sender.Send(new CreateProyectoNoEmpresarialCommand
+        {
+            Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            EntidadNoEmpresarial = b.EntidadNoEmpresarial,
+        });
+        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
+        return Results.Created($"/api/Proyectos/no-empresariales/{id}", new { id });
+    }
+
+    private static async Task<IResult> UpdateNoEmpresarial(ISender sender, string id, ProyectoNoEmpresarialBody b)
+    {
+        var result = await sender.Send(new UpdateProyectoNoEmpresarialCommand
+        {
+            Id = id, Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            EntidadNoEmpresarial = b.EntidadNoEmpresarial,
+        });
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Proyecto actualizado." });
+    }
+
+    // ── Colaboración Internacional ─────────────────────────────────────
+    private static async Task<IResult> GetColabInternacional(ISender sender, string id)
+    {
+        var dto = await sender.Send(new GetProyectoColabInternacionalQuery(id));
+        return dto is null ? Results.NotFound() : Results.Ok(dto);
+    }
+
+    private static async Task<IResult> CreateColabInternacional(ISender sender, ProyectoColabInternacionalBody b)
+    {
+        var (result, id) = await sender.Send(new CreateProyectoColabInternacionalCommand
+        {
+            Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            FuenteFinanciacion = b.FuenteFinanciacion, TerminosReferencia = b.TerminosReferencia,
+        });
+        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
+        return Results.Created($"/api/Proyectos/colaboracion-internacional/{id}", new { id });
+    }
+
+    private static async Task<IResult> UpdateColabInternacional(ISender sender, string id, ProyectoColabInternacionalBody b)
+    {
+        var result = await sender.Send(new UpdateProyectoColabInternacionalCommand
+        {
+            Id = id, Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            FuenteFinanciacion = b.FuenteFinanciacion, TerminosReferencia = b.TerminosReferencia,
+        });
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Proyecto actualizado." });
+    }
+
+    // ── PNAP ──────────────────────────────────────────────────────────
+    private static async Task<IResult> GetPNAP(ISender sender, string id)
+    {
+        var dto = await sender.Send(new GetProyectoPNAPQuery(id));
+        return dto is null ? Results.NotFound() : Results.Ok(dto);
+    }
+
+    private static async Task<IResult> CreatePNAP(ISender sender, ProyectoPNAPBody b)
+    {
+        var (result, id) = await sender.Send(new CreateProyectoPNAPCommand
+        {
+            Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            FinanciamientoUH = b.FinanciamientoUH,
+        });
+        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
+        return Results.Created($"/api/Proyectos/pnap/{id}", new { id });
+    }
+
+    private static async Task<IResult> UpdatePNAP(ISender sender, string id, ProyectoPNAPBody b)
+    {
+        var result = await sender.Send(new UpdateProyectoPNAPCommand
+        {
+            Id = id, Titulo = b.Titulo, Jefe = b.Jefe, CorreoJefe = b.CorreoJefe,
+            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
+            CantidadEstudiantes = b.CantidadEstudiantes,
+            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
+            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
+            ClasificacionId = b.ClasificacionId,
+            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
+            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
+            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
+            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
+            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
+            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
+            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
+            FinanciamientoUH = b.FinanciamientoUH,
+        });
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Proyecto actualizado." });
+    }
+}
+
+// ── Request body records ───────────────────────────────────────────────
+
+internal record ProyectoEnRevisionBody(
+    string Titulo, string Jefe, string CorreoJefe,
+    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
+    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
+    string ClasificacionId,
+    string Situacion, string Tipo);
+
+internal record ProyectoEmpresarialBody(
+    string Titulo, string Jefe, string CorreoJefe,
+    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
+    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
+    string ClasificacionId,
+    DateOnly FechaInicio, DateOnly? FechaCierre,
+    string EstadoDeEjecucion, string CodigoProyecto,
+    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
+    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
+    bool TributaDesarrolloLocal,
+    string Empresa);
+
+internal record ProyectoApoyoProgramaBody(
+    string Titulo, string Jefe, string CorreoJefe,
+    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
+    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
+    string ClasificacionId,
+    DateOnly FechaInicio, DateOnly? FechaCierre,
+    string EstadoDeEjecucion, string CodigoProyecto,
+    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
+    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
+    bool TributaDesarrolloLocal,
+    string NombrePrograma, TipoPAP TipoPAP);
+
+internal record ProyectoDesarrolloLocalBody(
+    string Titulo, string Jefe, string CorreoJefe,
+    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
+    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
+    string ClasificacionId,
+    DateOnly FechaInicio, DateOnly? FechaCierre,
+    string EstadoDeEjecucion, string CodigoProyecto,
+    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
+    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
+    string Municipio);
+
+internal record ProyectoNoEmpresarialBody(
+    string Titulo, string Jefe, string CorreoJefe,
+    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
+    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
+    string ClasificacionId,
+    DateOnly FechaInicio, DateOnly? FechaCierre,
+    string EstadoDeEjecucion, string CodigoProyecto,
+    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
+    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
+    bool TributaDesarrolloLocal,
+    string EntidadNoEmpresarial);
+
+internal record ProyectoColabInternacionalBody(
+    string Titulo, string Jefe, string CorreoJefe,
+    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
+    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
+    string ClasificacionId,
+    DateOnly FechaInicio, DateOnly? FechaCierre,
+    string EstadoDeEjecucion, string CodigoProyecto,
+    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
+    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
+    bool TributaDesarrolloLocal,
+    string FuenteFinanciacion, string TerminosReferencia);
+
+internal record ProyectoPNAPBody(
+    string Titulo, string Jefe, string CorreoJefe,
+    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
+    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
+    string ClasificacionId,
+    DateOnly FechaInicio, DateOnly? FechaCierre,
+    string EstadoDeEjecucion, string CodigoProyecto,
+    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
+    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
+    bool TributaDesarrolloLocal,
+    string FinanciamientoUH);

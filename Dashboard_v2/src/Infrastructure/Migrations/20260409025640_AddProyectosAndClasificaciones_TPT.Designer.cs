@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409025640_AddProyectosAndClasificaciones_TPT")]
+    partial class AddProyectosAndClasificaciones_TPT
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -416,6 +419,9 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Property<int>("CantidadEstudiantesContratados")
                         .HasColumnType("integer");
 
+                    b.Property<int>("TributaFormacionDoctoral")
+                        .HasColumnType("integer");
+
                     b.Property<int>("CantidadMiembrosUH")
                         .HasColumnType("integer");
 
@@ -441,9 +447,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
-
-                    b.Property<bool>("TributaFormacionDoctoral")
-                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -721,9 +724,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
 
                     b.Property<DateOnly>("FechaInicio")
                         .HasColumnType("date");
-
-                    b.Property<bool>("TributaDesarrolloLocal")
-                        .HasColumnType("boolean");
 
                     b.ToTable("ProyectosEnEjecucion", (string)null);
                 });
