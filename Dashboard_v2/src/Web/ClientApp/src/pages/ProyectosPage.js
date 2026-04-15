@@ -49,7 +49,7 @@ const emptyForm = {
   cantidadEstudiantes: 0, cantidadEstudiantesContratados: 0,
   tributaFormacionDoctoral: false,
   tributaDesarrolloLocal: false,
-  clasificacionId: '',,
+  clasificacionId: '',
   // EnRevision
   situacion: '', tipoRevision: '',
   // EnEjecucion
@@ -130,7 +130,7 @@ export default function ProyectosPage() {
         cantidadEstudiantesContratados: full.cantidadEstudiantesContratados ?? 0,
         tributaFormacionDoctoral: full.tributaFormacionDoctoral ?? false,
         tributaDesarrolloLocal: full.tributaDesarrolloLocal ?? false,
-        clasificacionId: full.clasificacionId ?? '',,
+        clasificacionId: full.clasificacionId ?? '',
         situacion: full.situacion ?? '',
         tipoRevision: full.tipo ?? '',
         fechaInicio: full.fechaInicio ?? '',
