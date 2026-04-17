@@ -16,6 +16,12 @@ public abstract class ProyectoEnEjecucion : Proyecto
     public string? ContribucionEjesEstrategicos { get; set; }
 
     /// <summary>
+    /// Identificador estable del tipo de proyecto en ejecución (p.ej. "PE", "PDL").
+    /// Usado por <see cref="ProyectoEnRevision.Tipo"/> para indicar en qué tipo se convertirá.
+    /// </summary>
+    public abstract string TipoIdentificador { get; }
+
+    /// <summary>
     /// Indica si el proyecto tributa al desarrollo local.
     /// Para <see cref="ProyectoDesarrolloLocal"/> (PDL) este valor es siempre <c>true</c>:
     /// por definición todo PDL tributa al desarrollo local y no es elegible por el usuario.

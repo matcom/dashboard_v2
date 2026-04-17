@@ -82,6 +82,7 @@ export default function ProyectosPage() {
   const [items, setItems] = useState([]);
   const [clasificaciones, setClasificaciones] = useState([]);
   const [jefes, setJefes] = useState([]);
+  const [tiposEjecucion, setTiposEjecucion] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -109,14 +110,16 @@ export default function ProyectosPage() {
     setLoading(true);
     setError('');
     try {
-      const [proyData, clasData, jefesData] = await Promise.all([
+      const [proyData, clasData, jefesData, tiposData] = await Promise.all([
         apiFetch('/api/Proyectos'),
         apiFetch('/api/Clasificaciones'),
         apiFetch('/api/Users/jefes-de-proyecto'),
+        apiFetch('/api/Proyectos/tipos-ejecucion'),
       ]);
       setItems(proyData);
       setClasificaciones(clasData);
       setJefes(jefesData);
+      setTiposEjecucion(tiposData);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -483,7 +486,10 @@ export default function ProyectosPage() {
                 </FormGroup>
                 <FormGroup>
                   <Label>Tipo (revisión) *</Label>
-                  <Input value={form.tipoRevision} onChange={set('tipoRevision')} placeholder="Tipo de proyecto en revisión" />
+                  <Input type="select" value={form.tipoRevision} onChange={set('tipoRevision')}>
+                    <option value="">-- Seleccionar tipo --</option>
+                    {tiposEjecucion.map(t => <option key={t} value={t}>{t}</option>)}
+                  </Input>
                 </FormGroup>
               </>
             )}

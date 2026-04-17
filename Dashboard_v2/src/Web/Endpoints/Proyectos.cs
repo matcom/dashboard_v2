@@ -24,6 +24,7 @@ using Dashboard_v2.Application.Proyectos.Queries.GetProyectoEnRevision;
 using Dashboard_v2.Application.Proyectos.Queries.GetProyectoNoEmpresarial;
 using Dashboard_v2.Application.Proyectos.Queries.GetProyectoPNAP;
 using Dashboard_v2.Application.Proyectos.Queries.GetProyectos;
+using Dashboard_v2.Application.Proyectos.Queries.GetTiposEjecucion;
 using Dashboard_v2.Domain.Enums;
 using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 using Dashboard_v2.Web.Infrastructure;
@@ -44,6 +45,12 @@ public class Proyectos : EndpointGroupBase
             .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
             .WithName("GetProyectos")
             .Produces<List<ProyectoResumenDto>>(200);
+        // ── Tipos de ejecución disponibles para ProyectoEnRevision.Tipo ────────
+        g.MapGet("tipos-ejecucion", GetTiposEjecucion)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .WithName("GetTiposEjecucion")
+            .Produces<List<string>>(200);
+
         // ── Catálogo mínimo para vinculación desde publicaciones ──────────────────
         g.MapGet("catalogo", GetCatalogo)
             .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Profesor)))
@@ -196,6 +203,9 @@ public class Proyectos : EndpointGroupBase
     // ── Listado / Delete ───────────────────────────────────────────────
     private static async Task<IResult> GetProyectos(ISender sender)
         => Results.Ok(await sender.Send(new GetProyectosQuery()));
+
+    private static async Task<IResult> GetTiposEjecucion(ISender sender)
+        => Results.Ok(await sender.Send(new GetTiposEjecucionQuery()));
 
     private static async Task<IResult> GetCatalogo(IApplicationDbContext context)
     {

@@ -1610,6 +1610,29 @@
         }
       }
     },
+    "/api/Proyectos/tipos-ejecucion": {
+      "get": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "GetTiposEjecucion",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Proyectos/catalogo": {
       "get": {
         "tags": [

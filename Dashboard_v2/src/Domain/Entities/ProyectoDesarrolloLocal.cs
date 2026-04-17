@@ -8,5 +8,6 @@ namespace Dashboard_v2.Domain.Entities;
 /// </summary>
 public class ProyectoDesarrolloLocal : ProyectoEnEjecucion
 {
+    public override string TipoIdentificador => "PDL";
     public string Municipio { get; set; } = default!;
 }
