@@ -10,6 +10,7 @@ import GruposDeInvestigacionPage from "./pages/GruposDeInvestigacionPage";import
 import LineasDeInvestigacionPage from "./pages/LineasDeInvestigacionPage";
 import ProyectosPage from "./pages/ProyectosPage";
 import ClasificacionesPage from "./pages/ClasificacionesPage";
+import PublicacionesConsultaPage from "./pages/PublicacionesConsultaPage";
 
 const AppRoutes = [
   {
@@ -85,6 +86,12 @@ const AppRoutes = [
     path: '/proyectos',
     element: <ProyectosPage />,
     pageTitle: 'Proyectos',
+    jefeDeProyectoOrAdminOnly: true,
+  },
+  {
+    path: '/publicaciones',
+    element: <PublicacionesConsultaPage />,
+    pageTitle: 'Publicaciones',
     jefeDeProyectoOrAdminOnly: true,
   },
   {

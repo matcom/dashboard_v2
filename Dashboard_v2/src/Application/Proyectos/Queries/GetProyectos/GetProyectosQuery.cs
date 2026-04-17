@@ -22,9 +22,9 @@ public class GetProyectosQueryHandler : IRequestHandler<GetProyectosQuery, List<
 
         // Consultas separadas por tipo para evitar el LEFT JOIN masivo que genera TPT
         // al consultar el DbSet base polimórficamente.
+        // Nota: .Include() es innecesario antes de .Select() en EF Core — los JOINs
+        // se generan automáticamente a partir de las navegaciones usadas en el .Select().
         var enRevision = await _context.Proyectos.OfType<ProyectoEnRevision>()
-            .Include(p => p.Clasificacion)
-            .Include(p => p.JefeUsuario)
             .Where(p => ownerFilter == null || p.JefeId == ownerFilter)
             .Select(p => new ProyectoResumenDto
             {
@@ -36,11 +36,10 @@ public class GetProyectosQueryHandler : IRequestHandler<GetProyectosQuery, List<
                 ClasificacionId = p.ClasificacionId, ClasificacionNombre = p.Clasificacion.Nombre,
                 Tipo = "en-revision",
                 Situacion = p.Situacion,
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
             }).ToListAsync(ct);
 
         var empresariales = await _context.Proyectos.OfType<ProyectoEmpresarial>()
-            .Include(p => p.Clasificacion)
-            .Include(p => p.JefeUsuario)
             .Where(p => ownerFilter == null || p.JefeId == ownerFilter)
             .Select(p => new ProyectoResumenDto
             {
@@ -52,11 +51,10 @@ public class GetProyectosQueryHandler : IRequestHandler<GetProyectosQuery, List<
                 ClasificacionId = p.ClasificacionId, ClasificacionNombre = p.Clasificacion.Nombre,
                 Tipo = "empresariales",
                 CodigoProyecto = p.CodigoProyecto, EstadoDeEjecucion = p.EstadoDeEjecucion,
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
             }).ToListAsync(ct);
 
         var apoyoPrograma = await _context.Proyectos.OfType<ProyectoApoyoPrograma>()
-            .Include(p => p.Clasificacion)
-            .Include(p => p.JefeUsuario)
             .Where(p => ownerFilter == null || p.JefeId == ownerFilter)
             .Select(p => new ProyectoResumenDto
             {
@@ -68,11 +66,10 @@ public class GetProyectosQueryHandler : IRequestHandler<GetProyectosQuery, List<
                 ClasificacionId = p.ClasificacionId, ClasificacionNombre = p.Clasificacion.Nombre,
                 Tipo = "apoyo-programa",
                 CodigoProyecto = p.CodigoProyecto, EstadoDeEjecucion = p.EstadoDeEjecucion,
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
             }).ToListAsync(ct);
 
         var desarrolloLocal = await _context.Proyectos.OfType<ProyectoDesarrolloLocal>()
-            .Include(p => p.Clasificacion)
-            .Include(p => p.JefeUsuario)
             .Where(p => ownerFilter == null || p.JefeId == ownerFilter)
             .Select(p => new ProyectoResumenDto
             {
@@ -84,11 +81,10 @@ public class GetProyectosQueryHandler : IRequestHandler<GetProyectosQuery, List<
                 ClasificacionId = p.ClasificacionId, ClasificacionNombre = p.Clasificacion.Nombre,
                 Tipo = "desarrollo-local",
                 CodigoProyecto = p.CodigoProyecto, EstadoDeEjecucion = p.EstadoDeEjecucion,
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
             }).ToListAsync(ct);
 
         var noEmpresariales = await _context.Proyectos.OfType<ProyectoNoEmpresarial>()
-            .Include(p => p.Clasificacion)
-            .Include(p => p.JefeUsuario)
             .Where(p => ownerFilter == null || p.JefeId == ownerFilter)
             .Select(p => new ProyectoResumenDto
             {
@@ -100,11 +96,10 @@ public class GetProyectosQueryHandler : IRequestHandler<GetProyectosQuery, List<
                 ClasificacionId = p.ClasificacionId, ClasificacionNombre = p.Clasificacion.Nombre,
                 Tipo = "no-empresariales",
                 CodigoProyecto = p.CodigoProyecto, EstadoDeEjecucion = p.EstadoDeEjecucion,
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
             }).ToListAsync(ct);
 
         var colabInternacional = await _context.Proyectos.OfType<ProyectoColabInternacional>()
-            .Include(p => p.Clasificacion)
-            .Include(p => p.JefeUsuario)
             .Where(p => ownerFilter == null || p.JefeId == ownerFilter)
             .Select(p => new ProyectoResumenDto
             {
@@ -116,11 +111,10 @@ public class GetProyectosQueryHandler : IRequestHandler<GetProyectosQuery, List<
                 ClasificacionId = p.ClasificacionId, ClasificacionNombre = p.Clasificacion.Nombre,
                 Tipo = "colaboracion-internacional",
                 CodigoProyecto = p.CodigoProyecto, EstadoDeEjecucion = p.EstadoDeEjecucion,
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
             }).ToListAsync(ct);
 
         var pnap = await _context.Proyectos.OfType<ProyectoPNAP>()
-            .Include(p => p.Clasificacion)
-            .Include(p => p.JefeUsuario)
             .Where(p => ownerFilter == null || p.JefeId == ownerFilter)
             .Select(p => new ProyectoResumenDto
             {
@@ -132,6 +126,7 @@ public class GetProyectosQueryHandler : IRequestHandler<GetProyectosQuery, List<
                 ClasificacionId = p.ClasificacionId, ClasificacionNombre = p.Clasificacion.Nombre,
                 Tipo = "pnap",
                 CodigoProyecto = p.CodigoProyecto, EstadoDeEjecucion = p.EstadoDeEjecucion,
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
             }).ToListAsync(ct);
 
         return enRevision

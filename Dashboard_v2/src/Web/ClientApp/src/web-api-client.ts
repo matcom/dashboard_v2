@@ -2174,6 +2174,208 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoResumenDto[]>(null as any);
     }
 
+    getProyectosCatalogo(): Promise<ProyectoCatalogoDto[]> {
+        let url_ = this.baseUrl + "/api/Proyectos/catalogo";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetProyectosCatalogo(_response);
+        });
+    }
+
+    protected processGetProyectosCatalogo(response: Response): Promise<ProyectoCatalogoDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ProyectoCatalogoDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProyectoCatalogoDto[]>(null as any);
+    }
+
+    getPublicacionesDelProyecto(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Proyectos/{id}/publicaciones";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetPublicacionesDelProyecto(_response);
+        });
+    }
+
+    protected processGetPublicacionesDelProyecto(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getPublicacionesDisponibles(): Promise<void> {
+        let url_ = this.baseUrl + "/api/Proyectos/publicaciones-disponibles";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetPublicacionesDisponibles(_response);
+        });
+    }
+
+    protected processGetPublicacionesDisponibles(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    linkPublicacion(id: string, pubId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Proyectos/{id}/publicaciones/{pubId}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (pubId === undefined || pubId === null)
+            throw new globalThis.Error("The parameter 'pubId' must be defined.");
+        url_ = url_.replace("{pubId}", encodeURIComponent("" + pubId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLinkPublicacion(_response);
+        });
+    }
+
+    protected processLinkPublicacion(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    unlinkPublicacion(id: string, pubId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Proyectos/{id}/publicaciones/{pubId}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (pubId === undefined || pubId === null)
+            throw new globalThis.Error("The parameter 'pubId' must be defined.");
+        url_ = url_.replace("{pubId}", encodeURIComponent("" + pubId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUnlinkPublicacion(_response);
+        });
+    }
+
+    protected processUnlinkPublicacion(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     deleteProyecto(id: string): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/{id}";
         if (id === undefined || id === null)
@@ -3239,6 +3441,48 @@ export class PublicationsClient {
             });
         }
         return Promise.resolve<PublicationTypeDto[]>(null as any);
+    }
+
+    getTodasLasPublicaciones(): Promise<PublicacionResumenDto[]> {
+        let url_ = this.baseUrl + "/api/Publications/todas";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetTodasLasPublicaciones(_response);
+        });
+    }
+
+    protected processGetTodasLasPublicaciones(response: Response): Promise<PublicacionResumenDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PublicacionResumenDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PublicacionResumenDto[]>(null as any);
     }
 
     getMyPublications(): Promise<PublicationDto[]> {
@@ -5788,6 +6032,7 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
     codigoProyecto?: string | undefined;
     estadoDeEjecucion?: string | undefined;
     situacion?: string | undefined;
+    publicacionesDerivadas?: string[];
 
     constructor(data?: IProyectoResumenDto) {
         if (data) {
@@ -5812,6 +6057,11 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
             this.codigoProyecto = _data["codigoProyecto"];
             this.estadoDeEjecucion = _data["estadoDeEjecucion"];
             this.situacion = _data["situacion"];
+            if (Array.isArray(_data["publicacionesDerivadas"])) {
+                this.publicacionesDerivadas = [] as any;
+                for (let item of _data["publicacionesDerivadas"])
+                    this.publicacionesDerivadas!.push(item);
+            }
         }
     }
 
@@ -5836,6 +6086,11 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
         data["codigoProyecto"] = this.codigoProyecto;
         data["estadoDeEjecucion"] = this.estadoDeEjecucion;
         data["situacion"] = this.situacion;
+        if (Array.isArray(this.publicacionesDerivadas)) {
+            data["publicacionesDerivadas"] = [];
+            for (let item of this.publicacionesDerivadas)
+                data["publicacionesDerivadas"].push(item);
+        }
         return data;
     }
 }
@@ -5853,6 +6108,47 @@ export interface IProyectoResumenDto {
     codigoProyecto?: string | undefined;
     estadoDeEjecucion?: string | undefined;
     situacion?: string | undefined;
+    publicacionesDerivadas?: string[];
+}
+
+export class ProyectoCatalogoDto implements IProyectoCatalogoDto {
+    id?: string;
+    titulo?: string;
+
+    constructor(data?: IProyectoCatalogoDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.titulo = _data["titulo"];
+        }
+    }
+
+    static fromJS(data: any): ProyectoCatalogoDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProyectoCatalogoDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["titulo"] = this.titulo;
+        return data;
+    }
+}
+
+export interface IProyectoCatalogoDto {
+    id?: string;
+    titulo?: string;
 }
 
 export abstract class ProyectoBaseDto implements IProyectoBaseDto {
@@ -5868,6 +6164,7 @@ export abstract class ProyectoBaseDto implements IProyectoBaseDto {
     tributaFormacionDoctoral?: boolean;
     clasificacionId?: string;
     clasificacionNombre?: string;
+    publicacionesDerivadas?: string[];
 
     constructor(data?: IProyectoBaseDto) {
         if (data) {
@@ -5892,6 +6189,11 @@ export abstract class ProyectoBaseDto implements IProyectoBaseDto {
             this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
             this.clasificacionId = _data["clasificacionId"];
             this.clasificacionNombre = _data["clasificacionNombre"];
+            if (Array.isArray(_data["publicacionesDerivadas"])) {
+                this.publicacionesDerivadas = [] as any;
+                for (let item of _data["publicacionesDerivadas"])
+                    this.publicacionesDerivadas!.push(item);
+            }
         }
     }
 
@@ -5914,6 +6216,11 @@ export abstract class ProyectoBaseDto implements IProyectoBaseDto {
         data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
         data["clasificacionId"] = this.clasificacionId;
         data["clasificacionNombre"] = this.clasificacionNombre;
+        if (Array.isArray(this.publicacionesDerivadas)) {
+            data["publicacionesDerivadas"] = [];
+            for (let item of this.publicacionesDerivadas)
+                data["publicacionesDerivadas"].push(item);
+        }
         return data;
     }
 }
@@ -5931,6 +6238,7 @@ export interface IProyectoBaseDto {
     tributaFormacionDoctoral?: boolean;
     clasificacionId?: string;
     clasificacionNombre?: string;
+    publicacionesDerivadas?: string[];
 }
 
 export class ProyectoEnRevisionDto extends ProyectoBaseDto implements IProyectoEnRevisionDto {
@@ -6985,6 +7293,62 @@ export interface IPublicationTypeDto {
     name?: string;
 }
 
+export class PublicacionResumenDto implements IPublicacionResumenDto {
+    id?: string;
+    titulo?: string;
+    urlDoi?: string | undefined;
+    tipo?: number;
+    proyectoId?: string | undefined;
+    proyectoTitulo?: string | undefined;
+
+    constructor(data?: IPublicacionResumenDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.titulo = _data["titulo"];
+            this.urlDoi = _data["urlDoi"];
+            this.tipo = _data["tipo"];
+            this.proyectoId = _data["proyectoId"];
+            this.proyectoTitulo = _data["proyectoTitulo"];
+        }
+    }
+
+    static fromJS(data: any): PublicacionResumenDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicacionResumenDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["titulo"] = this.titulo;
+        data["urlDoi"] = this.urlDoi;
+        data["tipo"] = this.tipo;
+        data["proyectoId"] = this.proyectoId;
+        data["proyectoTitulo"] = this.proyectoTitulo;
+        return data;
+    }
+}
+
+export interface IPublicacionResumenDto {
+    id?: string;
+    titulo?: string;
+    urlDoi?: string | undefined;
+    tipo?: number;
+    proyectoId?: string | undefined;
+    proyectoTitulo?: string | undefined;
+}
+
 export class PublicationDto implements IPublicationDto {
     id?: string;
     title?: string;
@@ -6994,6 +7358,7 @@ export class PublicationDto implements IPublicationDto {
     authors?: AuthorDto[];
     indexedPublication?: IndexedPublicationDto | undefined;
     journalPublication?: JournalPublicationDto | undefined;
+    proyectoId?: string | undefined;
 
     constructor(data?: IPublicationDto) {
         if (data) {
@@ -7018,6 +7383,7 @@ export class PublicationDto implements IPublicationDto {
             }
             this.indexedPublication = _data["indexedPublication"] ? IndexedPublicationDto.fromJS(_data["indexedPublication"]) : undefined as any;
             this.journalPublication = _data["journalPublication"] ? JournalPublicationDto.fromJS(_data["journalPublication"]) : undefined as any;
+            this.proyectoId = _data["proyectoId"];
         }
     }
 
@@ -7042,6 +7408,7 @@ export class PublicationDto implements IPublicationDto {
         }
         data["indexedPublication"] = this.indexedPublication ? this.indexedPublication.toJSON() : undefined as any;
         data["journalPublication"] = this.journalPublication ? this.journalPublication.toJSON() : undefined as any;
+        data["proyectoId"] = this.proyectoId;
         return data;
     }
 }
@@ -7055,6 +7422,7 @@ export interface IPublicationDto {
     authors?: AuthorDto[];
     indexedPublication?: IndexedPublicationDto | undefined;
     journalPublication?: JournalPublicationDto | undefined;
+    proyectoId?: string | undefined;
 }
 
 export class AuthorDto implements IAuthorDto {
@@ -7193,6 +7561,7 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
+    proyectoId?: string | undefined;
 
     constructor(data?: ICreatePublicationCommand) {
         if (data) {
@@ -7228,6 +7597,7 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
             this.dataBase = _data["dataBase"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
+            this.proyectoId = _data["proyectoId"];
         }
     }
 
@@ -7263,6 +7633,7 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
         data["dataBase"] = this.dataBase;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
+        data["proyectoId"] = this.proyectoId;
         return data;
     }
 }
@@ -7279,6 +7650,7 @@ export interface ICreatePublicationCommand {
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
+    proyectoId?: string | undefined;
 }
 
 export enum PublicationType {
@@ -7301,6 +7673,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
+    proyectoId?: string | undefined;
 
     constructor(data?: IUpdatePublicationBody) {
         if (data) {
@@ -7336,6 +7709,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
             this.dataBase = _data["dataBase"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
+            this.proyectoId = _data["proyectoId"];
         }
     }
 
@@ -7371,6 +7745,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         data["dataBase"] = this.dataBase;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
+        data["proyectoId"] = this.proyectoId;
         return data;
     }
 }
@@ -7387,6 +7762,7 @@ export interface IUpdatePublicationBody {
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
+    proyectoId?: string | undefined;
 }
 
 export class RoleDto implements IRoleDto {

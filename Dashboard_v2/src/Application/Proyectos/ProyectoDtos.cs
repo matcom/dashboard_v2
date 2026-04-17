@@ -21,6 +21,8 @@ public record ProyectoResumenDto
     public string? CodigoProyecto { get; init; }
     public string? EstadoDeEjecucion { get; init; }
     public string? Situacion { get; init; }
+    /// <summary>DOI/URLs de las publicaciones derivadas del proyecto.</summary>
+    public List<string> PublicacionesDerivadas { get; init; } = [];
 }
 
 /// <summary>Campos comunes a todos los proyectos.</summary>
@@ -40,9 +42,9 @@ public abstract record ProyectoBaseDto
     public bool TributaFormacionDoctoral { get; init; }
     public string ClasificacionId { get; init; } = default!;
     public string ClasificacionNombre { get; init; } = default!;
+    /// <summary>DOI/URLs de las publicaciones derivadas del proyecto.</summary>
+    public List<string> PublicacionesDerivadas { get; init; } = [];
 }
-
-/// <summary>Campos compartidos por todos los subtipos en ejecución.</summary>
 public abstract record ProyectoEnEjecucionBaseDto : ProyectoBaseDto
 {
     public DateOnly FechaInicio { get; init; }

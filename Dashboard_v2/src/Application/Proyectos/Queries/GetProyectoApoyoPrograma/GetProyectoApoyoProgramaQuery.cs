@@ -21,6 +21,7 @@ public class GetProyectoApoyoProgramaQueryHandler : IRequestHandler<GetProyectoA
         var p = await _context.Proyectos.OfType<ProyectoApoyoPrograma>()
             .Include(x => x.Clasificacion)
             .Include(x => x.JefeUsuario)
+            .Include(x => x.PublicacionesDerivadas)
             .FirstOrDefaultAsync(x => x.Id == request.Id && (ownerFilter == null || x.JefeId == ownerFilter), ct);
 
         if (p is null) return null;
@@ -44,6 +45,7 @@ public class GetProyectoApoyoProgramaQueryHandler : IRequestHandler<GetProyectoA
             ContribucionEjesEstrategicos = p.ContribucionEjesEstrategicos,
             TributaDesarrolloLocal = p.TributaDesarrolloLocal,
             NombrePrograma = p.NombrePrograma, TipoPAP = p.TipoPAP,
+            PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
         };
     }
 }

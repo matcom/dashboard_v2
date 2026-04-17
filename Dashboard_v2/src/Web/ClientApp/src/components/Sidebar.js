@@ -45,6 +45,7 @@ const jefeDeProyectoGroups = [
     heading: 'Gestión de Proyectos',
     items: [
       { to: '/proyectos', icon: 'bi-kanban', label: 'Mis Proyectos' },
+      { to: '/publicaciones', icon: 'bi-journal-text', label: 'Publicaciones' },
     ],
   },
 ];

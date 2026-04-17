@@ -3,7 +3,8 @@ namespace Dashboard_v2.Domain.Entities;
 /// <summary>
 /// Entidad base abstracta para todos los tipos de proyecto.
 /// Especializada en <see cref="ProyectoEnRevision"/> y <see cref="ProyectoEnEjecucion"/>.
-/// Mapeada con TPH en la tabla "Proyectos".
+/// Mapeada con TPT: la tabla "Proyectos" contiene los campos base comunes;
+/// cada subtipo concreto tiene su propia tabla de extensión.
 /// </summary>
 public abstract class Proyecto
 {
@@ -28,4 +29,7 @@ public abstract class Proyecto
 
     public string ClasificacionId { get; set; } = default!;
     public Clasificacion Clasificacion { get; set; } = default!;
+
+    /// <summary>Publicaciones académicas derivadas de este proyecto (navegación inversa).</summary>
+    public ICollection<Publication> PublicacionesDerivadas { get; set; } = new List<Publication>();
 }

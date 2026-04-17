@@ -1,4 +1,6 @@
+using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Proyectos;
+using Microsoft.EntityFrameworkCore;
 using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoApoyoPrograma;
 using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoColabInternacional;
 using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoDesarrolloLocal;
@@ -27,7 +29,11 @@ using Dashboard_v2.Web.Infrastructure;
 
 namespace Dashboard_v2.Web.Endpoints;
 
-/// <summary>CRUD de Proyectos bajo /api/Proyectos. Solo Superuser.</summary>
+/// <summary>
+/// Endpoints de gestión de proyectos bajo /api/Proyectos.
+/// Acceso según operación: <c>Superuser</c> y <c>Jefe_de_Proyecto</c> para CRUD;
+/// adicionalmente <c>Profesor</c> puede acceder al catálogo mínimo para vincular publicaciones.
+/// </summary>
 public class Proyectos : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder g)
@@ -37,7 +43,35 @@ public class Proyectos : EndpointGroupBase
             .RequireAuthorization(p => p.RequireRole("Superuser", "Jefe_de_Proyecto"))
             .WithName("GetProyectos")
             .Produces<List<ProyectoResumenDto>>(200);
+        // ── Catálogo mínimo para vinculación desde publicaciones ──────────────────
+        g.MapGet("catalogo", GetCatalogo)
+            .RequireAuthorization(p => p.RequireRole("Superuser", "Jefe_de_Proyecto", "Profesor"))
+            .WithName("GetProyectosCatalogo")
+            .Produces<List<ProyectoCatalogoDto>>(200);
 
+        // ── Publicaciones derivadas por proyecto ────────────────────────
+        g.MapGet("{id}/publicaciones", GetPublicacionesDelProyecto)
+            .RequireAuthorization(p => p.RequireRole("Superuser", "Jefe_de_Proyecto"))
+            .WithName("GetPublicacionesDelProyecto")
+            .Produces(200);
+
+        g.MapGet("publicaciones-disponibles", GetPublicacionesDisponibles)
+            .RequireAuthorization(p => p.RequireRole("Superuser", "Jefe_de_Proyecto"))
+            .WithName("GetPublicacionesDisponibles")
+            .Produces(200);
+
+        g.MapPost("{id}/publicaciones/{pubId}", LinkPublicacion)
+            .RequireAuthorization(p => p.RequireRole("Superuser", "Jefe_de_Proyecto"))
+            .WithName("LinkPublicacion")
+            .Produces(204)
+            .ProducesProblem(400)
+            .ProducesProblem(404);
+
+        g.MapDelete("{id}/publicaciones/{pubId}", UnlinkPublicacion)
+            .RequireAuthorization(p => p.RequireRole("Superuser", "Jefe_de_Proyecto"))
+            .WithName("UnlinkPublicacion")
+            .Produces(204)
+            .ProducesProblem(404);
         // ── Delete compartido ─────────────────────────────────────────
         g.MapDelete("{id}", DeleteProyecto)
             .RequireAuthorization(p => p.RequireRole("Superuser", "Jefe_de_Proyecto"))
@@ -161,6 +195,62 @@ public class Proyectos : EndpointGroupBase
     // ── Listado / Delete ───────────────────────────────────────────────
     private static async Task<IResult> GetProyectos(ISender sender)
         => Results.Ok(await sender.Send(new GetProyectosQuery()));
+
+    private static async Task<IResult> GetCatalogo(IApplicationDbContext context)
+    {
+        var items = await context.Proyectos
+            .AsNoTracking()
+            .OrderBy(p => p.Titulo)
+            .Select(p => new ProyectoCatalogoDto(p.Id, p.Titulo))
+            .ToListAsync();
+        return Results.Ok(items);
+    }
+
+    private static async Task<IResult> GetPublicacionesDelProyecto(IApplicationDbContext context, string id)
+    {
+        var pubs = await context.Publications
+            .AsNoTracking()
+            .Where(p => p.ProyectoId == id)
+            .Select(p => new { p.Id, p.Title, p.UrlDoi })
+            .OrderBy(p => p.Title)
+            .ToListAsync();
+        return Results.Ok(pubs);
+    }
+
+    private static async Task<IResult> UnlinkPublicacion(
+        IApplicationDbContext context, string id, string pubId)
+    {
+        var pub = await context.Publications
+            .FirstOrDefaultAsync(p => p.Id == pubId && p.ProyectoId == id);
+        if (pub is null) return Results.NotFound();
+        pub.ProyectoId = null;
+        await context.SaveChangesAsync(CancellationToken.None);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetPublicacionesDisponibles(IApplicationDbContext context)
+    {
+        var pubs = await context.Publications
+            .AsNoTracking()
+            .Where(p => p.ProyectoId == null)
+            .Select(p => new { p.Id, p.Title, p.UrlDoi })
+            .OrderBy(p => p.Title)
+            .ToListAsync();
+        return Results.Ok(pubs);
+    }
+
+    private static async Task<IResult> LinkPublicacion(
+        IApplicationDbContext context, string id, string pubId)
+    {
+        var pub = await context.Publications
+            .FirstOrDefaultAsync(p => p.Id == pubId);
+        if (pub is null) return Results.NotFound();
+        if (pub.ProyectoId is not null && pub.ProyectoId != id)
+            return Results.BadRequest(new { errors = new[] { "Esta publicación ya está vinculada a otro proyecto." } });
+        pub.ProyectoId = id;
+        await context.SaveChangesAsync(CancellationToken.None);
+        return Results.NoContent();
+    }
 
     private static async Task<IResult> DeleteProyecto(ISender sender, string id)
     {
@@ -635,3 +725,6 @@ internal record ProyectoPNAPBody(
     string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
     bool TributaDesarrolloLocal,
     string FinanciamientoUH);
+
+/// <summary>Par mínimo Id/Título para el selector de proyectos en el formulario de publicaciones.</summary>
+public record ProyectoCatalogoDto(string Id, string Titulo);

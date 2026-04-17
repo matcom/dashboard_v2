@@ -1610,6 +1610,160 @@
         }
       }
     },
+    "/api/Proyectos/catalogo": {
+      "get": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "GetProyectosCatalogo",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProyectoCatalogoDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Proyectos/{id}/publicaciones": {
+      "get": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "GetPublicacionesDelProyecto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Proyectos/publicaciones-disponibles": {
+      "get": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "GetPublicacionesDisponibles",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Proyectos/{id}/publicaciones/{pubId}": {
+      "post": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "LinkPublicacion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "pubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "UnlinkPublicacion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "pubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Proyectos/{id}": {
       "delete": {
         "tags": [
@@ -2569,6 +2723,29 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/PublicationTypeDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Publications/todas": {
+      "get": {
+        "tags": [
+          "Publications"
+        ],
+        "operationId": "GetTodasLasPublicaciones",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicacionResumenDto"
                   }
                 }
               }
@@ -3907,6 +4084,24 @@
           "situacion": {
             "type": "string",
             "nullable": true
+          },
+          "publicacionesDerivadas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ProyectoCatalogoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
           }
         }
       },
@@ -3973,6 +4168,12 @@
           },
           "clasificacionNombre": {
             "type": "string"
+          },
+          "publicacionesDerivadas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -4615,6 +4816,34 @@
           }
         }
       },
+      "PublicacionResumenDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "urlDoi": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "proyectoId": {
+            "type": "string",
+            "nullable": true
+          },
+          "proyectoTitulo": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "PublicationDto": {
         "type": "object",
         "additionalProperties": false,
@@ -4657,6 +4886,10 @@
                 "$ref": "#/components/schemas/JournalPublicationDto"
               }
             ]
+          },
+          "proyectoId": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -4753,6 +4986,10 @@
           "cuartil": {
             "type": "string",
             "nullable": true
+          },
+          "proyectoId": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -4827,6 +5064,10 @@
             "nullable": true
           },
           "cuartil": {
+            "type": "string",
+            "nullable": true
+          },
+          "proyectoId": {
             "type": "string",
             "nullable": true
           }

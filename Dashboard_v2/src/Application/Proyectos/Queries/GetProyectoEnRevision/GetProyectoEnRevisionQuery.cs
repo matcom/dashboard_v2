@@ -21,6 +21,7 @@ public class GetProyectoEnRevisionQueryHandler : IRequestHandler<GetProyectoEnRe
         var p = await _context.Proyectos.OfType<ProyectoEnRevision>()
             .Include(x => x.Clasificacion)
             .Include(x => x.JefeUsuario)
+            .Include(x => x.PublicacionesDerivadas)
             .FirstOrDefaultAsync(x => x.Id == request.Id && (ownerFilter == null || x.JefeId == ownerFilter), ct);
 
         if (p is null) return null;
@@ -37,6 +38,7 @@ public class GetProyectoEnRevisionQueryHandler : IRequestHandler<GetProyectoEnRe
             TributaFormacionDoctoral = p.TributaFormacionDoctoral,
             ClasificacionId = p.ClasificacionId, ClasificacionNombre = p.Clasificacion.Nombre,
             Situacion = p.Situacion, Tipo = p.Tipo,
+            PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList(),
         };
     }
 }

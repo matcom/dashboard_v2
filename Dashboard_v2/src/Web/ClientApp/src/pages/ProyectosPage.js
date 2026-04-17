@@ -91,6 +91,16 @@ export default function ProyectosPage() {
   const [deleting, setDeleting] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
 
+  // ─ Publications manager ────────────────────────────────────────────────────────────
+  const [pubsModal, setPubsModal] = useState(false);
+  const [pubsTarget, setPubsTarget] = useState(null);
+  const [pubsList, setPubsList] = useState([]);
+  const [pubsLoading, setPubsLoading] = useState(false);
+  const [pubsError, setPubsError] = useState('');
+  const [availablePubs, setAvailablePubs] = useState([]);
+  const [selectedPubToLink, setSelectedPubToLink] = useState('');
+  const [linkingPub, setLinkingPub] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -246,6 +256,61 @@ export default function ProyectosPage() {
 
   const tipo = form.tipo;
 
+  // ─ Publications manager helpers ────────────────────────────────────────────────
+
+  async function openPubsManager(item) {
+    setPubsTarget(item);
+    setPubsError('');
+    setPubsList([]);
+    setAvailablePubs([]);
+    setSelectedPubToLink('');
+    setPubsLoading(true);
+    setPubsModal(true);
+    try {
+      const [pubs, available] = await Promise.all([
+        apiFetch(`/api/Proyectos/${item.id}/publicaciones`),
+        apiFetch('/api/Proyectos/publicaciones-disponibles'),
+      ]);
+      setPubsList(pubs);
+      setAvailablePubs(available);
+    } catch (e) {
+      setPubsError(e.message);
+    } finally {
+      setPubsLoading(false);
+    }
+  }
+
+  async function unlinkPub(pubId) {
+    setPubsError('');
+    try {
+      await apiFetch(`/api/Proyectos/${pubsTarget.id}/publicaciones/${pubId}`, { method: 'DELETE' });
+      const unlinked = pubsList.find(p => p.id === pubId);
+      setPubsList(prev => prev.filter(p => p.id !== pubId));
+      if (unlinked) setAvailablePubs(prev => [...prev, unlinked].sort((a, b) => a.title.localeCompare(b.title)));
+      load();
+    } catch (e) {
+      setPubsError(e.message);
+    }
+  }
+
+  async function linkPub() {
+    if (!selectedPubToLink) return;
+    setLinkingPub(true);
+    setPubsError('');
+    try {
+      await apiFetch(`/api/Proyectos/${pubsTarget.id}/publicaciones/${selectedPubToLink}`, { method: 'POST' });
+      const linked = availablePubs.find(p => p.id === selectedPubToLink);
+      setAvailablePubs(prev => prev.filter(p => p.id !== selectedPubToLink));
+      if (linked) setPubsList(prev => [...prev, linked].sort((a, b) => a.title.localeCompare(b.title)));
+      setSelectedPubToLink('');
+      load();
+    } catch (e) {
+      setPubsError(e.message);
+    } finally {
+      setLinkingPub(false);
+    }
+  }
+
   return (
     <>
       <Card>
@@ -265,12 +330,13 @@ export default function ProyectosPage() {
                   <th>Título</th>
                   <th>Jefe</th>
                   <th>Clasificación</th>
+                  <th>Publicaciones derivadas</th>
                   <th style={{ width: 100 }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 && (
-                  <tr><td colSpan={5} className="text-center text-muted">No hay proyectos registrados.</td></tr>
+                  <tr><td colSpan={6} className="text-center text-muted">No hay proyectos registrados.</td></tr>
                 )}
                 {items.map(item => (
                   <tr key={item.id}>
@@ -278,6 +344,31 @@ export default function ProyectosPage() {
                     <td>{item.titulo}</td>
                     <td>{item.jefe}</td>
                     <td>{item.clasificacionNombre}</td>
+                    <td>
+                      <div className="d-flex flex-column gap-1">
+                        {(item.publicacionesDerivadas ?? []).length === 0
+                          ? <span className="text-muted">—</span>
+                          : (item.publicacionesDerivadas ?? []).map((urlDoi, i) => (
+                            <div key={i}>
+                              <a href={urlDoi.startsWith('http') ? urlDoi : `https://doi.org/${urlDoi}`}
+                                 target="_blank" rel="noopener noreferrer"
+                                 title={urlDoi}
+                                 style={{ fontSize: '0.8rem' }}
+                              >
+                                {urlDoi.length > 40 ? urlDoi.substring(0, 40) + '…' : urlDoi}
+                              </a>
+                            </div>
+                          ))
+                        }
+                        <div>
+                          <Button color="outline-primary" size="sm"
+                                  style={{ fontSize: '0.75rem', padding: '0.1rem 0.4rem' }}
+                                  onClick={() => openPubsManager(item)}>
+                            📎 Gestionar
+                          </Button>
+                        </div>
+                      </div>
+                    </td>
                     <td>
                       <Button color="outline-secondary" size="sm" className="me-1" onClick={() => openEdit(item)} disabled={loadingEdit}>✏️</Button>
                       <Button color="outline-danger" size="sm" onClick={() => setDeleteTarget(item)}>🗑️</Button>
@@ -555,6 +646,71 @@ export default function ProyectosPage() {
             {deleting ? <Spinner size="sm" /> : 'Eliminar'}
           </Button>
           <Button color="secondary" onClick={() => setDeleteTarget(null)}>Cancelar</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Publications manager modal */}
+      <Modal isOpen={pubsModal} toggle={() => setPubsModal(false)} size="lg" scrollable>
+        <ModalHeader toggle={() => setPubsModal(false)}>
+          Publicaciones derivadas
+        </ModalHeader>
+        <ModalBody>
+          <p className="text-muted small mb-3">
+            Proyecto: <strong>{pubsTarget?.titulo}</strong>
+          </p>
+          {pubsError && <Alert color="danger">{pubsError}</Alert>}
+          {!pubsLoading && availablePubs.length > 0 && (
+            <div className="d-flex gap-2 align-items-center mb-3">
+              <Input type="select" value={selectedPubToLink}
+                     onChange={e => setSelectedPubToLink(e.target.value)}
+                     style={{ flex: 1 }}>
+                <option value="">— Vincular publicación existente —</option>
+                {availablePubs.map(p => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </Input>
+              <Button color="success" size="sm" onClick={linkPub}
+                      disabled={!selectedPubToLink || linkingPub}>
+                {linkingPub ? <Spinner size="sm" /> : 'Vincular'}
+              </Button>
+            </div>
+          )}
+          {pubsLoading ? (
+            <div className="text-center py-3"><Spinner /></div>
+          ) : pubsList.length === 0 ? (
+            <p className="text-muted mb-0">Sin publicaciones derivadas aún.</p>
+          ) : (
+            <Table bordered size="sm" className="mb-0">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>URL / DOI</th>
+                  <th style={{ width: 60 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {pubsList.map(pub => (
+                  <tr key={pub.id}>
+                    <td>{pub.title}</td>
+                    <td style={{ maxWidth: 240 }}>
+                      {pub.urlDoi
+                        ? <a href={pub.urlDoi.startsWith('http') ? pub.urlDoi : `https://doi.org/${pub.urlDoi}`}
+                               target="_blank" rel="noopener noreferrer"
+                               className="text-truncate d-block" title={pub.urlDoi}>{pub.urlDoi}</a>
+                        : <span className="text-muted">—</span>}
+                    </td>
+                    <td className="text-center">
+                      <Button color="outline-danger" size="sm" title="Desvincular del proyecto"
+                              onClick={() => unlinkPub(pub.id)}>✕</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={() => setPubsModal(false)}>Cerrar</Button>
         </ModalFooter>
       </Modal>
     </>
