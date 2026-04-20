@@ -26,7 +26,7 @@ public class NuevasAplicacionesSheet : ProyectosSheetBase
     {
 
     }
-    public virtual IEnumerable<(int Col, string Expression)> TemplateCells => new[]
+    public override IEnumerable<(int Col, string Expression)> TemplateCells => new[]
     {
         (1,  "{{item.TituloProyecto}}"),
         (2,  "{{item.JefeProyecto}}"),

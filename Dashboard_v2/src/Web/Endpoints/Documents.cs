@@ -22,8 +22,9 @@ public class Documents : EndpointGroupBase
     {
         groupBuilder.MapGet("{reportName}", GetDocument)
             .RequireAuthorization(p => p.RequireRole(
-                nameof(RolesEnum.Superuser),
-                nameof(RolesEnum.Jefe_de_Grupo_de_investigacion)))
+                nameof(RolesEnum.Superuser)
+                // nameof(RolesEnum.Jefe_de_Grupo_de_investigacion)
+            ))
             .WithName("GetDocument")
             .Produces(200)
             .ProducesProblem(401)

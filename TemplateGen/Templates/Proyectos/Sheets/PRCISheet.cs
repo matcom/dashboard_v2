@@ -36,7 +36,7 @@ public class PRCISheet : ProyectosSheetBase
     {
 
     }
-    public virtual IEnumerable<(int Col, string Expression)> TemplateCells => new[]
+    public override IEnumerable<(int Col, string Expression)> TemplateCells => new[]
     {
         (1,  "{{item.CodigoProyecto}}"),
         (2,  "{{item.TituloProyecto}}"),
@@ -53,8 +53,8 @@ public class PRCISheet : ProyectosSheetBase
         (13,  "{{item.ConTerminosReferencia}}"),
         (14,  "{{item.ContribucionSectoresEstrategicos}}"),
         (15,  "{{item.ContribucionEjesEstrategicos}}"),
-        (16,  "{{item.FechaInicio:dd/MM/yyyy}}"),
-        (17,  "{{item.FechaCierre:dd/MM/yyyy}}"),
+        (16,  "{{item.FechaInicio}}"),
+        (17,  "{{item.FechaCierre}}"),
         (18,  "{{item.EntidadEjecutoraPrincipal}}"),
         (19,  "{{item.EntidadEjecutoraParticipante}}"),
         (20,  "{{item.EstadoEjecucion}}"),

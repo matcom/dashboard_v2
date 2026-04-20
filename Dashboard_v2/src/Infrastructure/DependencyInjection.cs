@@ -50,6 +50,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IDocumentRenderer, DocumentRenderer>();
         // Para agregar un nuevo reporte, agrega otra línea aquí:
         builder.Services.AddScoped<IDocumentReport, AnexoGruposReport>();
+        builder.Services.AddScoped<IDocumentReport, ProyectosReport>();
 
         builder.Services.AddAuthorization(options =>
             options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(nameof(RolesEnum.Superuser))));

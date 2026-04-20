@@ -35,7 +35,7 @@ public class PNESheet : ProyectosSheetBase
     {
 
     }
-    public virtual IEnumerable<(int Col, string Expression)> TemplateCells => new[]
+    public override IEnumerable<(int Col, string Expression)> TemplateCells => new[]
     {
         (1,  "{{item.CodigoProyecto}}"),
         (2,  "{{item.TituloProyecto}}"),
@@ -51,8 +51,8 @@ public class PNESheet : ProyectosSheetBase
         (12,  "{{item.TributaDesarrolloLocal}}"),
         (13,  "{{item.ContribucionSectoresEstrategicos}}"),
         (14,  "{{item.ContribucionEjesEstrategicos}}"),
-        (15,  "{{item.FechaInicio:dd/MM/yyyy}}"),
-        (16,  "{{item.FechaCierre:dd/MM/yyyy}}"),
+        (15,  "{{item.FechaInicio}}"),
+        (16,  "{{item.FechaCierre}}"),
         (17,  "{{item.EntidadEjecutoraPrincipal}}"),
         (18,  "{{item.EntidadEjecutoraParticipante}}"),
         (19,  "{{item.EstadoEjecucion}}"),
