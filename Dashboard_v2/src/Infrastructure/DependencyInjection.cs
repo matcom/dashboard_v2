@@ -6,6 +6,8 @@ using Dashboard_v2.Application.AreasDelConocimiento;
 using Dashboard_v2.Application.Events;
 using Dashboard_v2.Application.LineasDeInvestigacion;
 using Dashboard_v2.Application.GruposDeInvestigacion;
+using Dashboard_v2.Application.Proyectos;
+using Dashboard_v2.Application.Auth;
 using Dashboard_v2.Application.Documents;
 using Dashboard_v2.Application.Documents.Reports;
 using Dashboard_v2.Domain.Constants;
@@ -68,6 +70,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.Users.IUserService, Dashboard_v2.Application.Users.UserService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Authors.IAuthorService, Dashboard_v2.Application.Authors.AuthorService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Roles.IRoleService, Dashboard_v2.Application.Roles.RoleService>();
+        builder.Services.AddScoped<IProyectoService, ProyectoService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Documents.IDocumentService, Dashboard_v2.Application.Documents.DocumentService>();
         // Para agregar un nuevo reporte, agrega otra línea aquí:
         builder.Services.AddScoped<IDocumentReport, AnexoGruposReport>();

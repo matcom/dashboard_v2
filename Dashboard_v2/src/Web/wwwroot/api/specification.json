@@ -301,11 +301,11 @@
         ],
         "operationId": "Register",
         "requestBody": {
-          "x-name": "command",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterCommand"
+                "$ref": "#/components/schemas/RegisterRequest"
               }
             }
           },
@@ -336,11 +336,11 @@
         ],
         "operationId": "Login",
         "requestBody": {
-          "x-name": "command",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginCommand"
+                "$ref": "#/components/schemas/LoginRequest"
               }
             }
           },
@@ -389,7 +389,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/CurrentUserDto"
                 }
               }
             }
@@ -1932,11 +1932,11 @@
           }
         ],
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoEnRevisionBody"
+                "$ref": "#/components/schemas/ProyectoEnRevisionUpsertRequest"
               }
             }
           },
@@ -1977,11 +1977,11 @@
         ],
         "operationId": "CreateProyectoEnRevision",
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoEnRevisionBody"
+                "$ref": "#/components/schemas/ProyectoEnRevisionUpsertRequest"
               }
             }
           },
@@ -2062,11 +2062,11 @@
           }
         ],
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoEmpresarialBody"
+                "$ref": "#/components/schemas/ProyectoEmpresarialUpsertRequest"
               }
             }
           },
@@ -2107,11 +2107,11 @@
         ],
         "operationId": "CreateProyectoEmpresarial",
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoEmpresarialBody"
+                "$ref": "#/components/schemas/ProyectoEmpresarialUpsertRequest"
               }
             }
           },
@@ -2192,11 +2192,11 @@
           }
         ],
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoApoyoProgramaBody"
+                "$ref": "#/components/schemas/ProyectoApoyoProgramaUpsertRequest"
               }
             }
           },
@@ -2237,11 +2237,11 @@
         ],
         "operationId": "CreateProyectoApoyoPrograma",
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoApoyoProgramaBody"
+                "$ref": "#/components/schemas/ProyectoApoyoProgramaUpsertRequest"
               }
             }
           },
@@ -2322,11 +2322,11 @@
           }
         ],
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoDesarrolloLocalBody"
+                "$ref": "#/components/schemas/ProyectoDesarrolloLocalUpsertRequest"
               }
             }
           },
@@ -2367,11 +2367,11 @@
         ],
         "operationId": "CreateProyectoDesarrolloLocal",
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoDesarrolloLocalBody"
+                "$ref": "#/components/schemas/ProyectoDesarrolloLocalUpsertRequest"
               }
             }
           },
@@ -2452,11 +2452,11 @@
           }
         ],
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoNoEmpresarialBody"
+                "$ref": "#/components/schemas/ProyectoNoEmpresarialUpsertRequest"
               }
             }
           },
@@ -2497,11 +2497,11 @@
         ],
         "operationId": "CreateProyectoNoEmpresarial",
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoNoEmpresarialBody"
+                "$ref": "#/components/schemas/ProyectoNoEmpresarialUpsertRequest"
               }
             }
           },
@@ -2582,11 +2582,11 @@
           }
         ],
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoColabInternacionalBody"
+                "$ref": "#/components/schemas/ProyectoColabInternacionalUpsertRequest"
               }
             }
           },
@@ -2627,11 +2627,11 @@
         ],
         "operationId": "CreateProyectoColabInternacional",
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoColabInternacionalBody"
+                "$ref": "#/components/schemas/ProyectoColabInternacionalUpsertRequest"
               }
             }
           },
@@ -2712,11 +2712,11 @@
           }
         ],
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoPNAPBody"
+                "$ref": "#/components/schemas/ProyectoPNAPUpsertRequest"
               }
             }
           },
@@ -2757,11 +2757,11 @@
         ],
         "operationId": "CreateProyectoPNAP",
         "requestBody": {
-          "x-name": "b",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProyectoPNAPBody"
+                "$ref": "#/components/schemas/ProyectoPNAPUpsertRequest"
               }
             }
           },
@@ -3494,7 +3494,7 @@
           }
         }
       },
-      "RegisterCommand": {
+      "RegisterRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -3584,7 +3584,7 @@
           4
         ]
       },
-      "LoginCommand": {
+      "LoginRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -3600,7 +3600,7 @@
           }
         }
       },
-      "UserDto": {
+      "CurrentUserDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -4254,8 +4254,28 @@
           }
         }
       },
-      "ProyectoEnRevisionBody": {
+      "ProyectoEnRevisionUpsertRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProyectoUpsertRequestBase"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "situacion": {
+                "type": "string"
+              },
+              "tipo": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ProyectoUpsertRequestBase": {
         "type": "object",
+        "x-abstract": true,
         "additionalProperties": false,
         "properties": {
           "titulo": {
@@ -4284,12 +4304,6 @@
             "type": "boolean"
           },
           "clasificacionId": {
-            "type": "string"
-          },
-          "situacion": {
-            "type": "string"
-          },
-          "tipo": {
             "type": "string"
           }
         }
@@ -4357,75 +4371,68 @@
           }
         ]
       },
-      "ProyectoEmpresarialBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
+      "ProyectoEmpresarialUpsertRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
           },
-          "jefeId": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadMiembrosUH": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantesContratados": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tributaFormacionDoctoral": {
-            "type": "boolean"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "fechaInicio": {
-            "type": "string",
-            "format": "date"
-          },
-          "fechaCierre": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "estadoDeEjecucion": {
-            "type": "string"
-          },
-          "codigoProyecto": {
-            "type": "string"
-          },
-          "entidadEjecutoraPrincipal": {
-            "type": "string"
-          },
-          "entidadEjecutoraParticipante": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionSectoresEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionEjesEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "tributaDesarrolloLocal": {
-            "type": "boolean"
-          },
-          "empresa": {
-            "type": "string"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "empresa": {
+                "type": "string"
+              }
+            }
           }
-        }
+        ]
+      },
+      "ProyectoEnEjecucionUpsertRequestBase": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProyectoUpsertRequestBase"
+          },
+          {
+            "type": "object",
+            "x-abstract": true,
+            "additionalProperties": false,
+            "properties": {
+              "fechaInicio": {
+                "type": "string",
+                "format": "date"
+              },
+              "fechaCierre": {
+                "type": "string",
+                "format": "date",
+                "nullable": true
+              },
+              "estadoDeEjecucion": {
+                "type": "string"
+              },
+              "codigoProyecto": {
+                "type": "string"
+              },
+              "entidadEjecutoraPrincipal": {
+                "type": "string"
+              },
+              "entidadEjecutoraParticipante": {
+                "type": "string",
+                "nullable": true
+              },
+              "contribucionSectoresEstrategicos": {
+                "type": "string",
+                "nullable": true
+              },
+              "contribucionEjesEstrategicos": {
+                "type": "string",
+                "nullable": true
+              },
+              "tributaDesarrolloLocal": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
       },
       "ProyectoApoyoProgramaDto": {
         "allOf": [
@@ -4460,78 +4467,24 @@
           3
         ]
       },
-      "ProyectoApoyoProgramaBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
+      "ProyectoApoyoProgramaUpsertRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
           },
-          "jefeId": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadMiembrosUH": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantesContratados": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tributaFormacionDoctoral": {
-            "type": "boolean"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "fechaInicio": {
-            "type": "string",
-            "format": "date"
-          },
-          "fechaCierre": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "estadoDeEjecucion": {
-            "type": "string"
-          },
-          "codigoProyecto": {
-            "type": "string"
-          },
-          "entidadEjecutoraPrincipal": {
-            "type": "string"
-          },
-          "entidadEjecutoraParticipante": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionSectoresEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionEjesEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "tributaDesarrolloLocal": {
-            "type": "boolean"
-          },
-          "nombrePrograma": {
-            "type": "string"
-          },
-          "tipoPAP": {
-            "$ref": "#/components/schemas/TipoPAP"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nombrePrograma": {
+                "type": "string"
+              },
+              "tipoPAP": {
+                "$ref": "#/components/schemas/TipoPAP"
+              }
+            }
           }
-        }
+        ]
       },
       "ProyectoDesarrolloLocalDto": {
         "allOf": [
@@ -4549,72 +4502,21 @@
           }
         ]
       },
-      "ProyectoDesarrolloLocalBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
+      "ProyectoDesarrolloLocalUpsertRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
           },
-          "jefeId": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadMiembrosUH": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantesContratados": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tributaFormacionDoctoral": {
-            "type": "boolean"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "fechaInicio": {
-            "type": "string",
-            "format": "date"
-          },
-          "fechaCierre": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "estadoDeEjecucion": {
-            "type": "string"
-          },
-          "codigoProyecto": {
-            "type": "string"
-          },
-          "entidadEjecutoraPrincipal": {
-            "type": "string"
-          },
-          "entidadEjecutoraParticipante": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionSectoresEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionEjesEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "municipio": {
-            "type": "string"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "municipio": {
+                "type": "string"
+              }
+            }
           }
-        }
+        ]
       },
       "ProyectoNoEmpresarialDto": {
         "allOf": [
@@ -4632,75 +4534,21 @@
           }
         ]
       },
-      "ProyectoNoEmpresarialBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
+      "ProyectoNoEmpresarialUpsertRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
           },
-          "jefeId": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadMiembrosUH": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantesContratados": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tributaFormacionDoctoral": {
-            "type": "boolean"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "fechaInicio": {
-            "type": "string",
-            "format": "date"
-          },
-          "fechaCierre": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "estadoDeEjecucion": {
-            "type": "string"
-          },
-          "codigoProyecto": {
-            "type": "string"
-          },
-          "entidadEjecutoraPrincipal": {
-            "type": "string"
-          },
-          "entidadEjecutoraParticipante": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionSectoresEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionEjesEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "tributaDesarrolloLocal": {
-            "type": "boolean"
-          },
-          "entidadNoEmpresarial": {
-            "type": "string"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "entidadNoEmpresarial": {
+                "type": "string"
+              }
+            }
           }
-        }
+        ]
       },
       "ProyectoColabInternacionalDto": {
         "allOf": [
@@ -4721,78 +4569,24 @@
           }
         ]
       },
-      "ProyectoColabInternacionalBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
+      "ProyectoColabInternacionalUpsertRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
           },
-          "jefeId": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadMiembrosUH": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantesContratados": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tributaFormacionDoctoral": {
-            "type": "boolean"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "fechaInicio": {
-            "type": "string",
-            "format": "date"
-          },
-          "fechaCierre": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "estadoDeEjecucion": {
-            "type": "string"
-          },
-          "codigoProyecto": {
-            "type": "string"
-          },
-          "entidadEjecutoraPrincipal": {
-            "type": "string"
-          },
-          "entidadEjecutoraParticipante": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionSectoresEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionEjesEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "tributaDesarrolloLocal": {
-            "type": "boolean"
-          },
-          "fuenteFinanciacion": {
-            "type": "string"
-          },
-          "terminosReferencia": {
-            "type": "string"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "fuenteFinanciacion": {
+                "type": "string"
+              },
+              "terminosReferencia": {
+                "type": "string"
+              }
+            }
           }
-        }
+        ]
       },
       "ProyectoPNAPDto": {
         "allOf": [
@@ -4810,75 +4604,21 @@
           }
         ]
       },
-      "ProyectoPNAPBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
+      "ProyectoPNAPUpsertRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
           },
-          "jefeId": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadMiembrosUH": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantesContratados": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tributaFormacionDoctoral": {
-            "type": "boolean"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "fechaInicio": {
-            "type": "string",
-            "format": "date"
-          },
-          "fechaCierre": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "estadoDeEjecucion": {
-            "type": "string"
-          },
-          "codigoProyecto": {
-            "type": "string"
-          },
-          "entidadEjecutoraPrincipal": {
-            "type": "string"
-          },
-          "entidadEjecutoraParticipante": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionSectoresEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "contribucionEjesEstrategicos": {
-            "type": "string",
-            "nullable": true
-          },
-          "tributaDesarrolloLocal": {
-            "type": "boolean"
-          },
-          "financiamientoUH": {
-            "type": "string"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "financiamientoUH": {
+                "type": "string"
+              }
+            }
           }
-        }
+        ]
       },
       "PublicationTypeDto": {
         "type": "object",

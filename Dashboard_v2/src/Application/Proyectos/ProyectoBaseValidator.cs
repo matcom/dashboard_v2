@@ -3,15 +3,16 @@ using Dashboard_v2.Application.Common.Interfaces;
 namespace Dashboard_v2.Application.Proyectos;
 
 /// <summary>
-/// Validator base para todos los commands de proyectos. Aplica las reglas comunes:
+/// Validador base para todas las operaciones CRUD de escritura sobre proyectos.
+/// Aplica las reglas comunes:
 /// <list type="bullet">
 /// <item>Título no puede estar vacío.</item>
 /// <item>ClasificacionId debe existir en la base de datos.</item>
 /// </list>
-/// Los validators concretos heredan de esta clase y añaden sus reglas específicas.
+/// Los validadores concretos heredan de esta clase y añaden sus reglas específicas.
 /// </summary>
 public abstract class ProyectoBaseValidator<T> : AbstractValidator<T>
-    where T : IProyectoCommand
+    where T : IProyectoUpsertRequest
 {
     protected ProyectoBaseValidator(IApplicationDbContext context)
     {

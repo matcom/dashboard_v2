@@ -395,11 +395,11 @@ export class AuthClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    register(command: RegisterCommand): Promise<void> {
+    register(request: RegisterRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Auth/register";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(command);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -437,11 +437,11 @@ export class AuthClient {
         return Promise.resolve<void>(null as any);
     }
 
-    login(command: LoginCommand): Promise<void> {
+    login(request: LoginRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Auth/login";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(command);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -510,7 +510,7 @@ export class AuthClient {
         return Promise.resolve<void>(null as any);
     }
 
-    getCurrentUser(): Promise<UserDto> {
+    getCurrentUser(): Promise<CurrentUserDto> {
         let url_ = this.baseUrl + "/api/Auth/me";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -526,7 +526,7 @@ export class AuthClient {
         });
     }
 
-    protected processGetCurrentUser(response: Response): Promise<UserDto> {
+    protected processGetCurrentUser(response: Response): Promise<CurrentUserDto> {
         followIfLoginRedirect(response);
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
@@ -534,7 +534,7 @@ export class AuthClient {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = UserDto.fromJS(resultData200);
+            result200 = CurrentUserDto.fromJS(resultData200);
             return result200;
             });
         } else if (status === 401) {
@@ -549,7 +549,7 @@ export class AuthClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<UserDto>(null as any);
+        return Promise.resolve<CurrentUserDto>(null as any);
     }
 }
 
@@ -2570,14 +2570,14 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoEnRevisionDto>(null as any);
     }
 
-    updateProyectoEnRevision(id: string, b: ProyectoEnRevisionBody): Promise<void> {
+    updateProyectoEnRevision(id: string, request: ProyectoEnRevisionUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/en-revision/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -2622,11 +2622,11 @@ export class ProyectosClient {
         return Promise.resolve<void>(null as any);
     }
 
-    createProyectoEnRevision(b: ProyectoEnRevisionBody): Promise<void> {
+    createProyectoEnRevision(request: ProyectoEnRevisionUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/en-revision";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -2709,14 +2709,14 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoEmpresarialDto>(null as any);
     }
 
-    updateProyectoEmpresarial(id: string, b: ProyectoEmpresarialBody): Promise<void> {
+    updateProyectoEmpresarial(id: string, request: ProyectoEmpresarialUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/empresariales/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -2761,11 +2761,11 @@ export class ProyectosClient {
         return Promise.resolve<void>(null as any);
     }
 
-    createProyectoEmpresarial(b: ProyectoEmpresarialBody): Promise<void> {
+    createProyectoEmpresarial(request: ProyectoEmpresarialUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/empresariales";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -2848,14 +2848,14 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoApoyoProgramaDto>(null as any);
     }
 
-    updateProyectoApoyoPrograma(id: string, b: ProyectoApoyoProgramaBody): Promise<void> {
+    updateProyectoApoyoPrograma(id: string, request: ProyectoApoyoProgramaUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/apoyo-programa/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -2900,11 +2900,11 @@ export class ProyectosClient {
         return Promise.resolve<void>(null as any);
     }
 
-    createProyectoApoyoPrograma(b: ProyectoApoyoProgramaBody): Promise<void> {
+    createProyectoApoyoPrograma(request: ProyectoApoyoProgramaUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/apoyo-programa";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -2987,14 +2987,14 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoDesarrolloLocalDto>(null as any);
     }
 
-    updateProyectoDesarrolloLocal(id: string, b: ProyectoDesarrolloLocalBody): Promise<void> {
+    updateProyectoDesarrolloLocal(id: string, request: ProyectoDesarrolloLocalUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/desarrollo-local/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -3039,11 +3039,11 @@ export class ProyectosClient {
         return Promise.resolve<void>(null as any);
     }
 
-    createProyectoDesarrolloLocal(b: ProyectoDesarrolloLocalBody): Promise<void> {
+    createProyectoDesarrolloLocal(request: ProyectoDesarrolloLocalUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/desarrollo-local";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -3126,14 +3126,14 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoNoEmpresarialDto>(null as any);
     }
 
-    updateProyectoNoEmpresarial(id: string, b: ProyectoNoEmpresarialBody): Promise<void> {
+    updateProyectoNoEmpresarial(id: string, request: ProyectoNoEmpresarialUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/no-empresariales/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -3178,11 +3178,11 @@ export class ProyectosClient {
         return Promise.resolve<void>(null as any);
     }
 
-    createProyectoNoEmpresarial(b: ProyectoNoEmpresarialBody): Promise<void> {
+    createProyectoNoEmpresarial(request: ProyectoNoEmpresarialUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/no-empresariales";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -3265,14 +3265,14 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoColabInternacionalDto>(null as any);
     }
 
-    updateProyectoColabInternacional(id: string, b: ProyectoColabInternacionalBody): Promise<void> {
+    updateProyectoColabInternacional(id: string, request: ProyectoColabInternacionalUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/colaboracion-internacional/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -3317,11 +3317,11 @@ export class ProyectosClient {
         return Promise.resolve<void>(null as any);
     }
 
-    createProyectoColabInternacional(b: ProyectoColabInternacionalBody): Promise<void> {
+    createProyectoColabInternacional(request: ProyectoColabInternacionalUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/colaboracion-internacional";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -3404,14 +3404,14 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoPNAPDto>(null as any);
     }
 
-    updateProyectoPNAP(id: string, b: ProyectoPNAPBody): Promise<void> {
+    updateProyectoPNAP(id: string, request: ProyectoPNAPUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/pnap/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -3456,11 +3456,11 @@ export class ProyectosClient {
         return Promise.resolve<void>(null as any);
     }
 
-    createProyectoPNAP(b: ProyectoPNAPBody): Promise<void> {
+    createProyectoPNAP(request: ProyectoPNAPUpsertRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/pnap";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(b);
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -4648,7 +4648,7 @@ export interface IUpdateAreaDelConocimientoRequest {
     lineasDeInvestigacionIds?: string[];
 }
 
-export class RegisterCommand implements IRegisterCommand {
+export class RegisterRequest implements IRegisterRequest {
     userName?: string;
     userLastName1?: string;
     userLastName2?: string | undefined;
@@ -4660,7 +4660,7 @@ export class RegisterCommand implements IRegisterCommand {
     scientificCategory?: ScientificCategory;
     investigationCategory?: InvestigationCategory;
 
-    constructor(data?: IRegisterCommand) {
+    constructor(data?: IRegisterRequest) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4684,9 +4684,9 @@ export class RegisterCommand implements IRegisterCommand {
         }
     }
 
-    static fromJS(data: any): RegisterCommand {
+    static fromJS(data: any): RegisterRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new RegisterCommand();
+        let result = new RegisterRequest();
         result.init(data);
         return result;
     }
@@ -4707,7 +4707,7 @@ export class RegisterCommand implements IRegisterCommand {
     }
 }
 
-export interface IRegisterCommand {
+export interface IRegisterRequest {
     userName?: string;
     userLastName1?: string;
     userLastName2?: string | undefined;
@@ -4743,12 +4743,12 @@ export enum InvestigationCategory {
     Asociado = 4,
 }
 
-export class LoginCommand implements ILoginCommand {
+export class LoginRequest implements ILoginRequest {
     email?: string;
     password?: string;
     selectedRole?: string | undefined;
 
-    constructor(data?: ILoginCommand) {
+    constructor(data?: ILoginRequest) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4765,9 +4765,9 @@ export class LoginCommand implements ILoginCommand {
         }
     }
 
-    static fromJS(data: any): LoginCommand {
+    static fromJS(data: any): LoginRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new LoginCommand();
+        let result = new LoginRequest();
         result.init(data);
         return result;
     }
@@ -4781,19 +4781,19 @@ export class LoginCommand implements ILoginCommand {
     }
 }
 
-export interface ILoginCommand {
+export interface ILoginRequest {
     email?: string;
     password?: string;
     selectedRole?: string | undefined;
 }
 
-export class UserDto implements IUserDto {
+export class CurrentUserDto implements ICurrentUserDto {
     id?: string;
     userName?: string;
     email?: string;
     role?: string | undefined;
 
-    constructor(data?: IUserDto) {
+    constructor(data?: ICurrentUserDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4811,9 +4811,9 @@ export class UserDto implements IUserDto {
         }
     }
 
-    static fromJS(data: any): UserDto {
+    static fromJS(data: any): CurrentUserDto {
         data = typeof data === 'object' ? data : {};
-        let result = new UserDto();
+        let result = new CurrentUserDto();
         result.init(data);
         return result;
     }
@@ -4828,7 +4828,7 @@ export class UserDto implements IUserDto {
     }
 }
 
-export interface IUserDto {
+export interface ICurrentUserDto {
     id?: string;
     userName?: string;
     email?: string;
@@ -6422,7 +6422,7 @@ export interface IProyectoEnRevisionDto extends IProyectoBaseDto {
     tipo?: string;
 }
 
-export class ProyectoEnRevisionBody implements IProyectoEnRevisionBody {
+export abstract class ProyectoUpsertRequestBase implements IProyectoUpsertRequestBase {
     titulo?: string;
     jefeId?: string;
     numeroMiembros?: number;
@@ -6431,10 +6431,8 @@ export class ProyectoEnRevisionBody implements IProyectoEnRevisionBody {
     cantidadEstudiantesContratados?: number;
     tributaFormacionDoctoral?: boolean;
     clasificacionId?: string;
-    situacion?: string;
-    tipo?: string;
 
-    constructor(data?: IProyectoEnRevisionBody) {
+    constructor(data?: IProyectoUpsertRequestBase) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -6453,16 +6451,12 @@ export class ProyectoEnRevisionBody implements IProyectoEnRevisionBody {
             this.cantidadEstudiantesContratados = _data["cantidadEstudiantesContratados"];
             this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
             this.clasificacionId = _data["clasificacionId"];
-            this.situacion = _data["situacion"];
-            this.tipo = _data["tipo"];
         }
     }
 
-    static fromJS(data: any): ProyectoEnRevisionBody {
+    static fromJS(data: any): ProyectoUpsertRequestBase {
         data = typeof data === 'object' ? data : {};
-        let result = new ProyectoEnRevisionBody();
-        result.init(data);
-        return result;
+        throw new Error("The abstract class 'ProyectoUpsertRequestBase' cannot be instantiated.");
     }
 
     toJSON(data?: any) {
@@ -6475,13 +6469,11 @@ export class ProyectoEnRevisionBody implements IProyectoEnRevisionBody {
         data["cantidadEstudiantesContratados"] = this.cantidadEstudiantesContratados;
         data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
         data["clasificacionId"] = this.clasificacionId;
-        data["situacion"] = this.situacion;
-        data["tipo"] = this.tipo;
         return data;
     }
 }
 
-export interface IProyectoEnRevisionBody {
+export interface IProyectoUpsertRequestBase {
     titulo?: string;
     jefeId?: string;
     numeroMiembros?: number;
@@ -6490,6 +6482,41 @@ export interface IProyectoEnRevisionBody {
     cantidadEstudiantesContratados?: number;
     tributaFormacionDoctoral?: boolean;
     clasificacionId?: string;
+}
+
+export class ProyectoEnRevisionUpsertRequest extends ProyectoUpsertRequestBase implements IProyectoEnRevisionUpsertRequest {
+    situacion?: string;
+    tipo?: string;
+
+    constructor(data?: IProyectoEnRevisionUpsertRequest) {
+        super(data);
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            this.situacion = _data["situacion"];
+            this.tipo = _data["tipo"];
+        }
+    }
+
+    static override fromJS(data: any): ProyectoEnRevisionUpsertRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProyectoEnRevisionUpsertRequest();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["situacion"] = this.situacion;
+        data["tipo"] = this.tipo;
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IProyectoEnRevisionUpsertRequest extends IProyectoUpsertRequestBase {
     situacion?: string;
     tipo?: string;
 }
@@ -6590,15 +6617,7 @@ export interface IProyectoEmpresarialDto extends IProyectoEnEjecucionBaseDto {
     empresa?: string;
 }
 
-export class ProyectoEmpresarialBody implements IProyectoEmpresarialBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
+export abstract class ProyectoEnEjecucionUpsertRequestBase extends ProyectoUpsertRequestBase implements IProyectoEnEjecucionUpsertRequestBase {
     fechaInicio?: Date;
     fechaCierre?: Date | undefined;
     estadoDeEjecucion?: string;
@@ -6608,27 +6627,14 @@ export class ProyectoEmpresarialBody implements IProyectoEmpresarialBody {
     contribucionSectoresEstrategicos?: string | undefined;
     contribucionEjesEstrategicos?: string | undefined;
     tributaDesarrolloLocal?: boolean;
-    empresa?: string;
 
-    constructor(data?: IProyectoEmpresarialBody) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
+    constructor(data?: IProyectoEnEjecucionUpsertRequestBase) {
+        super(data);
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.titulo = _data["titulo"];
-            this.jefeId = _data["jefeId"];
-            this.numeroMiembros = _data["numeroMiembros"];
-            this.cantidadMiembrosUH = _data["cantidadMiembrosUH"];
-            this.cantidadEstudiantes = _data["cantidadEstudiantes"];
-            this.cantidadEstudiantesContratados = _data["cantidadEstudiantesContratados"];
-            this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
-            this.clasificacionId = _data["clasificacionId"];
             this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
             this.fechaCierre = _data["fechaCierre"] ? new Date(_data["fechaCierre"].toString()) : undefined as any;
             this.estadoDeEjecucion = _data["estadoDeEjecucion"];
@@ -6638,27 +6644,16 @@ export class ProyectoEmpresarialBody implements IProyectoEmpresarialBody {
             this.contribucionSectoresEstrategicos = _data["contribucionSectoresEstrategicos"];
             this.contribucionEjesEstrategicos = _data["contribucionEjesEstrategicos"];
             this.tributaDesarrolloLocal = _data["tributaDesarrolloLocal"];
-            this.empresa = _data["empresa"];
         }
     }
 
-    static fromJS(data: any): ProyectoEmpresarialBody {
+    static override fromJS(data: any): ProyectoEnEjecucionUpsertRequestBase {
         data = typeof data === 'object' ? data : {};
-        let result = new ProyectoEmpresarialBody();
-        result.init(data);
-        return result;
+        throw new Error("The abstract class 'ProyectoEnEjecucionUpsertRequestBase' cannot be instantiated.");
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["titulo"] = this.titulo;
-        data["jefeId"] = this.jefeId;
-        data["numeroMiembros"] = this.numeroMiembros;
-        data["cantidadMiembrosUH"] = this.cantidadMiembrosUH;
-        data["cantidadEstudiantes"] = this.cantidadEstudiantes;
-        data["cantidadEstudiantesContratados"] = this.cantidadEstudiantesContratados;
-        data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
-        data["clasificacionId"] = this.clasificacionId;
         data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
         data["fechaCierre"] = this.fechaCierre ? formatDate(this.fechaCierre) : undefined as any;
         data["estadoDeEjecucion"] = this.estadoDeEjecucion;
@@ -6668,20 +6663,12 @@ export class ProyectoEmpresarialBody implements IProyectoEmpresarialBody {
         data["contribucionSectoresEstrategicos"] = this.contribucionSectoresEstrategicos;
         data["contribucionEjesEstrategicos"] = this.contribucionEjesEstrategicos;
         data["tributaDesarrolloLocal"] = this.tributaDesarrolloLocal;
-        data["empresa"] = this.empresa;
+        super.toJSON(data);
         return data;
     }
 }
 
-export interface IProyectoEmpresarialBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
+export interface IProyectoEnEjecucionUpsertRequestBase extends IProyectoUpsertRequestBase {
     fechaInicio?: Date;
     fechaCierre?: Date | undefined;
     estadoDeEjecucion?: string;
@@ -6691,6 +6678,38 @@ export interface IProyectoEmpresarialBody {
     contribucionSectoresEstrategicos?: string | undefined;
     contribucionEjesEstrategicos?: string | undefined;
     tributaDesarrolloLocal?: boolean;
+}
+
+export class ProyectoEmpresarialUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoEmpresarialUpsertRequest {
+    empresa?: string;
+
+    constructor(data?: IProyectoEmpresarialUpsertRequest) {
+        super(data);
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            this.empresa = _data["empresa"];
+        }
+    }
+
+    static override fromJS(data: any): ProyectoEmpresarialUpsertRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProyectoEmpresarialUpsertRequest();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["empresa"] = this.empresa;
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IProyectoEmpresarialUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
     empresa?: string;
 }
 
@@ -6737,110 +6756,39 @@ export enum TipoPAP {
     Territorial = 3,
 }
 
-export class ProyectoApoyoProgramaBody implements IProyectoApoyoProgramaBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
-    tributaDesarrolloLocal?: boolean;
+export class ProyectoApoyoProgramaUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoApoyoProgramaUpsertRequest {
     nombrePrograma?: string;
     tipoPAP?: TipoPAP;
 
-    constructor(data?: IProyectoApoyoProgramaBody) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
+    constructor(data?: IProyectoApoyoProgramaUpsertRequest) {
+        super(data);
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.titulo = _data["titulo"];
-            this.jefeId = _data["jefeId"];
-            this.numeroMiembros = _data["numeroMiembros"];
-            this.cantidadMiembrosUH = _data["cantidadMiembrosUH"];
-            this.cantidadEstudiantes = _data["cantidadEstudiantes"];
-            this.cantidadEstudiantesContratados = _data["cantidadEstudiantesContratados"];
-            this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
-            this.clasificacionId = _data["clasificacionId"];
-            this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
-            this.fechaCierre = _data["fechaCierre"] ? new Date(_data["fechaCierre"].toString()) : undefined as any;
-            this.estadoDeEjecucion = _data["estadoDeEjecucion"];
-            this.codigoProyecto = _data["codigoProyecto"];
-            this.entidadEjecutoraPrincipal = _data["entidadEjecutoraPrincipal"];
-            this.entidadEjecutoraParticipante = _data["entidadEjecutoraParticipante"];
-            this.contribucionSectoresEstrategicos = _data["contribucionSectoresEstrategicos"];
-            this.contribucionEjesEstrategicos = _data["contribucionEjesEstrategicos"];
-            this.tributaDesarrolloLocal = _data["tributaDesarrolloLocal"];
             this.nombrePrograma = _data["nombrePrograma"];
             this.tipoPAP = _data["tipoPAP"];
         }
     }
 
-    static fromJS(data: any): ProyectoApoyoProgramaBody {
+    static override fromJS(data: any): ProyectoApoyoProgramaUpsertRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new ProyectoApoyoProgramaBody();
+        let result = new ProyectoApoyoProgramaUpsertRequest();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["titulo"] = this.titulo;
-        data["jefeId"] = this.jefeId;
-        data["numeroMiembros"] = this.numeroMiembros;
-        data["cantidadMiembrosUH"] = this.cantidadMiembrosUH;
-        data["cantidadEstudiantes"] = this.cantidadEstudiantes;
-        data["cantidadEstudiantesContratados"] = this.cantidadEstudiantesContratados;
-        data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
-        data["clasificacionId"] = this.clasificacionId;
-        data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
-        data["fechaCierre"] = this.fechaCierre ? formatDate(this.fechaCierre) : undefined as any;
-        data["estadoDeEjecucion"] = this.estadoDeEjecucion;
-        data["codigoProyecto"] = this.codigoProyecto;
-        data["entidadEjecutoraPrincipal"] = this.entidadEjecutoraPrincipal;
-        data["entidadEjecutoraParticipante"] = this.entidadEjecutoraParticipante;
-        data["contribucionSectoresEstrategicos"] = this.contribucionSectoresEstrategicos;
-        data["contribucionEjesEstrategicos"] = this.contribucionEjesEstrategicos;
-        data["tributaDesarrolloLocal"] = this.tributaDesarrolloLocal;
         data["nombrePrograma"] = this.nombrePrograma;
         data["tipoPAP"] = this.tipoPAP;
+        super.toJSON(data);
         return data;
     }
 }
 
-export interface IProyectoApoyoProgramaBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
-    tributaDesarrolloLocal?: boolean;
+export interface IProyectoApoyoProgramaUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
     nombrePrograma?: string;
     tipoPAP?: TipoPAP;
 }
@@ -6878,103 +6826,36 @@ export interface IProyectoDesarrolloLocalDto extends IProyectoEnEjecucionBaseDto
     municipio?: string;
 }
 
-export class ProyectoDesarrolloLocalBody implements IProyectoDesarrolloLocalBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
+export class ProyectoDesarrolloLocalUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoDesarrolloLocalUpsertRequest {
     municipio?: string;
 
-    constructor(data?: IProyectoDesarrolloLocalBody) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
+    constructor(data?: IProyectoDesarrolloLocalUpsertRequest) {
+        super(data);
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.titulo = _data["titulo"];
-            this.jefeId = _data["jefeId"];
-            this.numeroMiembros = _data["numeroMiembros"];
-            this.cantidadMiembrosUH = _data["cantidadMiembrosUH"];
-            this.cantidadEstudiantes = _data["cantidadEstudiantes"];
-            this.cantidadEstudiantesContratados = _data["cantidadEstudiantesContratados"];
-            this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
-            this.clasificacionId = _data["clasificacionId"];
-            this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
-            this.fechaCierre = _data["fechaCierre"] ? new Date(_data["fechaCierre"].toString()) : undefined as any;
-            this.estadoDeEjecucion = _data["estadoDeEjecucion"];
-            this.codigoProyecto = _data["codigoProyecto"];
-            this.entidadEjecutoraPrincipal = _data["entidadEjecutoraPrincipal"];
-            this.entidadEjecutoraParticipante = _data["entidadEjecutoraParticipante"];
-            this.contribucionSectoresEstrategicos = _data["contribucionSectoresEstrategicos"];
-            this.contribucionEjesEstrategicos = _data["contribucionEjesEstrategicos"];
             this.municipio = _data["municipio"];
         }
     }
 
-    static fromJS(data: any): ProyectoDesarrolloLocalBody {
+    static override fromJS(data: any): ProyectoDesarrolloLocalUpsertRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new ProyectoDesarrolloLocalBody();
+        let result = new ProyectoDesarrolloLocalUpsertRequest();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["titulo"] = this.titulo;
-        data["jefeId"] = this.jefeId;
-        data["numeroMiembros"] = this.numeroMiembros;
-        data["cantidadMiembrosUH"] = this.cantidadMiembrosUH;
-        data["cantidadEstudiantes"] = this.cantidadEstudiantes;
-        data["cantidadEstudiantesContratados"] = this.cantidadEstudiantesContratados;
-        data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
-        data["clasificacionId"] = this.clasificacionId;
-        data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
-        data["fechaCierre"] = this.fechaCierre ? formatDate(this.fechaCierre) : undefined as any;
-        data["estadoDeEjecucion"] = this.estadoDeEjecucion;
-        data["codigoProyecto"] = this.codigoProyecto;
-        data["entidadEjecutoraPrincipal"] = this.entidadEjecutoraPrincipal;
-        data["entidadEjecutoraParticipante"] = this.entidadEjecutoraParticipante;
-        data["contribucionSectoresEstrategicos"] = this.contribucionSectoresEstrategicos;
-        data["contribucionEjesEstrategicos"] = this.contribucionEjesEstrategicos;
         data["municipio"] = this.municipio;
+        super.toJSON(data);
         return data;
     }
 }
 
-export interface IProyectoDesarrolloLocalBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
+export interface IProyectoDesarrolloLocalUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
     municipio?: string;
 }
 
@@ -7011,107 +6892,36 @@ export interface IProyectoNoEmpresarialDto extends IProyectoEnEjecucionBaseDto {
     entidadNoEmpresarial?: string;
 }
 
-export class ProyectoNoEmpresarialBody implements IProyectoNoEmpresarialBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
-    tributaDesarrolloLocal?: boolean;
+export class ProyectoNoEmpresarialUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoNoEmpresarialUpsertRequest {
     entidadNoEmpresarial?: string;
 
-    constructor(data?: IProyectoNoEmpresarialBody) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
+    constructor(data?: IProyectoNoEmpresarialUpsertRequest) {
+        super(data);
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.titulo = _data["titulo"];
-            this.jefeId = _data["jefeId"];
-            this.numeroMiembros = _data["numeroMiembros"];
-            this.cantidadMiembrosUH = _data["cantidadMiembrosUH"];
-            this.cantidadEstudiantes = _data["cantidadEstudiantes"];
-            this.cantidadEstudiantesContratados = _data["cantidadEstudiantesContratados"];
-            this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
-            this.clasificacionId = _data["clasificacionId"];
-            this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
-            this.fechaCierre = _data["fechaCierre"] ? new Date(_data["fechaCierre"].toString()) : undefined as any;
-            this.estadoDeEjecucion = _data["estadoDeEjecucion"];
-            this.codigoProyecto = _data["codigoProyecto"];
-            this.entidadEjecutoraPrincipal = _data["entidadEjecutoraPrincipal"];
-            this.entidadEjecutoraParticipante = _data["entidadEjecutoraParticipante"];
-            this.contribucionSectoresEstrategicos = _data["contribucionSectoresEstrategicos"];
-            this.contribucionEjesEstrategicos = _data["contribucionEjesEstrategicos"];
-            this.tributaDesarrolloLocal = _data["tributaDesarrolloLocal"];
             this.entidadNoEmpresarial = _data["entidadNoEmpresarial"];
         }
     }
 
-    static fromJS(data: any): ProyectoNoEmpresarialBody {
+    static override fromJS(data: any): ProyectoNoEmpresarialUpsertRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new ProyectoNoEmpresarialBody();
+        let result = new ProyectoNoEmpresarialUpsertRequest();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["titulo"] = this.titulo;
-        data["jefeId"] = this.jefeId;
-        data["numeroMiembros"] = this.numeroMiembros;
-        data["cantidadMiembrosUH"] = this.cantidadMiembrosUH;
-        data["cantidadEstudiantes"] = this.cantidadEstudiantes;
-        data["cantidadEstudiantesContratados"] = this.cantidadEstudiantesContratados;
-        data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
-        data["clasificacionId"] = this.clasificacionId;
-        data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
-        data["fechaCierre"] = this.fechaCierre ? formatDate(this.fechaCierre) : undefined as any;
-        data["estadoDeEjecucion"] = this.estadoDeEjecucion;
-        data["codigoProyecto"] = this.codigoProyecto;
-        data["entidadEjecutoraPrincipal"] = this.entidadEjecutoraPrincipal;
-        data["entidadEjecutoraParticipante"] = this.entidadEjecutoraParticipante;
-        data["contribucionSectoresEstrategicos"] = this.contribucionSectoresEstrategicos;
-        data["contribucionEjesEstrategicos"] = this.contribucionEjesEstrategicos;
-        data["tributaDesarrolloLocal"] = this.tributaDesarrolloLocal;
         data["entidadNoEmpresarial"] = this.entidadNoEmpresarial;
+        super.toJSON(data);
         return data;
     }
 }
 
-export interface IProyectoNoEmpresarialBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
-    tributaDesarrolloLocal?: boolean;
+export interface IProyectoNoEmpresarialUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
     entidadNoEmpresarial?: string;
 }
 
@@ -7152,110 +6962,39 @@ export interface IProyectoColabInternacionalDto extends IProyectoEnEjecucionBase
     terminosReferencia?: string;
 }
 
-export class ProyectoColabInternacionalBody implements IProyectoColabInternacionalBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
-    tributaDesarrolloLocal?: boolean;
+export class ProyectoColabInternacionalUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoColabInternacionalUpsertRequest {
     fuenteFinanciacion?: string;
     terminosReferencia?: string;
 
-    constructor(data?: IProyectoColabInternacionalBody) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
+    constructor(data?: IProyectoColabInternacionalUpsertRequest) {
+        super(data);
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.titulo = _data["titulo"];
-            this.jefeId = _data["jefeId"];
-            this.numeroMiembros = _data["numeroMiembros"];
-            this.cantidadMiembrosUH = _data["cantidadMiembrosUH"];
-            this.cantidadEstudiantes = _data["cantidadEstudiantes"];
-            this.cantidadEstudiantesContratados = _data["cantidadEstudiantesContratados"];
-            this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
-            this.clasificacionId = _data["clasificacionId"];
-            this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
-            this.fechaCierre = _data["fechaCierre"] ? new Date(_data["fechaCierre"].toString()) : undefined as any;
-            this.estadoDeEjecucion = _data["estadoDeEjecucion"];
-            this.codigoProyecto = _data["codigoProyecto"];
-            this.entidadEjecutoraPrincipal = _data["entidadEjecutoraPrincipal"];
-            this.entidadEjecutoraParticipante = _data["entidadEjecutoraParticipante"];
-            this.contribucionSectoresEstrategicos = _data["contribucionSectoresEstrategicos"];
-            this.contribucionEjesEstrategicos = _data["contribucionEjesEstrategicos"];
-            this.tributaDesarrolloLocal = _data["tributaDesarrolloLocal"];
             this.fuenteFinanciacion = _data["fuenteFinanciacion"];
             this.terminosReferencia = _data["terminosReferencia"];
         }
     }
 
-    static fromJS(data: any): ProyectoColabInternacionalBody {
+    static override fromJS(data: any): ProyectoColabInternacionalUpsertRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new ProyectoColabInternacionalBody();
+        let result = new ProyectoColabInternacionalUpsertRequest();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["titulo"] = this.titulo;
-        data["jefeId"] = this.jefeId;
-        data["numeroMiembros"] = this.numeroMiembros;
-        data["cantidadMiembrosUH"] = this.cantidadMiembrosUH;
-        data["cantidadEstudiantes"] = this.cantidadEstudiantes;
-        data["cantidadEstudiantesContratados"] = this.cantidadEstudiantesContratados;
-        data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
-        data["clasificacionId"] = this.clasificacionId;
-        data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
-        data["fechaCierre"] = this.fechaCierre ? formatDate(this.fechaCierre) : undefined as any;
-        data["estadoDeEjecucion"] = this.estadoDeEjecucion;
-        data["codigoProyecto"] = this.codigoProyecto;
-        data["entidadEjecutoraPrincipal"] = this.entidadEjecutoraPrincipal;
-        data["entidadEjecutoraParticipante"] = this.entidadEjecutoraParticipante;
-        data["contribucionSectoresEstrategicos"] = this.contribucionSectoresEstrategicos;
-        data["contribucionEjesEstrategicos"] = this.contribucionEjesEstrategicos;
-        data["tributaDesarrolloLocal"] = this.tributaDesarrolloLocal;
         data["fuenteFinanciacion"] = this.fuenteFinanciacion;
         data["terminosReferencia"] = this.terminosReferencia;
+        super.toJSON(data);
         return data;
     }
 }
 
-export interface IProyectoColabInternacionalBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
-    tributaDesarrolloLocal?: boolean;
+export interface IProyectoColabInternacionalUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
     fuenteFinanciacion?: string;
     terminosReferencia?: string;
 }
@@ -7293,107 +7032,36 @@ export interface IProyectoPNAPDto extends IProyectoEnEjecucionBaseDto {
     financiamientoUH?: string;
 }
 
-export class ProyectoPNAPBody implements IProyectoPNAPBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
-    tributaDesarrolloLocal?: boolean;
+export class ProyectoPNAPUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoPNAPUpsertRequest {
     financiamientoUH?: string;
 
-    constructor(data?: IProyectoPNAPBody) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
+    constructor(data?: IProyectoPNAPUpsertRequest) {
+        super(data);
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.titulo = _data["titulo"];
-            this.jefeId = _data["jefeId"];
-            this.numeroMiembros = _data["numeroMiembros"];
-            this.cantidadMiembrosUH = _data["cantidadMiembrosUH"];
-            this.cantidadEstudiantes = _data["cantidadEstudiantes"];
-            this.cantidadEstudiantesContratados = _data["cantidadEstudiantesContratados"];
-            this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
-            this.clasificacionId = _data["clasificacionId"];
-            this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
-            this.fechaCierre = _data["fechaCierre"] ? new Date(_data["fechaCierre"].toString()) : undefined as any;
-            this.estadoDeEjecucion = _data["estadoDeEjecucion"];
-            this.codigoProyecto = _data["codigoProyecto"];
-            this.entidadEjecutoraPrincipal = _data["entidadEjecutoraPrincipal"];
-            this.entidadEjecutoraParticipante = _data["entidadEjecutoraParticipante"];
-            this.contribucionSectoresEstrategicos = _data["contribucionSectoresEstrategicos"];
-            this.contribucionEjesEstrategicos = _data["contribucionEjesEstrategicos"];
-            this.tributaDesarrolloLocal = _data["tributaDesarrolloLocal"];
             this.financiamientoUH = _data["financiamientoUH"];
         }
     }
 
-    static fromJS(data: any): ProyectoPNAPBody {
+    static override fromJS(data: any): ProyectoPNAPUpsertRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new ProyectoPNAPBody();
+        let result = new ProyectoPNAPUpsertRequest();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["titulo"] = this.titulo;
-        data["jefeId"] = this.jefeId;
-        data["numeroMiembros"] = this.numeroMiembros;
-        data["cantidadMiembrosUH"] = this.cantidadMiembrosUH;
-        data["cantidadEstudiantes"] = this.cantidadEstudiantes;
-        data["cantidadEstudiantesContratados"] = this.cantidadEstudiantesContratados;
-        data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
-        data["clasificacionId"] = this.clasificacionId;
-        data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
-        data["fechaCierre"] = this.fechaCierre ? formatDate(this.fechaCierre) : undefined as any;
-        data["estadoDeEjecucion"] = this.estadoDeEjecucion;
-        data["codigoProyecto"] = this.codigoProyecto;
-        data["entidadEjecutoraPrincipal"] = this.entidadEjecutoraPrincipal;
-        data["entidadEjecutoraParticipante"] = this.entidadEjecutoraParticipante;
-        data["contribucionSectoresEstrategicos"] = this.contribucionSectoresEstrategicos;
-        data["contribucionEjesEstrategicos"] = this.contribucionEjesEstrategicos;
-        data["tributaDesarrolloLocal"] = this.tributaDesarrolloLocal;
         data["financiamientoUH"] = this.financiamientoUH;
+        super.toJSON(data);
         return data;
     }
 }
 
-export interface IProyectoPNAPBody {
-    titulo?: string;
-    jefeId?: string;
-    numeroMiembros?: number;
-    cantidadMiembrosUH?: number;
-    cantidadEstudiantes?: number;
-    cantidadEstudiantesContratados?: number;
-    tributaFormacionDoctoral?: boolean;
-    clasificacionId?: string;
-    fechaInicio?: Date;
-    fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
-    codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
-    tributaDesarrolloLocal?: boolean;
+export interface IProyectoPNAPUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
     financiamientoUH?: string;
 }
 
