@@ -1,7 +1,14 @@
 # 0006 — Diseño de Proyectos: TPT + Commands y Queries por tipo (SOLID)
 
 ## Status
-Accepted
+Superseded by ADR 0008
+
+## Nota
+
+Este ADR describe una etapa intermedia del módulo `Proyectos`. La decisión vigente
+para la capa de aplicación está documentada en [0008](0008-proyectos-auth-servicios-crud.md),
+que mantiene TPT en persistencia pero reemplaza `Commands/Queries` por una capa de
+servicios CRUD coherente con el resto del sistema.
 
 ## Fecha
 2026-04-10

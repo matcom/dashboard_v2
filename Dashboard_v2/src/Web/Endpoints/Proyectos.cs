@@ -1,33 +1,7 @@
-using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Proyectos;
-using Microsoft.EntityFrameworkCore;
-using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoApoyoPrograma;
-using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoColabInternacional;
-using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoDesarrolloLocal;
-using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoEmpresarial;
-using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoEnRevision;
-using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoNoEmpresarial;
-using Dashboard_v2.Application.Proyectos.Commands.CreateProyectoPNAP;
-using Dashboard_v2.Application.Proyectos.Commands.DeleteProyecto;
-using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoApoyoPrograma;
-using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoColabInternacional;
-using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoDesarrolloLocal;
-using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoEmpresarial;
-using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoEnRevision;
-using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoNoEmpresarial;
-using Dashboard_v2.Application.Proyectos.Commands.UpdateProyectoPNAP;
-using Dashboard_v2.Application.Proyectos.Queries.GetProyectoApoyoPrograma;
-using Dashboard_v2.Application.Proyectos.Queries.GetProyectoColabInternacional;
-using Dashboard_v2.Application.Proyectos.Queries.GetProyectoDesarrolloLocal;
-using Dashboard_v2.Application.Proyectos.Queries.GetProyectoEmpresarial;
-using Dashboard_v2.Application.Proyectos.Queries.GetProyectoEnRevision;
-using Dashboard_v2.Application.Proyectos.Queries.GetProyectoNoEmpresarial;
-using Dashboard_v2.Application.Proyectos.Queries.GetProyectoPNAP;
-using Dashboard_v2.Application.Proyectos.Queries.GetProyectos;
-using Dashboard_v2.Application.Proyectos.Queries.GetTiposEjecucion;
-using Dashboard_v2.Domain.Enums;
 using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 using Dashboard_v2.Web.Infrastructure;
+using AppResult = Dashboard_v2.Application.Common.Models.Result;
 
 namespace Dashboard_v2.Web.Endpoints;
 
@@ -201,541 +175,163 @@ public class Proyectos : EndpointGroupBase
     }
 
     // ── Listado / Delete ───────────────────────────────────────────────
-    private static async Task<IResult> GetProyectos(ISender sender)
-        => Results.Ok(await sender.Send(new GetProyectosQuery()));
+    private static async Task<IResult> GetProyectos(IProyectoService proyectoService, CancellationToken ct)
+        => Results.Ok(await proyectoService.GetAllAsync(ct));
 
-    private static async Task<IResult> GetTiposEjecucion(ISender sender)
-        => Results.Ok(await sender.Send(new GetTiposEjecucionQuery()));
+    private static async Task<IResult> GetTiposEjecucion(IProyectoService proyectoService, CancellationToken ct)
+        => Results.Ok(await proyectoService.GetTiposEjecucionAsync(ct));
 
-    private static async Task<IResult> GetCatalogo(IApplicationDbContext context)
+    private static async Task<IResult> GetCatalogo(IProyectoService proyectoService, CancellationToken ct)
+        => Results.Ok(await proyectoService.GetCatalogoAsync(ct));
+
+    private static async Task<IResult> GetPublicacionesDelProyecto(IProyectoService proyectoService, string id, CancellationToken ct)
+        => Results.Ok(await proyectoService.GetPublicacionesDelProyectoAsync(id, ct));
+
+    private static async Task<IResult> UnlinkPublicacion(IProyectoService proyectoService, string id, string pubId, CancellationToken ct)
     {
-        var items = await context.Proyectos
-            .AsNoTracking()
-            .OrderBy(p => p.Titulo)
-            .Select(p => new ProyectoCatalogoDto(p.Id, p.Titulo))
-            .ToListAsync();
-        return Results.Ok(items);
+        var result = await proyectoService.UnlinkPublicacionAsync(id, pubId, ct);
+        return result.Succeeded ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> GetPublicacionesDelProyecto(IApplicationDbContext context, string id)
-    {
-        var pubs = await context.Publications
-            .AsNoTracking()
-            .Where(p => p.ProyectoId == id)
-            .Select(p => new { p.Id, p.Title, p.UrlDoi })
-            .OrderBy(p => p.Title)
-            .ToListAsync();
-        return Results.Ok(pubs);
-    }
+    private static async Task<IResult> GetPublicacionesDisponibles(IProyectoService proyectoService, CancellationToken ct)
+        => Results.Ok(await proyectoService.GetPublicacionesDisponiblesAsync(ct));
 
-    private static async Task<IResult> UnlinkPublicacion(
-        IApplicationDbContext context, string id, string pubId)
+    private static async Task<IResult> LinkPublicacion(IProyectoService proyectoService, string id, string pubId, CancellationToken ct)
     {
-        var pub = await context.Publications
-            .FirstOrDefaultAsync(p => p.Id == pubId && p.ProyectoId == id);
-        if (pub is null) return Results.NotFound();
-        pub.ProyectoId = null;
-        await context.SaveChangesAsync(CancellationToken.None);
-        return Results.NoContent();
-    }
-
-    private static async Task<IResult> GetPublicacionesDisponibles(IApplicationDbContext context)
-    {
-        var pubs = await context.Publications
-            .AsNoTracking()
-            .Where(p => p.ProyectoId == null)
-            .Select(p => new { p.Id, p.Title, p.UrlDoi })
-            .OrderBy(p => p.Title)
-            .ToListAsync();
-        return Results.Ok(pubs);
-    }
-
-    private static async Task<IResult> LinkPublicacion(
-        IApplicationDbContext context, string id, string pubId)
-    {
-        var pub = await context.Publications
-            .FirstOrDefaultAsync(p => p.Id == pubId);
-        if (pub is null) return Results.NotFound();
-        if (pub.ProyectoId is not null && pub.ProyectoId != id)
-            return Results.BadRequest(new { errors = new[] { "Esta publicación ya está vinculada a otro proyecto." } });
-        pub.ProyectoId = id;
-        await context.SaveChangesAsync(CancellationToken.None);
-        return Results.NoContent();
-    }
-
-    private static async Task<IResult> DeleteProyecto(ISender sender, string id)
-    {
-        var result = await sender.Send(new DeleteProyectoCommand(id));
-        if (!result.Succeeded)
+        var result = await proyectoService.LinkPublicacionAsync(id, pubId, ct);
+        if (result.Succeeded)
         {
-            if (result.Errors.Contains("Proyecto no encontrado."))
-                return Results.NotFound(new { errors = result.Errors });
-            return Results.BadRequest(new { errors = result.Errors });
+            return Results.NoContent();
         }
-        return Results.Ok(new { message = "Proyecto eliminado." });
+
+        if (HasError(result, "Publicación no encontrada."))
+        {
+            return Results.NotFound();
+        }
+
+        return Results.BadRequest(new { errors = result.Errors });
+    }
+
+    private static async Task<IResult> DeleteProyecto(IProyectoService proyectoService, string id, CancellationToken ct)
+    {
+        var result = await proyectoService.DeleteAsync(id, ct);
+        return ToDeleteResult(result);
     }
 
     // ── En Revisión ───────────────────────────────────────────────────
-    private static async Task<IResult> GetEnRevision(ISender sender, string id)
-    {
-        var dto = await sender.Send(new GetProyectoEnRevisionQuery(id));
-        return dto is null ? Results.NotFound() : Results.Ok(dto);
-    }
+    private static async Task<IResult> GetEnRevision(IProyectoService proyectoService, string id, CancellationToken ct)
+        => ToGetByIdResult(await proyectoService.GetEnRevisionByIdAsync(id, ct));
 
-    private static async Task<IResult> CreateEnRevision(ISender sender, ProyectoEnRevisionBody b)
-    {
-        var (result, id) = await sender.Send(new CreateProyectoEnRevisionCommand
-        {
-            Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId, Situacion = b.Situacion, Tipo = b.Tipo,
-        });
-        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
-        return Results.Created($"/api/Proyectos/en-revision/{id}", new { id });
-    }
+    private static async Task<IResult> CreateEnRevision(IProyectoService proyectoService, ProyectoEnRevisionUpsertRequest request, CancellationToken ct)
+        => ToCreateResult(await proyectoService.CreateEnRevisionAsync(request, ct), "/api/Proyectos/en-revision");
 
-    private static async Task<IResult> UpdateEnRevision(ISender sender, string id, ProyectoEnRevisionBody b)
-    {
-        var result = await sender.Send(new UpdateProyectoEnRevisionCommand
-        {
-            Id = id, Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId, Situacion = b.Situacion, Tipo = b.Tipo,
-        });
-        if (!result.Succeeded)
-        {
-            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
-            return Results.BadRequest(new { errors = result.Errors });
-        }
-        return Results.Ok(new { message = "Proyecto actualizado." });
-    }
+    private static async Task<IResult> UpdateEnRevision(IProyectoService proyectoService, string id, ProyectoEnRevisionUpsertRequest request, CancellationToken ct)
+        => ToUpdateResult(await proyectoService.UpdateEnRevisionAsync(id, request, ct));
 
     // ── Empresarial ───────────────────────────────────────────────────
-    private static async Task<IResult> GetEmpresarial(ISender sender, string id)
-    {
-        var dto = await sender.Send(new GetProyectoEmpresarialQuery(id));
-        return dto is null ? Results.NotFound() : Results.Ok(dto);
-    }
+    private static async Task<IResult> GetEmpresarial(IProyectoService proyectoService, string id, CancellationToken ct)
+        => ToGetByIdResult(await proyectoService.GetEmpresarialByIdAsync(id, ct));
 
-    private static async Task<IResult> CreateEmpresarial(ISender sender, ProyectoEmpresarialBody b)
-    {
-        var (result, id) = await sender.Send(new CreateProyectoEmpresarialCommand
-        {
-            Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            Empresa = b.Empresa,
-        });
-        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
-        return Results.Created($"/api/Proyectos/empresariales/{id}", new { id });
-    }
+    private static async Task<IResult> CreateEmpresarial(IProyectoService proyectoService, ProyectoEmpresarialUpsertRequest request, CancellationToken ct)
+        => ToCreateResult(await proyectoService.CreateEmpresarialAsync(request, ct), "/api/Proyectos/empresariales");
 
-    private static async Task<IResult> UpdateEmpresarial(ISender sender, string id, ProyectoEmpresarialBody b)
-    {
-        var result = await sender.Send(new UpdateProyectoEmpresarialCommand
-        {
-            Id = id, Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            Empresa = b.Empresa,
-        });
-        if (!result.Succeeded)
-        {
-            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
-            return Results.BadRequest(new { errors = result.Errors });
-        }
-        return Results.Ok(new { message = "Proyecto actualizado." });
-    }
+    private static async Task<IResult> UpdateEmpresarial(IProyectoService proyectoService, string id, ProyectoEmpresarialUpsertRequest request, CancellationToken ct)
+        => ToUpdateResult(await proyectoService.UpdateEmpresarialAsync(id, request, ct));
 
     // ── Apoyo a Programa ──────────────────────────────────────────────
-    private static async Task<IResult> GetApoyoPrograma(ISender sender, string id)
-    {
-        var dto = await sender.Send(new GetProyectoApoyoProgramaQuery(id));
-        return dto is null ? Results.NotFound() : Results.Ok(dto);
-    }
+    private static async Task<IResult> GetApoyoPrograma(IProyectoService proyectoService, string id, CancellationToken ct)
+        => ToGetByIdResult(await proyectoService.GetApoyoProgramaByIdAsync(id, ct));
 
-    private static async Task<IResult> CreateApoyoPrograma(ISender sender, ProyectoApoyoProgramaBody b)
-    {
-        var (result, id) = await sender.Send(new CreateProyectoApoyoProgramaCommand
-        {
-            Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            NombrePrograma = b.NombrePrograma, TipoPAP = b.TipoPAP,
-        });
-        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
-        return Results.Created($"/api/Proyectos/apoyo-programa/{id}", new { id });
-    }
+    private static async Task<IResult> CreateApoyoPrograma(IProyectoService proyectoService, ProyectoApoyoProgramaUpsertRequest request, CancellationToken ct)
+        => ToCreateResult(await proyectoService.CreateApoyoProgramaAsync(request, ct), "/api/Proyectos/apoyo-programa");
 
-    private static async Task<IResult> UpdateApoyoPrograma(ISender sender, string id, ProyectoApoyoProgramaBody b)
-    {
-        var result = await sender.Send(new UpdateProyectoApoyoProgramaCommand
-        {
-            Id = id, Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            NombrePrograma = b.NombrePrograma, TipoPAP = b.TipoPAP,
-        });
-        if (!result.Succeeded)
-        {
-            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
-            return Results.BadRequest(new { errors = result.Errors });
-        }
-        return Results.Ok(new { message = "Proyecto actualizado." });
-    }
+    private static async Task<IResult> UpdateApoyoPrograma(IProyectoService proyectoService, string id, ProyectoApoyoProgramaUpsertRequest request, CancellationToken ct)
+        => ToUpdateResult(await proyectoService.UpdateApoyoProgramaAsync(id, request, ct));
 
     // ── Desarrollo Local ──────────────────────────────────────────────
-    private static async Task<IResult> GetDesarrolloLocal(ISender sender, string id)
-    {
-        var dto = await sender.Send(new GetProyectoDesarrolloLocalQuery(id));
-        return dto is null ? Results.NotFound() : Results.Ok(dto);
-    }
+    private static async Task<IResult> GetDesarrolloLocal(IProyectoService proyectoService, string id, CancellationToken ct)
+        => ToGetByIdResult(await proyectoService.GetDesarrolloLocalByIdAsync(id, ct));
 
-    private static async Task<IResult> CreateDesarrolloLocal(ISender sender, ProyectoDesarrolloLocalBody b)
-    {
-        var (result, id) = await sender.Send(new CreateProyectoDesarrolloLocalCommand
-        {
-            Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            Municipio = b.Municipio,
-        });
-        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
-        return Results.Created($"/api/Proyectos/desarrollo-local/{id}", new { id });
-    }
+    private static async Task<IResult> CreateDesarrolloLocal(IProyectoService proyectoService, ProyectoDesarrolloLocalUpsertRequest request, CancellationToken ct)
+        => ToCreateResult(await proyectoService.CreateDesarrolloLocalAsync(request, ct), "/api/Proyectos/desarrollo-local");
 
-    private static async Task<IResult> UpdateDesarrolloLocal(ISender sender, string id, ProyectoDesarrolloLocalBody b)
-    {
-        var result = await sender.Send(new UpdateProyectoDesarrolloLocalCommand
-        {
-            Id = id, Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            Municipio = b.Municipio,
-        });
-        if (!result.Succeeded)
-        {
-            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
-            return Results.BadRequest(new { errors = result.Errors });
-        }
-        return Results.Ok(new { message = "Proyecto actualizado." });
-    }
+    private static async Task<IResult> UpdateDesarrolloLocal(IProyectoService proyectoService, string id, ProyectoDesarrolloLocalUpsertRequest request, CancellationToken ct)
+        => ToUpdateResult(await proyectoService.UpdateDesarrolloLocalAsync(id, request, ct));
 
     // ── No Empresarial ────────────────────────────────────────────────
-    private static async Task<IResult> GetNoEmpresarial(ISender sender, string id)
-    {
-        var dto = await sender.Send(new GetProyectoNoEmpresarialQuery(id));
-        return dto is null ? Results.NotFound() : Results.Ok(dto);
-    }
+    private static async Task<IResult> GetNoEmpresarial(IProyectoService proyectoService, string id, CancellationToken ct)
+        => ToGetByIdResult(await proyectoService.GetNoEmpresarialByIdAsync(id, ct));
 
-    private static async Task<IResult> CreateNoEmpresarial(ISender sender, ProyectoNoEmpresarialBody b)
-    {
-        var (result, id) = await sender.Send(new CreateProyectoNoEmpresarialCommand
-        {
-            Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            EntidadNoEmpresarial = b.EntidadNoEmpresarial,
-        });
-        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
-        return Results.Created($"/api/Proyectos/no-empresariales/{id}", new { id });
-    }
+    private static async Task<IResult> CreateNoEmpresarial(IProyectoService proyectoService, ProyectoNoEmpresarialUpsertRequest request, CancellationToken ct)
+        => ToCreateResult(await proyectoService.CreateNoEmpresarialAsync(request, ct), "/api/Proyectos/no-empresariales");
 
-    private static async Task<IResult> UpdateNoEmpresarial(ISender sender, string id, ProyectoNoEmpresarialBody b)
-    {
-        var result = await sender.Send(new UpdateProyectoNoEmpresarialCommand
-        {
-            Id = id, Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            EntidadNoEmpresarial = b.EntidadNoEmpresarial,
-        });
-        if (!result.Succeeded)
-        {
-            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
-            return Results.BadRequest(new { errors = result.Errors });
-        }
-        return Results.Ok(new { message = "Proyecto actualizado." });
-    }
+    private static async Task<IResult> UpdateNoEmpresarial(IProyectoService proyectoService, string id, ProyectoNoEmpresarialUpsertRequest request, CancellationToken ct)
+        => ToUpdateResult(await proyectoService.UpdateNoEmpresarialAsync(id, request, ct));
 
     // ── Colaboración Internacional ─────────────────────────────────────
-    private static async Task<IResult> GetColabInternacional(ISender sender, string id)
-    {
-        var dto = await sender.Send(new GetProyectoColabInternacionalQuery(id));
-        return dto is null ? Results.NotFound() : Results.Ok(dto);
-    }
+    private static async Task<IResult> GetColabInternacional(IProyectoService proyectoService, string id, CancellationToken ct)
+        => ToGetByIdResult(await proyectoService.GetColabInternacionalByIdAsync(id, ct));
 
-    private static async Task<IResult> CreateColabInternacional(ISender sender, ProyectoColabInternacionalBody b)
-    {
-        var (result, id) = await sender.Send(new CreateProyectoColabInternacionalCommand
-        {
-            Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            FuenteFinanciacion = b.FuenteFinanciacion, TerminosReferencia = b.TerminosReferencia,
-        });
-        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
-        return Results.Created($"/api/Proyectos/colaboracion-internacional/{id}", new { id });
-    }
+    private static async Task<IResult> CreateColabInternacional(IProyectoService proyectoService, ProyectoColabInternacionalUpsertRequest request, CancellationToken ct)
+        => ToCreateResult(await proyectoService.CreateColabInternacionalAsync(request, ct), "/api/Proyectos/colaboracion-internacional");
 
-    private static async Task<IResult> UpdateColabInternacional(ISender sender, string id, ProyectoColabInternacionalBody b)
-    {
-        var result = await sender.Send(new UpdateProyectoColabInternacionalCommand
-        {
-            Id = id, Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            FuenteFinanciacion = b.FuenteFinanciacion, TerminosReferencia = b.TerminosReferencia,
-        });
-        if (!result.Succeeded)
-        {
-            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
-            return Results.BadRequest(new { errors = result.Errors });
-        }
-        return Results.Ok(new { message = "Proyecto actualizado." });
-    }
+    private static async Task<IResult> UpdateColabInternacional(IProyectoService proyectoService, string id, ProyectoColabInternacionalUpsertRequest request, CancellationToken ct)
+        => ToUpdateResult(await proyectoService.UpdateColabInternacionalAsync(id, request, ct));
 
     // ── PNAP ──────────────────────────────────────────────────────────
-    private static async Task<IResult> GetPNAP(ISender sender, string id)
+    private static async Task<IResult> GetPNAP(IProyectoService proyectoService, string id, CancellationToken ct)
+        => ToGetByIdResult(await proyectoService.GetPNAPByIdAsync(id, ct));
+
+    private static async Task<IResult> CreatePNAP(IProyectoService proyectoService, ProyectoPNAPUpsertRequest request, CancellationToken ct)
+        => ToCreateResult(await proyectoService.CreatePNAPAsync(request, ct), "/api/Proyectos/pnap");
+
+    private static async Task<IResult> UpdatePNAP(IProyectoService proyectoService, string id, ProyectoPNAPUpsertRequest request, CancellationToken ct)
+        => ToUpdateResult(await proyectoService.UpdatePNAPAsync(id, request, ct));
+
+    private static IResult ToGetByIdResult<TDto>(TDto? dto)
+        where TDto : class
+        => dto is null ? Results.NotFound() : Results.Ok(dto);
+
+    private static IResult ToCreateResult((AppResult Result, string? Id) outcome, string routePrefix)
     {
-        var dto = await sender.Send(new GetProyectoPNAPQuery(id));
-        return dto is null ? Results.NotFound() : Results.Ok(dto);
+        if (!outcome.Result.Succeeded)
+        {
+            return Results.BadRequest(new { errors = outcome.Result.Errors });
+        }
+
+        return Results.Created($"{routePrefix}/{outcome.Id}", new { id = outcome.Id });
     }
 
-    private static async Task<IResult> CreatePNAP(ISender sender, ProyectoPNAPBody b)
+    private static IResult ToUpdateResult(AppResult result)
     {
-        var (result, id) = await sender.Send(new CreateProyectoPNAPCommand
-        {
-            Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            FinanciamientoUH = b.FinanciamientoUH,
-        });
-        if (!result.Succeeded) return Results.BadRequest(new { errors = result.Errors });
-        return Results.Created($"/api/Proyectos/pnap/{id}", new { id });
-    }
-
-    private static async Task<IResult> UpdatePNAP(ISender sender, string id, ProyectoPNAPBody b)
-    {
-        var result = await sender.Send(new UpdateProyectoPNAPCommand
-        {
-            Id = id, Titulo = b.Titulo, JefeId = b.JefeId,
-            NumeroMiembros = b.NumeroMiembros, CantidadMiembrosUH = b.CantidadMiembrosUH,
-            CantidadEstudiantes = b.CantidadEstudiantes,
-            CantidadEstudiantesContratados = b.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = b.TributaFormacionDoctoral,
-            ClasificacionId = b.ClasificacionId,
-            FechaInicio = b.FechaInicio, FechaCierre = b.FechaCierre,
-            EstadoDeEjecucion = b.EstadoDeEjecucion, CodigoProyecto = b.CodigoProyecto,
-            EntidadEjecutoraPrincipal = b.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = b.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = b.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = b.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = b.TributaDesarrolloLocal,
-            FinanciamientoUH = b.FinanciamientoUH,
-        });
         if (!result.Succeeded)
         {
-            if (result.Errors.Contains("Proyecto no encontrado.")) return Results.NotFound(new { errors = result.Errors });
+            if (HasError(result, "Proyecto no encontrado."))
+            {
+                return Results.NotFound(new { errors = result.Errors });
+            }
+
             return Results.BadRequest(new { errors = result.Errors });
         }
+
         return Results.Ok(new { message = "Proyecto actualizado." });
     }
+
+    private static IResult ToDeleteResult(AppResult result)
+    {
+        if (!result.Succeeded)
+        {
+            if (HasError(result, "Proyecto no encontrado."))
+            {
+                return Results.NotFound(new { errors = result.Errors });
+            }
+
+            return Results.BadRequest(new { errors = result.Errors });
+        }
+
+        return Results.Ok(new { message = "Proyecto eliminado." });
+    }
+
+    private static bool HasError(AppResult result, string error)
+        => result.Errors.Contains(error, StringComparer.Ordinal);
 }
-
-// ── Request body records ───────────────────────────────────────────────
-
-internal record ProyectoEnRevisionBody(
-    string Titulo, string JefeId,
-    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
-    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
-    string ClasificacionId,
-    string Situacion, string Tipo);
-
-internal record ProyectoEmpresarialBody(
-    string Titulo, string JefeId,
-    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
-    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
-    string ClasificacionId,
-    DateOnly FechaInicio, DateOnly? FechaCierre,
-    string EstadoDeEjecucion, string CodigoProyecto,
-    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
-    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
-    bool TributaDesarrolloLocal,
-    string Empresa);
-
-internal record ProyectoApoyoProgramaBody(
-    string Titulo, string JefeId,
-    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
-    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
-    string ClasificacionId,
-    DateOnly FechaInicio, DateOnly? FechaCierre,
-    string EstadoDeEjecucion, string CodigoProyecto,
-    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
-    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
-    bool TributaDesarrolloLocal,
-    string NombrePrograma, TipoPAP TipoPAP);
-
-internal record ProyectoDesarrolloLocalBody(
-    string Titulo, string JefeId,
-    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
-    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
-    string ClasificacionId,
-    DateOnly FechaInicio, DateOnly? FechaCierre,
-    string EstadoDeEjecucion, string CodigoProyecto,
-    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
-    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
-    string Municipio);
-
-internal record ProyectoNoEmpresarialBody(
-    string Titulo, string JefeId,
-    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
-    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
-    string ClasificacionId,
-    DateOnly FechaInicio, DateOnly? FechaCierre,
-    string EstadoDeEjecucion, string CodigoProyecto,
-    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
-    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
-    bool TributaDesarrolloLocal,
-    string EntidadNoEmpresarial);
-
-internal record ProyectoColabInternacionalBody(
-    string Titulo, string JefeId,
-    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
-    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
-    string ClasificacionId,
-    DateOnly FechaInicio, DateOnly? FechaCierre,
-    string EstadoDeEjecucion, string CodigoProyecto,
-    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
-    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
-    bool TributaDesarrolloLocal,
-    string FuenteFinanciacion, string TerminosReferencia);
-
-internal record ProyectoPNAPBody(
-    string Titulo, string JefeId,
-    int NumeroMiembros, int CantidadMiembrosUH, int CantidadEstudiantes,
-    int CantidadEstudiantesContratados, bool TributaFormacionDoctoral,
-    string ClasificacionId,
-    DateOnly FechaInicio, DateOnly? FechaCierre,
-    string EstadoDeEjecucion, string CodigoProyecto,
-    string EntidadEjecutoraPrincipal, string? EntidadEjecutoraParticipante,
-    string? ContribucionSectoresEstrategicos, string? ContribucionEjesEstrategicos,
-    bool TributaDesarrolloLocal,
-    string FinanciamientoUH);
-
-/// <summary>Par mínimo Id/Título para el selector de proyectos en el formulario de publicaciones.</summary>
-public record ProyectoCatalogoDto(string Id, string Titulo);

@@ -96,3 +96,18 @@ public record ProyectoPNAPDto : ProyectoEnEjecucionBaseDto
 {
     public string FinanciamientoUH { get; init; } = default!;
 }
+
+/// <summary>
+/// Resumen mínimo de publicación usado por los endpoints de vinculación entre proyectos y publicaciones.
+/// </summary>
+public record ProyectoPublicacionDto
+{
+    public string Id { get; init; } = default!;
+    public string Title { get; init; } = default!;
+    public string? UrlDoi { get; init; }
+}
+
+/// <summary>
+/// Par mínimo Id/Título para el selector de proyectos en el formulario de publicaciones.
+/// </summary>
+public record ProyectoCatalogoDto(string Id, string Titulo);

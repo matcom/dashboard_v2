@@ -1,4 +1,4 @@
-using Dashboard_v2.Application.Documents.Queries;
+using Dashboard_v2.Application.Documents;
 using Dashboard_v2.Web.Infrastructure;
 using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
@@ -22,9 +22,8 @@ public class Documents : EndpointGroupBase
     {
         groupBuilder.MapGet("{reportName}", GetDocument)
             .RequireAuthorization(p => p.RequireRole(
-                nameof(RolesEnum.Superuser)
-                // nameof(RolesEnum.Jefe_de_Grupo_de_investigacion)
-            ))
+                nameof(RolesEnum.Superuser),
+                nameof(RolesEnum.Jefe_de_Grupo_de_investigacion)))
             .WithName("GetDocument")
             .Produces(200)
             .ProducesProblem(401)
@@ -32,11 +31,11 @@ public class Documents : EndpointGroupBase
             .ProducesProblem(404);
     }
 
-    private static async Task<IResult> GetDocument(string reportName, ISender sender)
+    private static async Task<IResult> GetDocument(string reportName, IDocumentService documentService)
     {
         try
         {
-            var bytes = await sender.Send(new GenerateDocumentQuery(reportName));
+            var bytes = await documentService.GenerateAsync(reportName);
             var fileName = $"{reportName}_{DateTime.UtcNow:yyyy-MM}.xlsx";
             return Results.File(bytes, ExcelContentType, fileName);
         }

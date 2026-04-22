@@ -1,7 +1,4 @@
-using Dashboard_v2.Application.Authors.Commands.LinkAuthorToUser;
-using Dashboard_v2.Application.Authors.Queries.GetPotentialAuthorMatches;
-using Dashboard_v2.Application.Authors.Queries.SearchAuthors;
-using Dashboard_v2.Application.Authors.Queries.SearchCoauthors;
+using Dashboard_v2.Application.Authors;
 
 namespace Dashboard_v2.Web.Endpoints;
 
@@ -42,27 +39,27 @@ public class Authors : EndpointGroupBase
             .ProducesProblem(400);
     }
 
-    private async Task<IResult> SearchAuthors(ISender sender, string? q)
+    private async Task<IResult> SearchAuthors(IAuthorService service, string? q)
     {
-        var results = await sender.Send(new SearchAuthorsQuery(q ?? string.Empty));
+        var results = await service.SearchAsync(q ?? string.Empty);
         return Results.Ok(results);
     }
 
-    private async Task<IResult> SearchCoauthors(ISender sender, string? q)
+    private async Task<IResult> SearchCoauthors(IAuthorService service, string? q)
     {
-        var results = await sender.Send(new SearchCoauthorsQuery(q ?? string.Empty));
+        var results = await service.SearchCoauthorsAsync(q ?? string.Empty);
         return Results.Ok(results);
     }
 
-    private async Task<IResult> GetPotentialMatches(ISender sender)
+    private async Task<IResult> GetPotentialMatches(IAuthorService service)
     {
-        var result = await sender.Send(new GetPotentialAuthorMatchesQuery());
+        var result = await service.GetPotentialAuthorMatchesAsync();
         return Results.Ok(result);
     }
 
-    private async Task<IResult> LinkToMe(ISender sender, string id)
+    private async Task<IResult> LinkToMe(IAuthorService service, string id)
     {
-        var result = await sender.Send(new LinkAuthorToUserCommand(id));
+        var result = await service.LinkToUserAsync(id);
         if (!result.Succeeded)
             return Results.BadRequest(new { errors = result.Errors });
         return Results.Ok(new { message = "Autor vinculado correctamente." });

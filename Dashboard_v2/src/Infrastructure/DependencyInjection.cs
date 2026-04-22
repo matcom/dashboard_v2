@@ -1,4 +1,13 @@
 ﻿using Dashboard_v2.Application.Common.Interfaces;
+using Dashboard_v2.Application.Universidades;
+using Dashboard_v2.Application.Areas;
+using Dashboard_v2.Application.Clasificaciones;
+using Dashboard_v2.Application.AreasDelConocimiento;
+using Dashboard_v2.Application.Events;
+using Dashboard_v2.Application.LineasDeInvestigacion;
+using Dashboard_v2.Application.GruposDeInvestigacion;
+using Dashboard_v2.Application.Proyectos;
+using Dashboard_v2.Application.Auth;
 using Dashboard_v2.Application.Documents;
 using Dashboard_v2.Application.Documents.Reports;
 using Dashboard_v2.Domain.Constants;
@@ -46,8 +55,24 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IJwtService, JwtService>();
         builder.Services.AddScoped<IPermissionService, PermissionService>();
         builder.Services.AddScoped<IAuthorCleanupService, AuthorCleanupService>();
-        builder.Services.AddScoped<IAuthorResolutionService, AuthorResolutionService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IAuthorResolutionService, Dashboard_v2.Application.Common.AuthorResolutionService>();
         builder.Services.AddSingleton<IDocumentRenderer, DocumentRenderer>();
+        // Servicios de aplicación (Service Layer)
+        builder.Services.AddScoped<Dashboard_v2.Application.Universidades.IUniversidadService, Dashboard_v2.Application.Universidades.UniversidadService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Areas.IAreaService, Dashboard_v2.Application.Areas.AreaService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Clasificaciones.IClasificacionService, Dashboard_v2.Application.Clasificaciones.ClasificacionService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.AreasDelConocimiento.IAreaDelConocimientoService, Dashboard_v2.Application.AreasDelConocimiento.AreaDelConocimientoService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.LineasDeInvestigacion.ILineaDeInvestigacionService, Dashboard_v2.Application.LineasDeInvestigacion.LineaDeInvestigacionService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.GruposDeInvestigacion.IGrupoDeInvestigacionService, Dashboard_v2.Application.GruposDeInvestigacion.GrupoDeInvestigacionService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Awards.IAwardService, Dashboard_v2.Application.Awards.AwardService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Events.IEventService, Dashboard_v2.Application.Events.EventService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Publications.IPublicationService, Dashboard_v2.Application.Publications.PublicationService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Users.IUserService, Dashboard_v2.Application.Users.UserService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Authors.IAuthorService, Dashboard_v2.Application.Authors.AuthorService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Roles.IRoleService, Dashboard_v2.Application.Roles.RoleService>();
+        builder.Services.AddScoped<IProyectoService, ProyectoService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Documents.IDocumentService, Dashboard_v2.Application.Documents.DocumentService>();
         // Para agregar un nuevo reporte, agrega otra línea aquí:
         builder.Services.AddScoped<IDocumentReport, AnexoGruposReport>();
         builder.Services.AddScoped<IDocumentReport, ProyectosReport>();

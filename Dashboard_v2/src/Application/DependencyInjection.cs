@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
-using Dashboard_v2.Application.Common.Behaviours;
+using Dashboard_v2.Application.Common.Interfaces;
+using Dashboard_v2.Application.Common.Validation;
 using Microsoft.Extensions.Hosting;
+using MediatR;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -12,14 +14,12 @@ public static class DependencyInjection
             cfg.AddMaps(Assembly.GetExecutingAssembly()));
 
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        builder.Services.AddScoped<IRequestValidationService, RequestValidationService>();
 
-        builder.Services.AddMediatR(cfg => {
+        // MediatR permanece únicamente como infraestructura para publicación de eventos de dominio.
+        builder.Services.AddMediatR(cfg =>
+        {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            cfg.AddOpenRequestPreProcessor(typeof(LoggingBehaviour<>));
-            cfg.AddOpenBehavior(typeof(UnhandledExceptionBehaviour<,>));
-            cfg.AddOpenBehavior(typeof(AuthorizationBehaviour<,>));
-            cfg.AddOpenBehavior(typeof(ValidationBehaviour<,>));
-            cfg.AddOpenBehavior(typeof(PerformanceBehaviour<,>));
         });
     }
 }
