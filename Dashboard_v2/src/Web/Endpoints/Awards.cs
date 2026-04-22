@@ -39,13 +39,13 @@ public class Awards : EndpointGroupBase
             .ProducesProblem(400)
             .ProducesProblem(404);
     }
-    private async Task<IResult> GetMyAwards(Dashboard_v2.Application.Awards.IAwardService service)
+    private async Task<IResult> GetMyAwards(IAwardService service)
     {
         var awards = await service.GetMyAwardsAsync();
         return Results.Ok(awards);
     }
 
-    private async Task<IResult> CreateAward(Dashboard_v2.Application.Awards.IAwardService service, CreateAwardRequest body)
+    private async Task<IResult> CreateAward(IAwardService service, CreateAwardRequest body)
     {
         var (result, id) = await service.CreateAsync(body);
 
@@ -55,7 +55,7 @@ public class Awards : EndpointGroupBase
         return Results.Created($"/api/Awards/{id}", new { id });
     }
 
-    private async Task<IResult> UpdateAward(Dashboard_v2.Application.Awards.IAwardService service, int id, UpdateAwardRequest body)
+    private async Task<IResult> UpdateAward(IAwardService service, int id, UpdateAwardRequest body)
     {
         var result = await service.UpdateAsync(id, body);
 
@@ -65,7 +65,7 @@ public class Awards : EndpointGroupBase
         return Results.Ok(new { message = "Premio actualizado." });
     }
 
-    private async Task<IResult> DeleteAward(Dashboard_v2.Application.Awards.IAwardService service, int id)
+    private async Task<IResult> DeleteAward(IAwardService service, int id)
     {
         var result = await service.DeleteAsync(id);
 

@@ -2863,7 +2863,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePublicationCommand"
+                "$ref": "#/components/schemas/CreatePublicationRequest"
               }
             }
           },
@@ -5012,7 +5012,7 @@
           }
         }
       },
-      "CreatePublicationCommand": {
+      "CreatePublicationRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

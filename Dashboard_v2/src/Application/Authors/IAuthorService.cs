@@ -1,0 +1,14 @@
+using Dashboard_v2.Application.Common.Models;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Dashboard_v2.Application.Authors;
+
+public interface IAuthorService
+{
+    Task<Result> LinkToUserAsync(string authorId, CancellationToken ct = default);
+    Task<List<AuthorSearchDto>> SearchAsync(string q, CancellationToken ct = default);
+    Task<List<CoauthorSearchDto>> SearchCoauthorsAsync(string q, CancellationToken ct = default);
+    Task<PotentialAuthorMatchesDto> GetPotentialAuthorMatchesAsync(CancellationToken ct = default);
+}

@@ -3635,7 +3635,7 @@ export class PublicationsClient {
         return Promise.resolve<PublicationDto[]>(null as any);
     }
 
-    createPublication(command: CreatePublicationCommand): Promise<void> {
+    createPublication(command: CreatePublicationRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Publications";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -7693,7 +7693,7 @@ export interface IJournalPublicationDto {
     cuartil?: string | undefined;
 }
 
-export class CreatePublicationCommand implements ICreatePublicationCommand {
+export class CreatePublicationRequest implements ICreatePublicationRequest {
     title?: string;
     publicationData?: string;
     publicationType?: PublicationType;
@@ -7707,7 +7707,7 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
 
-    constructor(data?: ICreatePublicationCommand) {
+    constructor(data?: ICreatePublicationRequest) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -7745,9 +7745,9 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
         }
     }
 
-    static fromJS(data: any): CreatePublicationCommand {
+    static fromJS(data: any): CreatePublicationRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new CreatePublicationCommand();
+        let result = new CreatePublicationRequest();
         result.init(data);
         return result;
     }
@@ -7782,7 +7782,7 @@ export class CreatePublicationCommand implements ICreatePublicationCommand {
     }
 }
 
-export interface ICreatePublicationCommand {
+export interface ICreatePublicationRequest {
     title?: string;
     publicationData?: string;
     publicationType?: PublicationType;

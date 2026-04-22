@@ -1,13 +1,7 @@
 using Dashboard_v2.Application.Publications;
 using Dashboard_v2.Application.Common.Interfaces;
-using Dashboard_v2.Application.Publications.Commands.CreatePublication;
-using Dashboard_v2.Application.Publications.Commands.DeletePublication;
 using Dashboard_v2.Domain.Enums;
 using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
-using Dashboard_v2.Application.Publications.Commands.UpdatePublication;
-using Dashboard_v2.Application.Publications.Queries.GetMyPublications;
-using Dashboard_v2.Application.Publications.Queries.GetPublicationById;
-using Dashboard_v2.Application.Publications.Queries.GetPublicationTypes;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard_v2.Web.Endpoints;
@@ -69,9 +63,9 @@ public class Publications : EndpointGroupBase
             .ProducesProblem(404);
     }
 
-    private async Task<IResult> GetPublicationTypes(ISender sender)
+    private async Task<IResult> GetPublicationTypes(IPublicationService service)
     {
-        var types = await sender.Send(new GetPublicationTypesQuery());
+        var types = await service.GetPublicationTypesAsync();
         return Results.Ok(types);
     }
 
@@ -91,21 +85,21 @@ public class Publications : EndpointGroupBase
         return Results.Ok(pubs);
     }
 
-    private async Task<IResult> GetMyPublications(ISender sender)
+    private async Task<IResult> GetMyPublications(IPublicationService service)
     {
-        var publications = await sender.Send(new GetMyPublicationsQuery());
+        var publications = await service.GetMyPublicationsAsync();
         return Results.Ok(publications);
     }
 
-    private async Task<IResult> GetPublicationById(ISender sender, string id)
+    private async Task<IResult> GetPublicationById(IPublicationService service, string id)
     {
-        var publication = await sender.Send(new GetPublicationByIdQuery(id));
+        var publication = await service.GetByIdAsync(id);
         return publication is null ? Results.NotFound() : Results.Ok(publication);
     }
 
-    private async Task<IResult> CreatePublication(ISender sender, CreatePublicationCommand command)
+    private async Task<IResult> CreatePublication(IPublicationService service, CreatePublicationRequest command)
     {
-        var (result, id) = await sender.Send(command);
+        var (result, id) = await service.CreateAsync(command);
 
         if (!result.Succeeded)
             return Results.BadRequest(new { errors = result.Errors });
@@ -113,9 +107,9 @@ public class Publications : EndpointGroupBase
         return Results.Created($"/api/Publications/{id}", new { id });
     }
 
-    private async Task<IResult> UpdatePublication(ISender sender, string id, UpdatePublicationBody body)
+    private async Task<IResult> UpdatePublication(IPublicationService service, string id, UpdatePublicationBody body)
     {
-        var result = await sender.Send(new UpdatePublicationCommand
+        var req = new UpdatePublicationRequest
         {
             Id = id,
             Title = body.Title,
@@ -130,7 +124,9 @@ public class Publications : EndpointGroupBase
             Group = body.Group,
             Cuartil = body.Cuartil,
             ProyectoId = body.ProyectoId,
-        });
+        };
+
+        var result = await service.UpdateAsync(req);
 
         if (!result.Succeeded)
             return Results.BadRequest(new { errors = result.Errors });
@@ -138,9 +134,9 @@ public class Publications : EndpointGroupBase
         return Results.Ok(new { message = "Publicación actualizada." });
     }
 
-    private async Task<IResult> DeletePublication(ISender sender, string id)
+    private async Task<IResult> DeletePublication(IPublicationService service, string id)
     {
-        var result = await sender.Send(new DeletePublicationCommand(id));
+        var result = await service.DeleteAsync(id);
 
         if (!result.Succeeded)
             return Results.BadRequest(new { errors = result.Errors });
