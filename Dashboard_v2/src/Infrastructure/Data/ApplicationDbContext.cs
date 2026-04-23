@@ -29,6 +29,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Universidad> Universidades => Set<Universidad>();
     public DbSet<Area> Areas => Set<Area>();
     public DbSet<GrupoDeInvestigacion> GruposDeInvestigacion => Set<GrupoDeInvestigacion>();
+    public DbSet<GrupoEstudiantil> GruposEstudiantiles => Set<GrupoEstudiantil>();
     public DbSet<LineaDeInvestigacion> LineasDeInvestigacion => Set<LineaDeInvestigacion>();
     public DbSet<AreaDelConocimiento> AreasDelConocimiento => Set<AreaDelConocimiento>();
     public DbSet<Clasificacion> Clasificaciones => Set<Clasificacion>();

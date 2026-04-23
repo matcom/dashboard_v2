@@ -64,6 +64,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.AreasDelConocimiento.IAreaDelConocimientoService, Dashboard_v2.Application.AreasDelConocimiento.AreaDelConocimientoService>();
         builder.Services.AddScoped<Dashboard_v2.Application.LineasDeInvestigacion.ILineaDeInvestigacionService, Dashboard_v2.Application.LineasDeInvestigacion.LineaDeInvestigacionService>();
         builder.Services.AddScoped<Dashboard_v2.Application.GruposDeInvestigacion.IGrupoDeInvestigacionService, Dashboard_v2.Application.GruposDeInvestigacion.GrupoDeInvestigacionService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.GruposEstudiantiles.IGrupoEstudiantilService, Dashboard_v2.Application.GruposEstudiantiles.GrupoEstudiantilService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Awards.IAwardService, Dashboard_v2.Application.Awards.AwardService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Events.IEventService, Dashboard_v2.Application.Events.EventService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Publications.IPublicationService, Dashboard_v2.Application.Publications.PublicationService>();
