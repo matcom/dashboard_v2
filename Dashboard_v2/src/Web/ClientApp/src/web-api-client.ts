@@ -1819,6 +1819,194 @@ export class GruposDeInvestigacionClient {
     }
 }
 
+export class GruposEstudiantilesClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getGruposEstudiantiles(): Promise<GrupoEstudiantilDto[]> {
+        let url_ = this.baseUrl + "/api/GruposEstudiantiles";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetGruposEstudiantiles(_response);
+        });
+    }
+
+    protected processGetGruposEstudiantiles(response: Response): Promise<GrupoEstudiantilDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GrupoEstudiantilDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrupoEstudiantilDto[]>(null as any);
+    }
+
+    createGrupoEstudiantil(body: CreateGrupoEstudiantilRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/GruposEstudiantiles";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateGrupoEstudiantil(_response);
+        });
+    }
+
+    protected processCreateGrupoEstudiantil(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    updateGrupoEstudiantil(id: string, body: UpdateGrupoEstudiantilRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/GruposEstudiantiles/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateGrupoEstudiantil(_response);
+        });
+    }
+
+    protected processUpdateGrupoEstudiantil(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    deleteGrupoEstudiantil(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/GruposEstudiantiles/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteGrupoEstudiantil(_response);
+        });
+    }
+
+    protected processDeleteGrupoEstudiantil(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class LineasDeInvestigacionClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -4747,6 +4935,7 @@ export class LoginRequest implements ILoginRequest {
     email?: string;
     password?: string;
     selectedRole?: string | undefined;
+    selectedAreaId?: string | undefined;
 
     constructor(data?: ILoginRequest) {
         if (data) {
@@ -4762,6 +4951,7 @@ export class LoginRequest implements ILoginRequest {
             this.email = _data["email"];
             this.password = _data["password"];
             this.selectedRole = _data["selectedRole"];
+            this.selectedAreaId = _data["selectedAreaId"];
         }
     }
 
@@ -4777,6 +4967,7 @@ export class LoginRequest implements ILoginRequest {
         data["email"] = this.email;
         data["password"] = this.password;
         data["selectedRole"] = this.selectedRole;
+        data["selectedAreaId"] = this.selectedAreaId;
         return data;
     }
 }
@@ -4785,6 +4976,7 @@ export interface ILoginRequest {
     email?: string;
     password?: string;
     selectedRole?: string | undefined;
+    selectedAreaId?: string | undefined;
 }
 
 export class CurrentUserDto implements ICurrentUserDto {
@@ -4792,6 +4984,8 @@ export class CurrentUserDto implements ICurrentUserDto {
     userName?: string;
     email?: string;
     role?: string | undefined;
+    areaId?: string | undefined;
+    areaNombre?: string | undefined;
 
     constructor(data?: ICurrentUserDto) {
         if (data) {
@@ -4808,6 +5002,8 @@ export class CurrentUserDto implements ICurrentUserDto {
             this.userName = _data["userName"];
             this.email = _data["email"];
             this.role = _data["role"];
+            this.areaId = _data["areaId"];
+            this.areaNombre = _data["areaNombre"];
         }
     }
 
@@ -4824,6 +5020,8 @@ export class CurrentUserDto implements ICurrentUserDto {
         data["userName"] = this.userName;
         data["email"] = this.email;
         data["role"] = this.role;
+        data["areaId"] = this.areaId;
+        data["areaNombre"] = this.areaNombre;
         return data;
     }
 }
@@ -4833,6 +5031,8 @@ export interface ICurrentUserDto {
     userName?: string;
     email?: string;
     role?: string | undefined;
+    areaId?: string | undefined;
+    areaNombre?: string | undefined;
 }
 
 export class AuthorSearchDto implements IAuthorSearchDto {
@@ -4879,6 +5079,7 @@ export class CoauthorSearchDto implements ICoauthorSearchDto {
     id?: string;
     name?: string;
     type?: string;
+    linkedUser?: LinkedUserSummaryDto | undefined;
 
     constructor(data?: ICoauthorSearchDto) {
         if (data) {
@@ -4894,6 +5095,7 @@ export class CoauthorSearchDto implements ICoauthorSearchDto {
             this.id = _data["id"];
             this.name = _data["name"];
             this.type = _data["type"];
+            this.linkedUser = _data["linkedUser"] ? LinkedUserSummaryDto.fromJS(_data["linkedUser"]) : undefined as any;
         }
     }
 
@@ -4909,6 +5111,7 @@ export class CoauthorSearchDto implements ICoauthorSearchDto {
         data["id"] = this.id;
         data["name"] = this.name;
         data["type"] = this.type;
+        data["linkedUser"] = this.linkedUser ? this.linkedUser.toJSON() : undefined as any;
         return data;
     }
 }
@@ -4917,6 +5120,91 @@ export interface ICoauthorSearchDto {
     id?: string;
     name?: string;
     type?: string;
+    linkedUser?: LinkedUserSummaryDto | undefined;
+}
+
+export class LinkedUserSummaryDto implements ILinkedUserSummaryDto {
+    id?: string;
+    userName?: string;
+    userLastName1?: string;
+    userLastName2?: string | undefined;
+    email?: string;
+    isTrained?: boolean;
+    scientificCategory?: number;
+    teachingCategory?: number;
+    investigationCategory?: number;
+    areaId?: string | undefined;
+    areaNombre?: string | undefined;
+    universidadId?: string | undefined;
+    universidadNombre?: string | undefined;
+
+    constructor(data?: ILinkedUserSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.userName = _data["userName"];
+            this.userLastName1 = _data["userLastName1"];
+            this.userLastName2 = _data["userLastName2"];
+            this.email = _data["email"];
+            this.isTrained = _data["isTrained"];
+            this.scientificCategory = _data["scientificCategory"];
+            this.teachingCategory = _data["teachingCategory"];
+            this.investigationCategory = _data["investigationCategory"];
+            this.areaId = _data["areaId"];
+            this.areaNombre = _data["areaNombre"];
+            this.universidadId = _data["universidadId"];
+            this.universidadNombre = _data["universidadNombre"];
+        }
+    }
+
+    static fromJS(data: any): LinkedUserSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new LinkedUserSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["userName"] = this.userName;
+        data["userLastName1"] = this.userLastName1;
+        data["userLastName2"] = this.userLastName2;
+        data["email"] = this.email;
+        data["isTrained"] = this.isTrained;
+        data["scientificCategory"] = this.scientificCategory;
+        data["teachingCategory"] = this.teachingCategory;
+        data["investigationCategory"] = this.investigationCategory;
+        data["areaId"] = this.areaId;
+        data["areaNombre"] = this.areaNombre;
+        data["universidadId"] = this.universidadId;
+        data["universidadNombre"] = this.universidadNombre;
+        return data;
+    }
+}
+
+export interface ILinkedUserSummaryDto {
+    id?: string;
+    userName?: string;
+    userLastName1?: string;
+    userLastName2?: string | undefined;
+    email?: string;
+    isTrained?: boolean;
+    scientificCategory?: number;
+    teachingCategory?: number;
+    investigationCategory?: number;
+    areaId?: string | undefined;
+    areaNombre?: string | undefined;
+    universidadId?: string | undefined;
+    universidadNombre?: string | undefined;
 }
 
 export class PotentialAuthorMatchesDto implements IPotentialAuthorMatchesDto {
@@ -5803,6 +6091,170 @@ export interface ISetGrupoMiembrosRequest {
     usuariosIds?: string[];
 }
 
+export class GrupoEstudiantilDto implements IGrupoEstudiantilDto {
+    id?: string;
+    nombre?: string;
+    areaId?: string;
+    areaNombre?: string;
+    lineasDeInvestigacionIds?: string[];
+
+    constructor(data?: IGrupoEstudiantilDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.nombre = _data["nombre"];
+            this.areaId = _data["areaId"];
+            this.areaNombre = _data["areaNombre"];
+            if (Array.isArray(_data["lineasDeInvestigacionIds"])) {
+                this.lineasDeInvestigacionIds = [] as any;
+                for (let item of _data["lineasDeInvestigacionIds"])
+                    this.lineasDeInvestigacionIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): GrupoEstudiantilDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new GrupoEstudiantilDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["nombre"] = this.nombre;
+        data["areaId"] = this.areaId;
+        data["areaNombre"] = this.areaNombre;
+        if (Array.isArray(this.lineasDeInvestigacionIds)) {
+            data["lineasDeInvestigacionIds"] = [];
+            for (let item of this.lineasDeInvestigacionIds)
+                data["lineasDeInvestigacionIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IGrupoEstudiantilDto {
+    id?: string;
+    nombre?: string;
+    areaId?: string;
+    areaNombre?: string;
+    lineasDeInvestigacionIds?: string[];
+}
+
+export class CreateGrupoEstudiantilRequest implements ICreateGrupoEstudiantilRequest {
+    nombre?: string;
+    areaId?: string;
+    lineasDeInvestigacionIds?: string[];
+
+    constructor(data?: ICreateGrupoEstudiantilRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.nombre = _data["nombre"];
+            this.areaId = _data["areaId"];
+            if (Array.isArray(_data["lineasDeInvestigacionIds"])) {
+                this.lineasDeInvestigacionIds = [] as any;
+                for (let item of _data["lineasDeInvestigacionIds"])
+                    this.lineasDeInvestigacionIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateGrupoEstudiantilRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateGrupoEstudiantilRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["nombre"] = this.nombre;
+        data["areaId"] = this.areaId;
+        if (Array.isArray(this.lineasDeInvestigacionIds)) {
+            data["lineasDeInvestigacionIds"] = [];
+            for (let item of this.lineasDeInvestigacionIds)
+                data["lineasDeInvestigacionIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface ICreateGrupoEstudiantilRequest {
+    nombre?: string;
+    areaId?: string;
+    lineasDeInvestigacionIds?: string[];
+}
+
+export class UpdateGrupoEstudiantilRequest implements IUpdateGrupoEstudiantilRequest {
+    nombre?: string;
+    areaId?: string;
+    lineasDeInvestigacionIds?: string[];
+
+    constructor(data?: IUpdateGrupoEstudiantilRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.nombre = _data["nombre"];
+            this.areaId = _data["areaId"];
+            if (Array.isArray(_data["lineasDeInvestigacionIds"])) {
+                this.lineasDeInvestigacionIds = [] as any;
+                for (let item of _data["lineasDeInvestigacionIds"])
+                    this.lineasDeInvestigacionIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): UpdateGrupoEstudiantilRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateGrupoEstudiantilRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["nombre"] = this.nombre;
+        data["areaId"] = this.areaId;
+        if (Array.isArray(this.lineasDeInvestigacionIds)) {
+            data["lineasDeInvestigacionIds"] = [];
+            for (let item of this.lineasDeInvestigacionIds)
+                data["lineasDeInvestigacionIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IUpdateGrupoEstudiantilRequest {
+    nombre?: string;
+    areaId?: string;
+    lineasDeInvestigacionIds?: string[];
+}
+
 export class LineaDeInvestigacionDto implements ILineaDeInvestigacionDto {
     id?: string;
     nombre?: string;
@@ -5980,7 +6432,7 @@ export class PresentationDto implements IPresentationDto {
     name?: string;
     eventId?: number;
     eventName?: string;
-    authors?: string[];
+    authors?: PresentationAuthorDto[];
 
     constructor(data?: IPresentationDto) {
         if (data) {
@@ -6000,7 +6452,7 @@ export class PresentationDto implements IPresentationDto {
             if (Array.isArray(_data["authors"])) {
                 this.authors = [] as any;
                 for (let item of _data["authors"])
-                    this.authors!.push(item);
+                    this.authors!.push(PresentationAuthorDto.fromJS(item));
             }
         }
     }
@@ -6021,7 +6473,7 @@ export class PresentationDto implements IPresentationDto {
         if (Array.isArray(this.authors)) {
             data["authors"] = [];
             for (let item of this.authors)
-                data["authors"].push(item);
+                data["authors"].push(item ? item.toJSON() : undefined as any);
         }
         return data;
     }
@@ -6032,13 +6484,62 @@ export interface IPresentationDto {
     name?: string;
     eventId?: number;
     eventName?: string;
-    authors?: string[];
+    authors?: PresentationAuthorDto[];
+}
+
+export class PresentationAuthorDto implements IPresentationAuthorDto {
+    id?: string;
+    name?: string;
+    userId?: string | undefined;
+    linkedUser?: LinkedUserSummaryDto | undefined;
+
+    constructor(data?: IPresentationAuthorDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.userId = _data["userId"];
+            this.linkedUser = _data["linkedUser"] ? LinkedUserSummaryDto.fromJS(_data["linkedUser"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): PresentationAuthorDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PresentationAuthorDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["userId"] = this.userId;
+        data["linkedUser"] = this.linkedUser ? this.linkedUser.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IPresentationAuthorDto {
+    id?: string;
+    name?: string;
+    userId?: string | undefined;
+    linkedUser?: LinkedUserSummaryDto | undefined;
 }
 
 export class CreatePresentationRequest implements ICreatePresentationRequest {
     name?: string;
     eventId?: number;
     coauthorIds?: string[];
+    coauthorUserIds?: string[];
     coauthorNames?: string[];
 
     constructor(data?: ICreatePresentationRequest) {
@@ -6058,6 +6559,11 @@ export class CreatePresentationRequest implements ICreatePresentationRequest {
                 this.coauthorIds = [] as any;
                 for (let item of _data["coauthorIds"])
                     this.coauthorIds!.push(item);
+            }
+            if (Array.isArray(_data["coauthorUserIds"])) {
+                this.coauthorUserIds = [] as any;
+                for (let item of _data["coauthorUserIds"])
+                    this.coauthorUserIds!.push(item);
             }
             if (Array.isArray(_data["coauthorNames"])) {
                 this.coauthorNames = [] as any;
@@ -6083,6 +6589,11 @@ export class CreatePresentationRequest implements ICreatePresentationRequest {
             for (let item of this.coauthorIds)
                 data["coauthorIds"].push(item);
         }
+        if (Array.isArray(this.coauthorUserIds)) {
+            data["coauthorUserIds"] = [];
+            for (let item of this.coauthorUserIds)
+                data["coauthorUserIds"].push(item);
+        }
         if (Array.isArray(this.coauthorNames)) {
             data["coauthorNames"] = [];
             for (let item of this.coauthorNames)
@@ -6096,6 +6607,7 @@ export interface ICreatePresentationRequest {
     name?: string;
     eventId?: number;
     coauthorIds?: string[];
+    coauthorUserIds?: string[];
     coauthorNames?: string[];
 }
 
@@ -6103,6 +6615,7 @@ export class UpdatePresentationRequest implements IUpdatePresentationRequest {
     name?: string;
     eventId?: number;
     coauthorIds?: string[];
+    coauthorUserIds?: string[];
     coauthorNames?: string[];
 
     constructor(data?: IUpdatePresentationRequest) {
@@ -6122,6 +6635,11 @@ export class UpdatePresentationRequest implements IUpdatePresentationRequest {
                 this.coauthorIds = [] as any;
                 for (let item of _data["coauthorIds"])
                     this.coauthorIds!.push(item);
+            }
+            if (Array.isArray(_data["coauthorUserIds"])) {
+                this.coauthorUserIds = [] as any;
+                for (let item of _data["coauthorUserIds"])
+                    this.coauthorUserIds!.push(item);
             }
             if (Array.isArray(_data["coauthorNames"])) {
                 this.coauthorNames = [] as any;
@@ -6147,6 +6665,11 @@ export class UpdatePresentationRequest implements IUpdatePresentationRequest {
             for (let item of this.coauthorIds)
                 data["coauthorIds"].push(item);
         }
+        if (Array.isArray(this.coauthorUserIds)) {
+            data["coauthorUserIds"] = [];
+            for (let item of this.coauthorUserIds)
+                data["coauthorUserIds"].push(item);
+        }
         if (Array.isArray(this.coauthorNames)) {
             data["coauthorNames"] = [];
             for (let item of this.coauthorNames)
@@ -6160,6 +6683,7 @@ export interface IUpdatePresentationRequest {
     name?: string;
     eventId?: number;
     coauthorIds?: string[];
+    coauthorUserIds?: string[];
     coauthorNames?: string[];
 }
 
@@ -7241,6 +7765,7 @@ export class AuthorDto implements IAuthorDto {
     id?: string;
     name?: string;
     userId?: string | undefined;
+    linkedUser?: LinkedUserSummaryDto | undefined;
 
     constructor(data?: IAuthorDto) {
         if (data) {
@@ -7256,6 +7781,7 @@ export class AuthorDto implements IAuthorDto {
             this.id = _data["id"];
             this.name = _data["name"];
             this.userId = _data["userId"];
+            this.linkedUser = _data["linkedUser"] ? LinkedUserSummaryDto.fromJS(_data["linkedUser"]) : undefined as any;
         }
     }
 
@@ -7271,6 +7797,7 @@ export class AuthorDto implements IAuthorDto {
         data["id"] = this.id;
         data["name"] = this.name;
         data["userId"] = this.userId;
+        data["linkedUser"] = this.linkedUser ? this.linkedUser.toJSON() : undefined as any;
         return data;
     }
 }
@@ -7279,6 +7806,7 @@ export interface IAuthorDto {
     id?: string;
     name?: string;
     userId?: string | undefined;
+    linkedUser?: LinkedUserSummaryDto | undefined;
 }
 
 export class IndexedPublicationDto implements IIndexedPublicationDto {
@@ -7736,6 +8264,10 @@ export class UserWithRolesDto implements IUserWithRolesDto {
     scientificCategory?: number;
     teachingCategory?: number;
     investigationCategory?: number;
+    areaId?: string | undefined;
+    areaNombre?: string | undefined;
+    universidadId?: string | undefined;
+    universidadNombre?: string | undefined;
     roles?: string[];
 
     constructor(data?: IUserWithRolesDto) {
@@ -7759,6 +8291,10 @@ export class UserWithRolesDto implements IUserWithRolesDto {
             this.scientificCategory = _data["scientificCategory"];
             this.teachingCategory = _data["teachingCategory"];
             this.investigationCategory = _data["investigationCategory"];
+            this.areaId = _data["areaId"];
+            this.areaNombre = _data["areaNombre"];
+            this.universidadId = _data["universidadId"];
+            this.universidadNombre = _data["universidadNombre"];
             if (Array.isArray(_data["roles"])) {
                 this.roles = [] as any;
                 for (let item of _data["roles"])
@@ -7786,6 +8322,10 @@ export class UserWithRolesDto implements IUserWithRolesDto {
         data["scientificCategory"] = this.scientificCategory;
         data["teachingCategory"] = this.teachingCategory;
         data["investigationCategory"] = this.investigationCategory;
+        data["areaId"] = this.areaId;
+        data["areaNombre"] = this.areaNombre;
+        data["universidadId"] = this.universidadId;
+        data["universidadNombre"] = this.universidadNombre;
         if (Array.isArray(this.roles)) {
             data["roles"] = [];
             for (let item of this.roles)
@@ -7806,6 +8346,10 @@ export interface IUserWithRolesDto {
     scientificCategory?: number;
     teachingCategory?: number;
     investigationCategory?: number;
+    areaId?: string | undefined;
+    areaNombre?: string | undefined;
+    universidadId?: string | undefined;
+    universidadNombre?: string | undefined;
     roles?: string[];
 }
 

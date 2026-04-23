@@ -1361,6 +1361,150 @@
         }
       }
     },
+    "/api/GruposEstudiantiles": {
+      "get": {
+        "tags": [
+          "GruposEstudiantiles"
+        ],
+        "operationId": "GetGruposEstudiantiles",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GrupoEstudiantilDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GruposEstudiantiles"
+        ],
+        "operationId": "CreateGrupoEstudiantil",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGrupoEstudiantilRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/GruposEstudiantiles/{id}": {
+      "put": {
+        "tags": [
+          "GruposEstudiantiles"
+        ],
+        "operationId": "UpdateGrupoEstudiantil",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGrupoEstudiantilRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GruposEstudiantiles"
+        ],
+        "operationId": "DeleteGrupoEstudiantil",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/LineasDeInvestigacion": {
       "get": {
         "tags": [
@@ -3597,6 +3741,10 @@
           "selectedRole": {
             "type": "string",
             "nullable": true
+          },
+          "selectedAreaId": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -3614,6 +3762,14 @@
             "type": "string"
           },
           "role": {
+            "type": "string",
+            "nullable": true
+          },
+          "areaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "areaNombre": {
             "type": "string",
             "nullable": true
           }
@@ -3643,6 +3799,67 @@
           },
           "type": {
             "type": "string"
+          },
+          "linkedUser": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LinkedUserSummaryDto"
+              }
+            ]
+          }
+        }
+      },
+      "LinkedUserSummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "userLastName1": {
+            "type": "string"
+          },
+          "userLastName2": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string"
+          },
+          "isTrained": {
+            "type": "boolean"
+          },
+          "scientificCategory": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teachingCategory": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "investigationCategory": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "areaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "areaNombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "universidadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "universidadNombre": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -3976,6 +4193,66 @@
           }
         }
       },
+      "GrupoEstudiantilDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "areaId": {
+            "type": "string"
+          },
+          "areaNombre": {
+            "type": "string"
+          },
+          "lineasDeInvestigacionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateGrupoEstudiantilRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "areaId": {
+            "type": "string"
+          },
+          "lineasDeInvestigacionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateGrupoEstudiantilRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "areaId": {
+            "type": "string"
+          },
+          "lineasDeInvestigacionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "LineaDeInvestigacionDto": {
         "type": "object",
         "additionalProperties": false,
@@ -4063,8 +4340,32 @@
           "authors": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/PresentationAuthorDto"
             }
+          }
+        }
+      },
+      "PresentationAuthorDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
+          "linkedUser": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LinkedUserSummaryDto"
+              }
+            ]
           }
         }
       },
@@ -4080,6 +4381,12 @@
             "format": "int32"
           },
           "coauthorIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coauthorUserIds": {
             "type": "array",
             "items": {
               "type": "string"
@@ -4105,6 +4412,12 @@
             "format": "int32"
           },
           "coauthorIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coauthorUserIds": {
             "type": "array",
             "items": {
               "type": "string"
@@ -4723,6 +5036,14 @@
           "userId": {
             "type": "string",
             "nullable": true
+          },
+          "linkedUser": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LinkedUserSummaryDto"
+              }
+            ]
           }
         }
       },
@@ -4966,6 +5287,22 @@
           "investigationCategory": {
             "type": "integer",
             "format": "int32"
+          },
+          "areaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "areaNombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "universidadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "universidadNombre": {
+            "type": "string",
+            "nullable": true
           },
           "roles": {
             "type": "array",
