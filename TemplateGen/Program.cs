@@ -1,13 +1,15 @@
 // TemplateGen — Generador de plantillas Excel para Dashboard_v2
 //
 // Uso:
-//   dotnet run              → muestra el menú interactivo
-//   dotnet run -- all       → genera TODAS las plantillas
-//   dotnet run -- grupos    → genera solo AnexoGrupos.xlsx
+//   dotnet run                         → muestra el menú interactivo
+//   dotnet run -- all                  → genera TODAS las plantillas
+//   dotnet run -- grupos               → genera AnexoGrupos.xlsx
+//   dotnet run -- grupos-estudiantiles → genera AnexoGruposEstudiantiles.xlsx
 //
 // Para añadir una nueva plantilla:
-//   1. Crea  Templates/MiPlantilla.cs  con una clase static y un método Generate()
-//   2. Registra la entrada en el diccionario 'templates' de este archivo
+//   1. Crea una clase que herede de ExcelTemplateBase
+//   2. Define sus hojas con implementaciones de ISheetTemplate
+//   3. Registra la entrada en el diccionario 'templates' de este archivo
 
 using TemplateGen.Templates;
 
@@ -20,8 +22,9 @@ using TemplateGen.Templates;
 
 var templates = new Dictionary<string, (string Descripcion, Action Generate)>(StringComparer.OrdinalIgnoreCase)
 {
-    ["grupos"]   = ("Anexo 10 — Grupos de Investigación", () => new AnexoGruposTemplate().Generate()),
-    ["proyectos"]= ("Anexo 4 — Proyectos de Investigación", () => new AnexoProyectosTemplate().Generate()),
+    ["grupos"] = ("Anexo 10 — Grupos de Investigación", () => new AnexoGruposTemplate().Generate()),
+    ["grupos-estudiantiles"] = ("Anexo 9 — Grupos Científicos Estudiantiles", () => new AnexoGruposEstudiantilesTemplate().Generate()),
+    ["proyectos"] = ("Anexo 4 — Proyectos de Investigación", () => new AnexoProyectosTemplate().Generate()),
 };
 
 // ─── Modo línea de comandos ────────────────────────────────────────────────
@@ -110,4 +113,3 @@ while (true)
 
     Console.WriteLine("Opción no válida, intenta de nuevo.");
 }
-
