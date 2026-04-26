@@ -20,40 +20,119 @@ public sealed class AwardService : IAwardService
         _currentUser = currentUser;
     }
 
-    public Task<List<AwardDto>> GetMyAwardsAsync(CancellationToken ct = default)
+    public async Task<List<AwardWithGrantingsDto>> GetMyAwardsAsync(CancellationToken ct = default)
     {
-        return _context.UserAwardeds
+        var userAwardeds = await _context.UserAwardeds
             .AsNoTracking()
-            .Where(ua => ua.UserId == _currentUser.Id)
-            .Select(ua => new AwardDto
-            {
-                Id = ua.Id,
-                AwardName = ua.Award.Name,
-                AwardTypeId = ua.Award.AwardTypeId,
-                AwardTypeName = ua.Award.AwardType.Name,
-                Year = ua.Year,
-                AwardedAt = ua.AwardedAt,
-            })
-            .OrderByDescending(a => a.Year)
-            .ThenByDescending(a => a.AwardedAt)
+            .Include(ua => ua.Award)
+                .ThenInclude(a => a.AwardType)
+            .Include(ua => ua.User)
             .ToListAsync(ct);
+
+        var grouped = userAwardeds
+            .GroupBy(ua => new { ua.AwardId, ua.Award.Name, ua.Award.AwardTypeId, AwardTypeName = ua.Award.AwardType.Name })
+            .Select(g => new AwardWithGrantingsDto
+            {
+                AwardId = g.Key.AwardId,
+                AwardName = g.Key.Name,
+                AwardTypeId = g.Key.AwardTypeId,
+                AwardTypeName = g.Key.AwardTypeName,
+                Grantings = g
+                    .GroupBy(ua => ua.AwardedAt.Date)
+                    .Select(gg => new GrantingDto
+                    {
+                        AwardedAt = gg.First().AwardedAt,
+                        Year = gg.First().Year,
+                        Recipients = gg
+                            .Select(r => new RecipientDto
+                            {
+                                Id = r.Id,
+                                UserId = r.UserId,
+                                UserDisplayName = r.User.UserName + " " + r.User.UserLastName1 + (r.User.UserLastName2 ?? "")
+                            })
+                            .OrderBy(x => x.UserDisplayName)
+                            .ToList()
+                    })
+                    .Where(gr => gr.Recipients.Any(rr => rr.UserId == _currentUser.Id))
+                    .OrderByDescending(gr => gr.AwardedAt)
+                    .ToList()
+            })
+            .Where(a => a.Grantings.Any())
+            .ToList();
+
+        return grouped;
+    }
+
+    public async Task<List<AwardWithGrantingsDto>> GetAllAwardsAsync(CancellationToken ct = default)
+    {
+        var userAwardeds = await _context.UserAwardeds
+            .AsNoTracking()
+            .Include(ua => ua.Award)
+                .ThenInclude(a => a.AwardType)
+            .Include(ua => ua.User)
+            .ToListAsync(ct);
+
+        var grouped = userAwardeds
+            .GroupBy(ua => new { ua.AwardId, ua.Award.Name, ua.Award.AwardTypeId, AwardTypeName = ua.Award.AwardType.Name })
+            .Select(g => new AwardWithGrantingsDto
+            {
+                AwardId = g.Key.AwardId,
+                AwardName = g.Key.Name,
+                AwardTypeId = g.Key.AwardTypeId,
+                AwardTypeName = g.Key.AwardTypeName,
+                Grantings = g
+                    .GroupBy(ua => ua.AwardedAt.Date)
+                    .Select(gg => new GrantingDto
+                    {
+                        AwardedAt = gg.First().AwardedAt,
+                        Year = gg.First().Year,
+                        Recipients = gg
+                            .Select(r => new RecipientDto
+                            {
+                                Id = r.Id,
+                                UserId = r.UserId,
+                                UserDisplayName = r.User.UserName + " " + r.User.UserLastName1 + (r.User.UserLastName2 ?? "")
+                            })
+                            .OrderBy(x => x.UserDisplayName)
+                            .ToList()
+                    })
+                    .OrderByDescending(gr => gr.AwardedAt)
+                    .ToList()
+            })
+            .ToList();
+
+        return grouped;
+    }
+
+    public async Task<List<AwardCatalogDto>> GetCatalogAsync(CancellationToken ct = default)
+    {
+        var awards = await _context.Awards
+            .AsNoTracking()
+            .Select(a => new AwardCatalogDto
+            {
+                Id = a.Id,
+                AwardName = a.Name,
+                AwardTypeId = a.AwardTypeId,
+                AwardTypeName = a.AwardType.Name,
+            })
+            .OrderBy(a => a.AwardTypeId)
+            .ThenBy(a => a.AwardName)
+            .ThenBy(a => a.Id)
+            .ToListAsync(ct);
+
+        return awards
+            .GroupBy(a => new { a.AwardTypeId, Name = NormalizeAwardKey(a.AwardName) })
+            .Select(group => group.First())
+            .OrderBy(a => a.AwardTypeId)
+            .ThenBy(a => a.AwardName)
+            .ToList();
     }
 
     public async Task<(Result Result, int? AwardedId)> CreateAsync(CreateAwardRequest request, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(request.AwardName))
-            return (Result.Failure(new[] { "El nombre del premio es obligatorio." }), null);
-
-        if (!await _context.AwardTypes.AnyAsync(t => t.Id == request.AwardTypeId, ct))
-            return (Result.Failure(new[] { "Tipo de premio inválido." }), null);
-
-        var award = new Award
-        {
-            Name = request.AwardName.Trim(),
-            AwardTypeId = request.AwardTypeId,
-        };
-        _context.Awards.Add(award);
-        await _context.SaveChangesAsync(ct);
+        var (result, award) = await ResolveAwardAsync(request.AwardId, request.NewAwardName, request.AwardTypeId, ct);
+        if (!result.Succeeded || award is null)
+            return (result, null);
 
         var userAwarded = new UserAwarded
         {
@@ -70,14 +149,7 @@ public sealed class AwardService : IAwardService
 
     public async Task<Result> UpdateAsync(int id, UpdateAwardRequest request, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(request.AwardName))
-            return Result.Failure(new[] { "El nombre del premio es obligatorio." });
-
-        if (!await _context.AwardTypes.AnyAsync(t => t.Id == request.AwardTypeId, ct))
-            return Result.Failure(new[] { "Tipo de premio inválido." });
-
         var userAwarded = await _context.UserAwardeds
-            .Include(ua => ua.Award)
             .FirstOrDefaultAsync(ua => ua.Id == id, ct);
 
         if (userAwarded is null)
@@ -86,8 +158,11 @@ public sealed class AwardService : IAwardService
         if (userAwarded.UserId != _currentUser.Id)
             return Result.Failure(new[] { "No tienes permiso para modificar este premio." });
 
-        userAwarded.Award.Name = request.AwardName.Trim();
-        userAwarded.Award.AwardTypeId = request.AwardTypeId;
+        var (result, award) = await ResolveAwardAsync(request.AwardId, request.NewAwardName, request.AwardTypeId, ct);
+        if (!result.Succeeded || award is null)
+            return result;
+
+        userAwarded.AwardId = award.Id;
         userAwarded.Year = request.Year;
         userAwarded.AwardedAt = request.AwardedAt;
 
@@ -111,4 +186,58 @@ public sealed class AwardService : IAwardService
 
         return Result.Success();
     }
+
+    private async Task<(Result Result, Award? Award)> ResolveAwardAsync(
+        int? awardId,
+        string? newAwardName,
+        int? awardTypeId,
+        CancellationToken ct)
+    {
+        if (awardId.HasValue)
+        {
+            var existingAward = await _context.Awards
+                .FirstOrDefaultAsync(a => a.Id == awardId.Value, ct);
+
+            return existingAward is null
+                ? (Result.Failure(new[] { "El premio seleccionado no existe." }), null)
+                : (Result.Success(), existingAward);
+        }
+
+        if (string.IsNullOrWhiteSpace(newAwardName))
+            return (Result.Failure(new[] { "Debes seleccionar un premio existente o escribir uno nuevo." }), null);
+
+        if (!awardTypeId.HasValue)
+            return (Result.Failure(new[] { "Debes indicar el tipo del nuevo premio." }), null);
+
+        if (!await _context.AwardTypes.AnyAsync(t => t.Id == awardTypeId.Value, ct))
+            return (Result.Failure(new[] { "Tipo de premio inválido." }), null);
+
+        var normalizedName = NormalizeAwardName(newAwardName);
+        var normalizedLower = normalizedName.ToLower();
+
+        var existingByName = await _context.Awards
+            .FirstOrDefaultAsync(a =>
+                a.AwardTypeId == awardTypeId.Value &&
+                a.Name.ToLower() == normalizedLower, ct);
+
+        if (existingByName is not null)
+            return (Result.Success(), existingByName);
+
+        var newAward = new Award
+        {
+            Name = normalizedName,
+            AwardTypeId = awardTypeId.Value,
+        };
+
+        _context.Awards.Add(newAward);
+        await _context.SaveChangesAsync(ct);
+
+        return (Result.Success(), newAward);
+    }
+
+    private static string NormalizeAwardName(string awardName)
+        => awardName.Trim();
+
+    private static string NormalizeAwardKey(string awardName)
+        => NormalizeAwardName(awardName).ToUpperInvariant();
 }

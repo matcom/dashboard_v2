@@ -41,12 +41,13 @@ public sealed class AnexoPremiosReport : IDocumentReport
                 Numero = index + 1,
                 TipoPremio = type.Name,
                 Premios = type.Awards
-                    .OrderBy(a => a.Name)
-                    .ThenBy(a => a.Id)
-                    .Select(a => new AnexoPremioDetalleRowDto
+                    .GroupBy(a => NormalizeAwardKey(a.Name))
+                    .OrderBy(group => group.Min(a => a.Name))
+                    .ThenBy(group => group.Min(a => a.Id))
+                    .Select(group => new AnexoPremioDetalleRowDto
                     {
-                        Titulo = a.Name,
-                        Autores = BuildAuthorsSummary(a),
+                        Titulo = group.OrderBy(a => a.Id).Select(a => a.Name).First(),
+                        Autores = BuildAuthorsSummary(group.SelectMany(a => a.UserAwardeds)),
                     })
                     .ToList(),
             })
@@ -58,9 +59,9 @@ public sealed class AnexoPremiosReport : IDocumentReport
         };
     }
 
-    private static string BuildAuthorsSummary(Award award)
+    private static string BuildAuthorsSummary(IEnumerable<UserAwarded> userAwardeds)
     {
-        return string.Join(", ", award.UserAwardeds
+        return string.Join(", ", userAwardeds
             .Where(ua => ua.User is not null)
             .Select(ua => BuildUserDisplayName(ua.User))
             .Where(name => !string.IsNullOrWhiteSpace(name))
@@ -74,6 +75,9 @@ public sealed class AnexoPremiosReport : IDocumentReport
             ? $"{user.UserName} {user.UserLastName1}".Trim()
             : $"{user.UserName} {user.UserLastName1} {user.UserLastName2}".Trim();
     }
+
+    private static string NormalizeAwardKey(string awardName)
+        => awardName.Trim().ToUpperInvariant();
 }
 
 /// <summary>

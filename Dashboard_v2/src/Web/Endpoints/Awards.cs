@@ -14,7 +14,19 @@ public class Awards : EndpointGroupBase
         groupBuilder.MapGet("", GetMyAwards)
             .RequireAuthorization(p => p.RequireRole("Profesor"))
             .WithName("GetMyAwards")
-            .Produces<List<AwardDto>>(200);
+            .Produces<List<AwardWithGrantingsDto>>(200);
+
+        // GET /api/Awards/catalogo — catálogo reutilizable de premios
+        groupBuilder.MapGet("catalogo", GetCatalog)
+            .RequireAuthorization(p => p.RequireRole("Profesor"))
+            .WithName("GetAwardCatalog")
+            .Produces<List<AwardCatalogDto>>(200);
+
+        // GET /api/Awards/todas — todas los premios (Superuser)
+        groupBuilder.MapGet("todas", GetAllAwards)
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .WithName("GetAllAwards")
+            .Produces<List<AwardWithGrantingsDto>>(200);
 
         // POST /api/Awards
         groupBuilder.MapPost("", CreateAward)
@@ -42,6 +54,18 @@ public class Awards : EndpointGroupBase
     private async Task<IResult> GetMyAwards(IAwardService service)
     {
         var awards = await service.GetMyAwardsAsync();
+        return Results.Ok(awards);
+    }
+
+    private async Task<IResult> GetCatalog(IAwardService service)
+    {
+        var awards = await service.GetCatalogAsync();
+        return Results.Ok(awards);
+    }
+
+    private async Task<IResult> GetAllAwards(IAwardService service)
+    {
+        var awards = await service.GetAllAwardsAsync();
         return Results.Ok(awards);
     }
 
@@ -75,4 +99,3 @@ public class Awards : EndpointGroupBase
         return Results.Ok(new { message = "Premio eliminado." });
     }
 }
-
