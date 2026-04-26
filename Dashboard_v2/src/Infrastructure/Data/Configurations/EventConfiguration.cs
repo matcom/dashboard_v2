@@ -11,7 +11,30 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.ToTable("Events");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Name).IsRequired().HasMaxLength(500);
-        builder.Property(e => e.Institutions).HasColumnType("text[]");
+
+        // Relación N:N con Institutions (evento organiza 1..N instituciones)
+        builder.HasMany(e => e.Institutions)
+            .WithMany(i => i.Events)
+            .UsingEntity<Dictionary<string, object>>(
+                "EventInstitution",
+                right => right
+                    .HasOne<Institution>()
+                    .WithMany()
+                    .HasForeignKey("InstitutionId")
+                    .HasPrincipalKey(i => i.Id)
+                    .OnDelete(DeleteBehavior.Cascade),
+                left => left
+                    .HasOne<Event>()
+                    .WithMany()
+                    .HasForeignKey("EventId")
+                    .HasPrincipalKey(e => e.Id)
+                    .OnDelete(DeleteBehavior.Cascade),
+                join =>
+                {
+                    join.ToTable("EventsInstitutions");
+                    join.HasKey("EventId", "InstitutionId");
+                    join.Property<string>("InstitutionId").HasMaxLength(450);
+                });
 
         builder.HasOne(e => e.Country)
             .WithMany(c => c.Events)

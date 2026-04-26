@@ -6,7 +6,7 @@ public class Event
     public string Name { get; set; } = default!;
 
     /// <summary>Instituciones organizadoras.</summary>
-    public List<string> Institutions { get; set; } = [];
+    public ICollection<Institution> Institutions { get; set; } = new List<Institution>();
 
     // País donde se desarrolló el evento (1 país por evento según el modelo)
     public int CountryId { get; set; }

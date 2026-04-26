@@ -27,6 +27,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<JournalPublication> JournalPublications => Set<JournalPublication>();
     public DbSet<JournalGroup1Publication> JournalGroup1Publications => Set<JournalGroup1Publication>();
     public DbSet<Universidad> Universidades => Set<Universidad>();
+    public DbSet<Institution> Institutions => Set<Institution>();
     public DbSet<Area> Areas => Set<Area>();
     public DbSet<GrupoDeInvestigacion> GruposDeInvestigacion => Set<GrupoDeInvestigacion>();
     public DbSet<GrupoEstudiantil> GruposEstudiantiles => Set<GrupoEstudiantil>();
@@ -34,6 +35,11 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AreaDelConocimiento> AreasDelConocimiento => Set<AreaDelConocimiento>();
     public DbSet<Clasificacion> Clasificaciones => Set<Clasificacion>();
     public DbSet<Proyecto> Proyectos => Set<Proyecto>();
+    public DbSet<Registro> Registros => Set<Registro>();
+    public DbSet<Norma> Normas => Set<Norma>();
+    public DbSet<TipoProductoComercializado> TipoProductosComercializados => Set<TipoProductoComercializado>();
+    public DbSet<ProductoComercializado> ProductosComercializados => Set<ProductoComercializado>();
+    public DbSet<Patente> Patentes => Set<Patente>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

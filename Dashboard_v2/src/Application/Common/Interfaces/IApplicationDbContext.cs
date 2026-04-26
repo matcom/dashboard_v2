@@ -23,6 +23,7 @@ public interface IApplicationDbContext
     DbSet<JournalPublication> JournalPublications { get; }
     DbSet<JournalGroup1Publication> JournalGroup1Publications { get; }
     DbSet<Universidad> Universidades { get; }
+    DbSet<Institution> Institutions { get; }
     DbSet<Area> Areas { get; }
     DbSet<GrupoDeInvestigacion> GruposDeInvestigacion { get; }
     DbSet<GrupoEstudiantil> GruposEstudiantiles { get; }
@@ -30,6 +31,11 @@ public interface IApplicationDbContext
     DbSet<AreaDelConocimiento> AreasDelConocimiento { get; }
     DbSet<Clasificacion> Clasificaciones { get; }
     DbSet<Proyecto> Proyectos { get; }
+    DbSet<Registro> Registros { get; }
+    DbSet<Norma> Normas { get; }
+    DbSet<TipoProductoComercializado> TipoProductosComercializados { get; }
+    DbSet<ProductoComercializado> ProductosComercializados { get; }
+    DbSet<Patente> Patentes { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
