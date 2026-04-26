@@ -39,14 +39,14 @@ const AppRoutes = [
   {
     path: '/awards',
     element: <AwardsPage />,
-    pageTitle: 'Mis premios',
-    profesorOnly: true,
+    pageTitle: 'Premios',
+    profesorOrAdminOnly: true,
   },
   {
     path: '/events',
     element: <EventsPage />,
-    pageTitle: 'Mis eventos y presentaciones',
-    profesorOnly: true,
+    pageTitle: 'Eventos y presentaciones',
+    profesorOrAdminOnly: true,
   },
   {
     path: '/universidades',

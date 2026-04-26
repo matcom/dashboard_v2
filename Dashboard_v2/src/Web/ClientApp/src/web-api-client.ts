@@ -738,7 +738,7 @@ export class AwardsClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getMyAwards(): Promise<AwardDto[]> {
+    getMyAwards(): Promise<AwardWithGrantingsDto[]> {
         let url_ = this.baseUrl + "/api/Awards";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -754,7 +754,7 @@ export class AwardsClient {
         });
     }
 
-    protected processGetMyAwards(response: Response): Promise<AwardDto[]> {
+    protected processGetMyAwards(response: Response): Promise<AwardWithGrantingsDto[]> {
         followIfLoginRedirect(response);
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
@@ -765,7 +765,7 @@ export class AwardsClient {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(AwardDto.fromJS(item));
+                    result200!.push(AwardWithGrantingsDto.fromJS(item));
             }
             else {
                 result200 = null as any;
@@ -777,7 +777,7 @@ export class AwardsClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<AwardDto[]>(null as any);
+        return Promise.resolve<AwardWithGrantingsDto[]>(null as any);
     }
 
     createAward(body: CreateAwardRequest): Promise<void> {
@@ -820,6 +820,90 @@ export class AwardsClient {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    getAwardCatalog(): Promise<AwardCatalogDto[]> {
+        let url_ = this.baseUrl + "/api/Awards/catalogo";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAwardCatalog(_response);
+        });
+    }
+
+    protected processGetAwardCatalog(response: Response): Promise<AwardCatalogDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AwardCatalogDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AwardCatalogDto[]>(null as any);
+    }
+
+    getAllAwards(): Promise<AwardWithGrantingsDto[]> {
+        let url_ = this.baseUrl + "/api/Awards/todas";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAllAwards(_response);
+        });
+    }
+
+    protected processGetAllAwards(response: Response): Promise<AwardWithGrantingsDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AwardWithGrantingsDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AwardWithGrantingsDto[]>(null as any);
     }
 
     updateAward(id: number, body: UpdateAwardRequest): Promise<void> {
@@ -2289,6 +2373,48 @@ export class PresentationsClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getAllPresentations(): Promise<PresentationDto[]> {
+        let url_ = this.baseUrl + "/api/Presentations/all";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAllPresentations(_response);
+        });
+    }
+
+    protected processGetAllPresentations(response: Response): Promise<PresentationDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PresentationDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PresentationDto[]>(null as any);
+    }
+
     updatePresentation(id: number, body: UpdatePresentationRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Presentations/{id}";
         if (id === undefined || id === null)
@@ -3739,7 +3865,7 @@ export class PublicationsClient {
         return Promise.resolve<PublicationTypeDto[]>(null as any);
     }
 
-    getTodasLasPublicaciones(): Promise<PublicacionResumenDto[]> {
+    getTodasLasPublicaciones(): Promise<PublicationDto[]> {
         let url_ = this.baseUrl + "/api/Publications/todas";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3755,7 +3881,7 @@ export class PublicationsClient {
         });
     }
 
-    protected processGetTodasLasPublicaciones(response: Response): Promise<PublicacionResumenDto[]> {
+    protected processGetTodasLasPublicaciones(response: Response): Promise<PublicationDto[]> {
         followIfLoginRedirect(response);
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
@@ -3766,7 +3892,7 @@ export class PublicationsClient {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(PublicacionResumenDto.fromJS(item));
+                    result200!.push(PublicationDto.fromJS(item));
             }
             else {
                 result200 = null as any;
@@ -3778,7 +3904,7 @@ export class PublicationsClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<PublicacionResumenDto[]>(null as any);
+        return Promise.resolve<PublicationDto[]>(null as any);
     }
 
     getMyPublications(): Promise<PublicationDto[]> {
@@ -5303,15 +5429,165 @@ export interface IPotentialAuthorMatchDto {
     name?: string;
 }
 
-export class AwardDto implements IAwardDto {
+export class AwardWithGrantingsDto implements IAwardWithGrantingsDto {
+    awardId?: number;
+    awardName?: string;
+    awardTypeId?: number;
+    awardTypeName?: string;
+    grantings?: GrantingDto[];
+
+    constructor(data?: IAwardWithGrantingsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.awardId = _data["awardId"];
+            this.awardName = _data["awardName"];
+            this.awardTypeId = _data["awardTypeId"];
+            this.awardTypeName = _data["awardTypeName"];
+            if (Array.isArray(_data["grantings"])) {
+                this.grantings = [] as any;
+                for (let item of _data["grantings"])
+                    this.grantings!.push(GrantingDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): AwardWithGrantingsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AwardWithGrantingsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["awardId"] = this.awardId;
+        data["awardName"] = this.awardName;
+        data["awardTypeId"] = this.awardTypeId;
+        data["awardTypeName"] = this.awardTypeName;
+        if (Array.isArray(this.grantings)) {
+            data["grantings"] = [];
+            for (let item of this.grantings)
+                data["grantings"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IAwardWithGrantingsDto {
+    awardId?: number;
+    awardName?: string;
+    awardTypeId?: number;
+    awardTypeName?: string;
+    grantings?: GrantingDto[];
+}
+
+export class GrantingDto implements IGrantingDto {
+    awardedAt?: Date;
+    recipients?: RecipientDto[];
+
+    constructor(data?: IGrantingDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
+            if (Array.isArray(_data["recipients"])) {
+                this.recipients = [] as any;
+                for (let item of _data["recipients"])
+                    this.recipients!.push(RecipientDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): GrantingDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new GrantingDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
+        if (Array.isArray(this.recipients)) {
+            data["recipients"] = [];
+            for (let item of this.recipients)
+                data["recipients"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IGrantingDto {
+    awardedAt?: Date;
+    recipients?: RecipientDto[];
+}
+
+export class RecipientDto implements IRecipientDto {
+    id?: number;
+    userId?: string;
+    userDisplayName?: string;
+
+    constructor(data?: IRecipientDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.userId = _data["userId"];
+            this.userDisplayName = _data["userDisplayName"];
+        }
+    }
+
+    static fromJS(data: any): RecipientDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RecipientDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["userId"] = this.userId;
+        data["userDisplayName"] = this.userDisplayName;
+        return data;
+    }
+}
+
+export interface IRecipientDto {
+    id?: number;
+    userId?: string;
+    userDisplayName?: string;
+}
+
+export class AwardCatalogDto implements IAwardCatalogDto {
     id?: number;
     awardName?: string;
     awardTypeId?: number;
     awardTypeName?: string;
-    year?: number;
-    awardedAt?: Date;
 
-    constructor(data?: IAwardDto) {
+    constructor(data?: IAwardCatalogDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -5326,14 +5602,12 @@ export class AwardDto implements IAwardDto {
             this.awardName = _data["awardName"];
             this.awardTypeId = _data["awardTypeId"];
             this.awardTypeName = _data["awardTypeName"];
-            this.year = _data["year"];
-            this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
         }
     }
 
-    static fromJS(data: any): AwardDto {
+    static fromJS(data: any): AwardCatalogDto {
         data = typeof data === 'object' ? data : {};
-        let result = new AwardDto();
+        let result = new AwardCatalogDto();
         result.init(data);
         return result;
     }
@@ -5344,25 +5618,21 @@ export class AwardDto implements IAwardDto {
         data["awardName"] = this.awardName;
         data["awardTypeId"] = this.awardTypeId;
         data["awardTypeName"] = this.awardTypeName;
-        data["year"] = this.year;
-        data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
         return data;
     }
 }
 
-export interface IAwardDto {
+export interface IAwardCatalogDto {
     id?: number;
     awardName?: string;
     awardTypeId?: number;
     awardTypeName?: string;
-    year?: number;
-    awardedAt?: Date;
 }
 
 export class CreateAwardRequest implements ICreateAwardRequest {
-    awardName?: string;
-    awardTypeId?: number;
-    year?: number;
+    awardId?: number | undefined;
+    newAwardName?: string | undefined;
+    awardTypeId?: number | undefined;
     awardedAt?: Date;
 
     constructor(data?: ICreateAwardRequest) {
@@ -5376,9 +5646,9 @@ export class CreateAwardRequest implements ICreateAwardRequest {
 
     init(_data?: any) {
         if (_data) {
-            this.awardName = _data["awardName"];
+            this.awardId = _data["awardId"];
+            this.newAwardName = _data["newAwardName"];
             this.awardTypeId = _data["awardTypeId"];
-            this.year = _data["year"];
             this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
         }
     }
@@ -5392,25 +5662,25 @@ export class CreateAwardRequest implements ICreateAwardRequest {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["awardName"] = this.awardName;
+        data["awardId"] = this.awardId;
+        data["newAwardName"] = this.newAwardName;
         data["awardTypeId"] = this.awardTypeId;
-        data["year"] = this.year;
         data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
         return data;
     }
 }
 
 export interface ICreateAwardRequest {
-    awardName?: string;
-    awardTypeId?: number;
-    year?: number;
+    awardId?: number | undefined;
+    newAwardName?: string | undefined;
+    awardTypeId?: number | undefined;
     awardedAt?: Date;
 }
 
 export class UpdateAwardRequest implements IUpdateAwardRequest {
-    awardName?: string;
-    awardTypeId?: number;
-    year?: number;
+    awardId?: number | undefined;
+    newAwardName?: string | undefined;
+    awardTypeId?: number | undefined;
     awardedAt?: Date;
 
     constructor(data?: IUpdateAwardRequest) {
@@ -5424,9 +5694,9 @@ export class UpdateAwardRequest implements IUpdateAwardRequest {
 
     init(_data?: any) {
         if (_data) {
-            this.awardName = _data["awardName"];
+            this.awardId = _data["awardId"];
+            this.newAwardName = _data["newAwardName"];
             this.awardTypeId = _data["awardTypeId"];
-            this.year = _data["year"];
             this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
         }
     }
@@ -5440,18 +5710,18 @@ export class UpdateAwardRequest implements IUpdateAwardRequest {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["awardName"] = this.awardName;
+        data["awardId"] = this.awardId;
+        data["newAwardName"] = this.newAwardName;
         data["awardTypeId"] = this.awardTypeId;
-        data["year"] = this.year;
         data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
         return data;
     }
 }
 
 export interface IUpdateAwardRequest {
-    awardName?: string;
-    awardTypeId?: number;
-    year?: number;
+    awardId?: number | undefined;
+    newAwardName?: string | undefined;
+    awardTypeId?: number | undefined;
     awardedAt?: Date;
 }
 
@@ -7629,62 +7899,6 @@ export interface IPublicationTypeDto {
     name?: string;
 }
 
-export class PublicacionResumenDto implements IPublicacionResumenDto {
-    id?: string;
-    titulo?: string;
-    urlDoi?: string | undefined;
-    tipo?: number;
-    proyectoId?: string | undefined;
-    proyectoTitulo?: string | undefined;
-
-    constructor(data?: IPublicacionResumenDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.titulo = _data["titulo"];
-            this.urlDoi = _data["urlDoi"];
-            this.tipo = _data["tipo"];
-            this.proyectoId = _data["proyectoId"];
-            this.proyectoTitulo = _data["proyectoTitulo"];
-        }
-    }
-
-    static fromJS(data: any): PublicacionResumenDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new PublicacionResumenDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["titulo"] = this.titulo;
-        data["urlDoi"] = this.urlDoi;
-        data["tipo"] = this.tipo;
-        data["proyectoId"] = this.proyectoId;
-        data["proyectoTitulo"] = this.proyectoTitulo;
-        return data;
-    }
-}
-
-export interface IPublicacionResumenDto {
-    id?: string;
-    titulo?: string;
-    urlDoi?: string | undefined;
-    tipo?: number;
-    proyectoId?: string | undefined;
-    proyectoTitulo?: string | undefined;
-}
-
 export class PublicationDto implements IPublicationDto {
     id?: string;
     title?: string;
@@ -7695,6 +7909,7 @@ export class PublicationDto implements IPublicationDto {
     indexedPublication?: IndexedPublicationDto | undefined;
     journalPublication?: JournalPublicationDto | undefined;
     proyectoId?: string | undefined;
+    proyectoTitulo?: string | undefined;
 
     constructor(data?: IPublicationDto) {
         if (data) {
@@ -7720,6 +7935,7 @@ export class PublicationDto implements IPublicationDto {
             this.indexedPublication = _data["indexedPublication"] ? IndexedPublicationDto.fromJS(_data["indexedPublication"]) : undefined as any;
             this.journalPublication = _data["journalPublication"] ? JournalPublicationDto.fromJS(_data["journalPublication"]) : undefined as any;
             this.proyectoId = _data["proyectoId"];
+            this.proyectoTitulo = _data["proyectoTitulo"];
         }
     }
 
@@ -7745,6 +7961,7 @@ export class PublicationDto implements IPublicationDto {
         data["indexedPublication"] = this.indexedPublication ? this.indexedPublication.toJSON() : undefined as any;
         data["journalPublication"] = this.journalPublication ? this.journalPublication.toJSON() : undefined as any;
         data["proyectoId"] = this.proyectoId;
+        data["proyectoTitulo"] = this.proyectoTitulo;
         return data;
     }
 }
@@ -7759,6 +7976,7 @@ export interface IPublicationDto {
     indexedPublication?: IndexedPublicationDto | undefined;
     journalPublication?: JournalPublicationDto | undefined;
     proyectoId?: string | undefined;
+    proyectoTitulo?: string | undefined;
 }
 
 export class AuthorDto implements IAuthorDto {

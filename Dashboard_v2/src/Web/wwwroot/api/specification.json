@@ -543,7 +543,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AwardDto"
+                    "$ref": "#/components/schemas/AwardWithGrantingsDto"
                   }
                 }
               }
@@ -578,6 +578,52 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Awards/catalogo": {
+      "get": {
+        "tags": [
+          "Awards"
+        ],
+        "operationId": "GetAwardCatalog",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AwardCatalogDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Awards/todas": {
+      "get": {
+        "tags": [
+          "Awards"
+        ],
+        "operationId": "GetAllAwards",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AwardWithGrantingsDto"
+                  }
                 }
               }
             }
@@ -1698,6 +1744,29 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Presentations/all": {
+      "get": {
+        "tags": [
+          "Presentations"
+        ],
+        "operationId": "GetAllPresentations",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PresentationDto"
+                  }
                 }
               }
             }
@@ -2966,7 +3035,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/PublicacionResumenDto"
+                    "$ref": "#/components/schemas/PublicationDto"
                   }
                 }
               }
@@ -3893,7 +3962,65 @@
           }
         }
       },
-      "AwardDto": {
+      "AwardWithGrantingsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "awardId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "awardName": {
+            "type": "string"
+          },
+          "awardTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "awardTypeName": {
+            "type": "string"
+          },
+          "grantings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GrantingDto"
+            }
+          }
+        }
+      },
+      "GrantingDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "awardedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipientDto"
+            }
+          }
+        }
+      },
+      "RecipientDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "userDisplayName": {
+            "type": "string"
+          }
+        }
+      },
+      "AwardCatalogDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -3910,14 +4037,6 @@
           },
           "awardTypeName": {
             "type": "string"
-          },
-          "year": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "awardedAt": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -3925,16 +4044,19 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "awardName": {
-            "type": "string"
+          "awardId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "newAwardName": {
+            "type": "string",
+            "nullable": true
           },
           "awardTypeId": {
             "type": "integer",
-            "format": "int32"
-          },
-          "year": {
-            "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
           },
           "awardedAt": {
             "type": "string",
@@ -3946,16 +4068,19 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "awardName": {
-            "type": "string"
+          "awardId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "newAwardName": {
+            "type": "string",
+            "nullable": true
           },
           "awardTypeId": {
             "type": "integer",
-            "format": "int32"
-          },
-          "year": {
-            "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
           },
           "awardedAt": {
             "type": "string",
@@ -4946,34 +5071,6 @@
           }
         }
       },
-      "PublicacionResumenDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          },
-          "urlDoi": {
-            "type": "string",
-            "nullable": true
-          },
-          "tipo": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "proyectoId": {
-            "type": "string",
-            "nullable": true
-          },
-          "proyectoTitulo": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
       "PublicationDto": {
         "type": "object",
         "additionalProperties": false,
@@ -5018,6 +5115,10 @@
             ]
           },
           "proyectoId": {
+            "type": "string",
+            "nullable": true
+          },
+          "proyectoTitulo": {
             "type": "string",
             "nullable": true
           }

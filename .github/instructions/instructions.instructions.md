@@ -15,8 +15,7 @@ applyTo: '**/*.cs' # Se aplica a todos los archivos C# del proyecto
 - **.NET 10**: Framework principal (C#)
 - **Entity Framework Core**: ORM para PostgreSQL
 - **PostgreSQL**: Base de datos relacional
-- **MediatR**: Implementación de CQRS
-- **FluentValidation**: Validación de comandos/queries
+- **FluentValidation**: Validación de DTOs/requests
 - **NSwag**: Generación de clientes API TypeScript para React
 
 ### Frontend
@@ -44,13 +43,13 @@ Este proyecto sigue **Clean Architecture** con las siguientes capas:
 
 ### 2. **Application** (`src/Application/`)
 - **Propósito**: Casos de uso y lógica de aplicación
-- **Contenido**: Commands, Queries, DTOs, Interfaces, Validators
+- **Contenido**: Servicios de aplicación (interfaces y/o implementaciones), DTOs, Interfaces, Validators
 - **Reglas**:
   - Solo depende de Domain
-  - Usa MediatR para CQRS (Commands y Queries)
-  - Los handlers implementan `IRequestHandler<TRequest, TResponse>`
+  - Expone casos de uso a través de servicios de aplicación (p. ej. `IEventService`); evita introducir nuevos handlers MediatR para Commands/Queries.
+  - Los casos de uso se implementan como métodos en servicios y retornan DTOs/Resultados
   - Validadores con FluentValidation
-  - Define interfaces de repositorios/servicios (implementados en Infrastructure)
+  - Define interfaces de repositorios/servicios (implementados en Infrastructure o Application según convención)
 
 ### 3. **Infrastructure** (`src/Infrastructure/`)
 - **Propósito**: Implementaciones técnicas (BD, servicios externos, etc.)
@@ -68,7 +67,7 @@ Este proyecto sigue **Clean Architecture** con las siguientes capas:
 - **Reglas**:
   - Endpoints usan Minimal APIs o Controllers
   - NO debe contener lógica de negocio
-  - Usa MediatR para invocar Commands/Queries
+  - Consume servicios de Application (interfaces como `IEventService`) vía inyección de dependencias
   - Validación en la capa de Application, no aquí
 
 ## Convenciones de Código
@@ -78,22 +77,22 @@ Organizar por feature vertical (no por tipo):
 ```
 Application/
   [NombreFeature]/           # Reemplazar con el nombre real de tu feature
-    Commands/
-      Create[Entity]/
-        Create[Entity]Command.cs
-        Create[Entity]CommandHandler.cs
-        Create[Entity]CommandValidator.cs
-    Queries/
-      Get[Entity]/
-        Get[Entity]Query.cs
-        Get[Entity]QueryHandler.cs
+    Services/
+      I[Feature]Service.cs
+      [Feature]Service.cs
+    DTOs/
+      Create[Entity]Request.cs
+      [Entity]Dto.cs
+    Validators/
+      Create[Entity]RequestValidator.cs
 ```
 
 ### Patrones a Seguir
 
-1. **CQRS con MediatR**
-   - Commands: modifican estado, no retornan datos
-   - Queries: solo lectura, retornan datos
+1. **Servicios de Aplicación (Application Services)**
+  - Services: encapsulan casos de uso y exponen métodos asincrónicos que retornan DTOs/Resultados
+  - Web invoca las interfaces de Application; evita lógica de dominio en Web
+  - MediatR se utiliza únicamente para publicación de eventos de dominio
 
 2. **Repository Pattern**
    - Interfaces en Application
@@ -182,11 +181,10 @@ dotnet ef migrations remove --project src/Infrastructure --startup-project src/W
    - Generar migración: `dotnet ef migrations add NombreFeature`
    - Aplicar migración: `dotnet ef database update`
 3. **Application**: 
-   - Crear Command o Query
-   - Crear Handler
-   - Crear Validator
-   - Crear DTO de respuesta
-4. **Web**: Crear endpoint que llame al Command/Query vía MediatR
+  - Definir interfaz de servicio y métodos (p.ej. `I[Feature]Service`)
+  - Implementar el servicio (en Application o Infrastructure según convención)
+  - Crear DTOs y Validators
+4. **Web**: Crear endpoint que llame al servicio de Application vía inyección de dependencias
 5. **Tests**: Crear tests en cada capa según corresponda
 
 ## Reglas Importantes
@@ -201,7 +199,7 @@ dotnet ef migrations remove --project src/Infrastructure --startup-project src/W
 
 ✅ **SIEMPRE hacer:**
 - Respetar las dependencias entre capas (Domain ← Application ← Infrastructure/Web)
-- Usar MediatR para separar concerns
+- Usar servicios de Application (interfaces) para separar concerns; MediatR sólo para publicación de eventos de dominio
 - Validar en Application con FluentValidation
 - Escribir tests para cada capa
 - Seguir la estructura de carpetas por feature
@@ -234,14 +232,14 @@ Las implementaciones son **sustituibles por su interfaz** sin alterar el comport
 ### I — Interface Segregation Principle
 Las interfaces son **específicas al cliente que las usa**, no monolíticas.
 - Preferir varias interfaces pequeñas y cohesivas sobre una grande.
-- `IApplicationDbContext` es una excepción aceptada (patrón EF Core + CQRS), pero los servicios de dominio deben tener interfaces granulares.
+- `IApplicationDbContext` es una excepción aceptada (patrón EF Core + Application Services), pero los servicios de dominio deben tener interfaces granulares.
 - No inyectar `IApplicationDbContext` completo en código que solo necesita uno o dos `DbSet`.
 
 ### D — Dependency Inversion Principle
 Los módulos de alto nivel dependen de **abstracciones**, no de implementaciones concretas.
 - Toda dependencia en Application debe ser una interfaz definida en `Application/Common/Interfaces/`.
 - Infrastructure implementa las interfaces; nunca al revés.
-- Web solo depende de `ISender` (MediatR) y los contratos de Application.
+-- Web solo depende de los contratos de Application (interfaces de servicios) y no de implementaciones concretas.
 
 ## Comandos Útiles
 
@@ -295,7 +293,7 @@ Después de implementar cada sección, feature o decisión técnica relevante de
 Crea un ADR cuando tomes una decisión que afecte:
 - La arquitectura de una capa o módulo nuevo (e.g., cómo modelar una jerarquía de entidades).
 - El esquema de base de datos de una entidad relevante (estrategia de herencia, relaciones N:N, etc.).
-- Una tecnología, patrón o enfoque elegido entre varias alternativas (e.g., TPH vs. TPT, CQRS por tipo vs. monolítico).
+- Una tecnología, patrón o enfoque elegido entre varias alternativas (e.g., TPH vs. TPT, Application Services vs. CQRS).
 - Una convención de seguridad o autenticación.
 
 ### Formato obligatorio (seguir el de los ADRs existentes)
