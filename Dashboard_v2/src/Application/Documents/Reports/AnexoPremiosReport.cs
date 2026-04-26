@@ -44,11 +44,17 @@ public sealed class AnexoPremiosReport : IDocumentReport
                     .GroupBy(a => NormalizeAwardKey(a.Name))
                     .OrderBy(group => group.Min(a => a.Name))
                     .ThenBy(group => group.Min(a => a.Id))
-                    .Select(group => new AnexoPremioDetalleRowDto
+                    .Select(group =>
                     {
-                        Titulo = group.OrderBy(a => a.Id).Select(a => a.Name).First(),
-                        Autores = BuildAuthorsSummary(group.SelectMany(a => a.UserAwardeds)),
+                        var titulo = group.OrderBy(a => a.Id).Select(a => a.Name).First();
+                        var autores = BuildAuthorsSummary(group.SelectMany(a => a.UserAwardeds));
+                        return new AnexoPremioDetalleRowDto
+                        {
+                            Titulo = titulo,
+                            Autores = autores,
+                        };
                     })
+                    .Where(det => !string.IsNullOrWhiteSpace(det.Autores))
                     .ToList(),
             })
             .ToList();
