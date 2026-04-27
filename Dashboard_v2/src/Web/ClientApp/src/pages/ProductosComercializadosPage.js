@@ -5,6 +5,7 @@ import {
   Modal, ModalHeader, ModalBody, ModalFooter,
   Form, FormGroup, Label, Input, InputGroup,
 } from 'reactstrap';
+import { useAuth } from '../contexts/AuthContext';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -38,6 +39,11 @@ export default function ProductosComercializadosPage() {
   const [newInstitutionInput, setNewInstitutionInput] = useState('');
   const [newInstitutionLoading, setNewInstitutionLoading] = useState(false);
   const [newInstitutionError, setNewInstitutionError] = useState('');
+
+  const { user } = useAuth();
+  const canGenerateAnexo = user?.role === 'Superuser' || user?.role === 'Jefe_de_Grupo_de_investigacion';
+  const [generatingAnexo, setGeneratingAnexo] = useState(false);
+  const [anexoError, setAnexoError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -86,16 +92,50 @@ export default function ProductosComercializadosPage() {
     }
   }
 
+  async function handleGenerateAnexo() {
+    setGeneratingAnexo(true);
+    setAnexoError('');
+    try {
+      const response = await fetch('/api/Documents/anexo-registros', { credentials: 'include' });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const message = data?.error ?? data?.title ?? 'No se pudo generar el anexo.';
+        throw new Error(message);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'anexo-registros.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      setAnexoError(e.message);
+    } finally {
+      setGeneratingAnexo(false);
+    }
+  }
+
   if (loading) return <div className="d-flex justify-content-center mt-5"><Spinner color="primary" /></div>;
 
   return (
     <>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="mb-0">Productos comercializados</h2>
-        <Button color="primary" onClick={openCreate}>+ Nuevo producto</Button>
+        <div>
+          {canGenerateAnexo && (
+            <Button color="success" onClick={handleGenerateAnexo} disabled={generatingAnexo} className="me-2">
+              {generatingAnexo ? <Spinner size="sm" /> : '⬇ Generar Anexo 7'}
+            </Button>
+          )}
+          <Button color="primary" onClick={openCreate}>+ Nuevo producto</Button>
+        </div>
       </div>
 
       {error && <Alert color="danger">{error}</Alert>}
+      {anexoError && <Alert color="danger">{anexoError}</Alert>}
 
       <Card>
         <CardHeader><strong>Productos</strong> <small className="text-muted ms-2">({items.length})</small></CardHeader>
