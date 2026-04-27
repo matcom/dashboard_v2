@@ -8,6 +8,10 @@ import UniversidadesPage from "./pages/UniversidadesPage";
 import AreasPage from "./pages/AreasPage";
 import GruposDeInvestigacionPage from "./pages/GruposDeInvestigacionPage";import MisGruposDeInvestigacionPage from './pages/MisGruposDeInvestigacionPage';import AreasDelConocimientoPage from "./pages/AreasDelConocimientoPage";
 import GruposEstudiantilesPage from "./pages/GruposEstudiantilesPage";
+import RegistrosPage from "./pages/RegistrosPage";
+import NormasPage from "./pages/NormasPage";
+import PatentesPage from "./pages/PatentesPage";
+import ProductosComercializadosPage from "./pages/ProductosComercializadosPage";
 import LineasDeInvestigacionPage from "./pages/LineasDeInvestigacionPage";
 import ProyectosPage from "./pages/ProyectosPage";
 import ClasificacionesPage from "./pages/ClasificacionesPage";
@@ -105,6 +109,30 @@ const AppRoutes = [
     path: '/clasificaciones',
     element: <ClasificacionesPage />,
     pageTitle: 'Clasificaciones de Proyectos',
+    adminOnly: true,
+  },
+  {
+    path: '/registros',
+    element: <RegistrosPage />,
+    pageTitle: 'Registros',
+    adminOnly: true,
+  },
+  {
+    path: '/normas',
+    element: <NormasPage />,
+    pageTitle: 'Normas',
+    adminOnly: true,
+  },
+  {
+    path: '/patentes',
+    element: <PatentesPage />,
+    pageTitle: 'Patentes',
+    adminOnly: true,
+  },
+  {
+    path: '/productos-comercializados',
+    element: <ProductosComercializadosPage />,
+    pageTitle: 'Productos comercializados',
     adminOnly: true,
   },
 ];

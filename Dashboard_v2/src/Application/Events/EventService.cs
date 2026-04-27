@@ -48,7 +48,7 @@ public sealed class EventService : IEventService
                 CountryName = e.Country.Name,
                 EventTypeId = e.EventTypeId,
                 EventTypeName = e.EventType.Name,
-                Institutions = e.Institutions,
+                Institutions = e.Institutions.Select(i => i.Nombre).ToList(),
                 PresentationCount = e.Presentations.Count(p => p.AuthorPresentations.Any(ap => ap.AuthorId == authorId)),
             })
             .OrderBy(e => e.Name)
@@ -67,7 +67,7 @@ public sealed class EventService : IEventService
                 CountryName = e.Country.Name,
                 EventTypeId = e.EventTypeId,
                 EventTypeName = e.EventType.Name,
-                Institutions = e.Institutions,
+                Institutions = e.Institutions.Select(i => i.Nombre).ToList(),
                 PresentationCount = e.Presentations.Count,
             })
             .ToListAsync(ct);
@@ -115,15 +115,31 @@ public sealed class EventService : IEventService
         if (!await _context.EventTypes.AnyAsync(t => t.Id == request.EventType, ct))
             return (Result.Failure(new[] { "Tipo de evento no válido." }), null);
 
+        var institutionNames = request.Institutions
+            .Where(i => !string.IsNullOrWhiteSpace(i))
+            .Select(i => i.Trim())
+            .GroupBy(i => i.ToLower())
+            .Select(g => g.First())
+            .ToList();
+
+        var institutions = new List<Institution>();
+        foreach (var name in institutionNames)
+        {
+            var inst = await _context.Institutions.FirstOrDefaultAsync(x => x.Nombre.ToLower() == name.ToLower(), ct);
+            if (inst == null)
+            {
+                inst = new Institution { Nombre = name };
+                _context.Institutions.Add(inst);
+            }
+            institutions.Add(inst);
+        }
+
         var ev = new Event
         {
             Name = request.Name.Trim(),
             CountryId = request.CountryId,
             EventTypeId = request.EventType,
-            Institutions = request.Institutions
-                .Where(i => !string.IsNullOrWhiteSpace(i))
-                .Select(i => i.Trim())
-                .ToList(),
+            Institutions = institutions,
         };
 
         _context.Events.Add(ev);
@@ -150,10 +166,26 @@ public sealed class EventService : IEventService
         ev.Name = request.Name.Trim();
         ev.CountryId = request.CountryId;
         ev.EventTypeId = request.EventType;
-        ev.Institutions = request.Institutions
+        var updatedNames = request.Institutions
             .Where(i => !string.IsNullOrWhiteSpace(i))
             .Select(i => i.Trim())
+            .GroupBy(i => i.ToLower())
+            .Select(g => g.First())
             .ToList();
+
+        var updatedInstitutions = new List<Institution>();
+        foreach (var name in updatedNames)
+        {
+            var inst = await _context.Institutions.FirstOrDefaultAsync(x => x.Nombre.ToLower() == name.ToLower(), ct);
+            if (inst == null)
+            {
+                inst = new Institution { Nombre = name };
+                _context.Institutions.Add(inst);
+            }
+            updatedInstitutions.Add(inst);
+        }
+
+        ev.Institutions = updatedInstitutions;
 
         await _context.SaveChangesAsync(ct);
         return Result.Success();

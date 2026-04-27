@@ -84,6 +84,11 @@ export default function EventsPage() {
   const [evDeleteError, setEvDeleteError] = useState('');
   // Institution input
   const [instInput, setInstInput] = useState('');
+  // Inline new-institution
+  const [showNewInstitution, setShowNewInstitution] = useState(false);
+  const [newInstitutionInput, setNewInstitutionInput] = useState('');
+  const [newInstitutionLoading, setNewInstitutionLoading] = useState(false);
+  const [newInstitutionError, setNewInstitutionError] = useState('');
   // Inline new-country
   const [newCountryInput, setNewCountryInput] = useState('');
   const [showNewCountry, setShowNewCountry] = useState(false);
@@ -296,6 +301,24 @@ export default function EventsPage() {
       setNewCountryError(e.message);
     } finally {
       setNewCountryLoading(false);
+    }
+  }
+
+  async function handleCreateInstitution() {
+    const name = newInstitutionInput.trim();
+    if (!name) return;
+    setNewInstitutionLoading(true);
+    setNewInstitutionError('');
+    try {
+      const created = await apiFetch('/api/Institutions', { method: 'POST', body: JSON.stringify({ nombre: name }) });
+      // Add created institution's nombre to the event institutions list
+      setEvForm(f => ({ ...f, institutions: [...f.institutions, created.nombre] }));
+      setNewInstitutionInput('');
+      setShowNewInstitution(false);
+    } catch (e) {
+      setNewInstitutionError(e.message);
+    } finally {
+      setNewInstitutionLoading(false);
     }
   }
 
@@ -663,6 +686,30 @@ export default function EventsPage() {
                   <i className="bi bi-plus" />
                 </Button>
               </InputGroup>
+              <div className="d-flex gap-2 align-items-center mt-2">
+                <Button type="button" color="secondary" outline size="sm" style={{ whiteSpace: 'nowrap' }}
+                  onClick={() => { setShowNewInstitution(v => !v); setNewInstitutionError(''); }}>
+                  <i className="bi bi-plus" /> Nuevo
+                </Button>
+              </div>
+              {showNewInstitution && (
+                <div className="mt-2">
+                  {newInstitutionError && <Alert color="danger" className="py-1 px-2 small mb-1">{newInstitutionError}</Alert>}
+                  <InputGroup size="sm">
+                    <Input
+                      placeholder="Nombre de la institución..."
+                      value={newInstitutionInput}
+                      onChange={e => setNewInstitutionInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateInstitution(); } }}
+                      autoFocus
+                    />
+                    <Button type="button" color="primary" onClick={handleCreateInstitution} disabled={newInstitutionLoading}>
+                      {newInstitutionLoading ? <Spinner size="sm" /> : 'Crear'}
+                    </Button>
+                    <Button type="button" color="secondary" outline onClick={() => setShowNewInstitution(false)}>✕</Button>
+                  </InputGroup>
+                </div>
+              )}
             </FormGroup>
           </ModalBody>
           <ModalFooter>

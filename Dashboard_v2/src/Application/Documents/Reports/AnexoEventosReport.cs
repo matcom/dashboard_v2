@@ -174,8 +174,8 @@ public sealed class AnexoEventosReport : IDocumentReport
     private static string BuildInstitutionsSummary(Event eventEntity)
     {
         return string.Join(", ", eventEntity.Institutions
-            .Where(i => !string.IsNullOrWhiteSpace(i))
-            .Select(i => i.Trim())
+            .Where(i => !string.IsNullOrWhiteSpace(i.Nombre))
+            .Select(i => i.Nombre.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(i => i));
     }

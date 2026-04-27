@@ -31,6 +31,7 @@ var templates = new Dictionary<string, (string Descripcion, Action Generate)>(St
     ["premios"] = ("Anexo 5 — Premios", () => new AnexoPremiosTemplate().Generate()),
     ["eventos"] = ("Anexo 3 — Eventos y actividades científicas", () => new AnexoEventosTemplate().Generate()),
     ["proyectos"] = ("Anexo 4 — Proyectos de Investigación", () => new AnexoProyectosTemplate().Generate()),
+    ["registros"] = ("Anexo 7 — Patentes, Registros, Normas y Productos", () => new AnexoRegistrosTemplate().Generate()),
 };
 
 // ─── Modo línea de comandos ────────────────────────────────────────────────

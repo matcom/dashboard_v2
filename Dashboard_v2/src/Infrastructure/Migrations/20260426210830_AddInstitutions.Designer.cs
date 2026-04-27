@@ -3,6 +3,7 @@ using System;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260426210830_AddInstitutions")]
+    partial class AddInstitutions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -415,57 +418,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("LineasDeInvestigacion", (string)null);
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Norma", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("InstitutionId")
-                        .IsRequired()
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InstitutionId");
-
-                    b.ToTable("Normas", (string)null);
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Patente", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<bool>("EsNacional")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("NumeroSolicitudConcesion")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Patentes", (string)null);
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Presentation", b =>
                 {
                     b.Property<int>("Id")
@@ -487,34 +439,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("Presentations", (string)null);
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.ProductoComercializado", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("InstitutionId")
-                        .IsRequired()
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("TipoProductoComercializadoId")
-                        .IsRequired()
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InstitutionId");
-
-                    b.HasIndex("TipoProductoComercializadoId");
-
-                    b.ToTable("ProductosComercializados", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Proyecto", b =>
@@ -596,43 +520,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("Publications", (string)null);
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Registro", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<int>("CountryId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("EsInformatico")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("InstitutionId")
-                        .IsRequired()
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("NumeroCertificado")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CountryId");
-
-                    b.HasIndex("InstitutionId");
-
-                    b.ToTable("Registros", (string)null);
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Resource", b =>
                 {
                     b.Property<int>("Id")
@@ -680,22 +567,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasIndex("Type", "OwnerId");
 
                     b.ToTable("Resources");
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.TipoProductoComercializado", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TipoProductosComercializados", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Universidad", b =>
@@ -1208,17 +1079,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Publication");
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Norma", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Institution", "Institution")
-                        .WithMany("Normas")
-                        .HasForeignKey("InstitutionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Institution");
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Presentation", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.Event", "Event")
@@ -1228,25 +1088,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.ProductoComercializado", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Institution", "Institution")
-                        .WithMany("ProductosComercializados")
-                        .HasForeignKey("InstitutionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.TipoProductoComercializado", "TipoProductoComercializado")
-                        .WithMany("Productos")
-                        .HasForeignKey("TipoProductoComercializadoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Institution");
-
-                    b.Navigation("TipoProductoComercializado");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Proyecto", b =>
@@ -1276,25 +1117,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Proyecto");
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Registro", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Country", "Country")
-                        .WithMany("Registros")
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.Institution", "Institution")
-                        .WithMany("Registros")
-                        .HasForeignKey("InstitutionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Country");
-
-                    b.Navigation("Institution");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Resource", b =>
@@ -1512,8 +1334,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Country", b =>
                 {
                     b.Navigation("Events");
-
-                    b.Navigation("Registros");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Event", b =>
@@ -1524,15 +1344,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.EventType", b =>
                 {
                     b.Navigation("Events");
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Institution", b =>
-                {
-                    b.Navigation("Normas");
-
-                    b.Navigation("ProductosComercializados");
-
-                    b.Navigation("Registros");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.JournalPublication", b =>
@@ -1557,11 +1368,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("IndexedPublication");
 
                     b.Navigation("JournalPublication");
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.TipoProductoComercializado", b =>
-                {
-                    b.Navigation("Productos");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Universidad", b =>
