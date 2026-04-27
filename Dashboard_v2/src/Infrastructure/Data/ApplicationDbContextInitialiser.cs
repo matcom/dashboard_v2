@@ -150,5 +150,16 @@ public class ApplicationDbContextInitialiser
             );
             await _context.SaveChangesAsync();
         }
+
+        // ── Seed Tipos de Producto Comercializado (valores por defecto) ─────────────────────
+        if (!await _context.TipoProductosComercializados.AnyAsync())
+        {
+            _context.TipoProductosComercializados.AddRange(
+                new TipoProductoComercializado { Nombre = "productos" },
+                new TipoProductoComercializado { Nombre = "consultoria" },
+                new TipoProductoComercializado { Nombre = "servicio" }
+            );
+            await _context.SaveChangesAsync();
+        }
     }
 }

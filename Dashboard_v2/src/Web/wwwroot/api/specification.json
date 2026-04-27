@@ -1551,6 +1551,62 @@
         }
       }
     },
+    "/api/Institutions": {
+      "get": {
+        "tags": [
+          "Institutions"
+        ],
+        "operationId": "GetInstitutions",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InstitutionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Institutions"
+        ],
+        "operationId": "CreateInstitution",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInstitutionBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/LineasDeInvestigacion": {
       "get": {
         "tags": [
@@ -1667,6 +1723,294 @@
           "LineasDeInvestigacion"
         ],
         "operationId": "DeleteLineaDeInvestigacion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Normas": {
+      "get": {
+        "tags": [
+          "Normas"
+        ],
+        "operationId": "GetNormas",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NormaDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Normas"
+        ],
+        "operationId": "CreateNorma",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNormaBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Normas/{id}": {
+      "put": {
+        "tags": [
+          "Normas"
+        ],
+        "operationId": "UpdateNorma",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNormaBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Normas"
+        ],
+        "operationId": "DeleteNorma",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Patentes": {
+      "get": {
+        "tags": [
+          "Patentes"
+        ],
+        "operationId": "GetPatentes",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PatenteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Patentes"
+        ],
+        "operationId": "CreatePatente",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePatenteBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Patentes/{id}": {
+      "put": {
+        "tags": [
+          "Patentes"
+        ],
+        "operationId": "UpdatePatente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePatenteBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Patentes"
+        ],
+        "operationId": "DeletePatente",
         "parameters": [
           {
             "name": "id",
@@ -1842,6 +2186,150 @@
             "description": ""
           },
           "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ProductosComercializados": {
+      "get": {
+        "tags": [
+          "ProductosComercializados"
+        ],
+        "operationId": "GetProductosComercializados",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ProductosComercializados"
+        ],
+        "operationId": "CreateProductoComercializado",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductoBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ProductosComercializados/{id}": {
+      "put": {
+        "tags": [
+          "ProductosComercializados"
+        ],
+        "operationId": "UpdateProductoComercializado",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductoBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ProductosComercializados"
+        ],
+        "operationId": "DeleteProductoComercializado",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
             "description": "",
             "content": {
               "application/json": {
@@ -3237,6 +3725,150 @@
         }
       }
     },
+    "/api/Registros": {
+      "get": {
+        "tags": [
+          "Registros"
+        ],
+        "operationId": "GetRegistros",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RegistroDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Registros"
+        ],
+        "operationId": "CreateRegistro",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRegistroBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Registros/{id}": {
+      "put": {
+        "tags": [
+          "Registros"
+        ],
+        "operationId": "UpdateRegistro",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRegistroBody"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Registros"
+        ],
+        "operationId": "DeleteRegistro",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Roles": {
       "get": {
         "tags": [
@@ -3252,6 +3884,29 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/RoleDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/TipoProductosComercializados": {
+      "get": {
+        "tags": [
+          "TipoProductosComercializados"
+        ],
+        "operationId": "GetTipoProductosComercializados",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TipoProductoDto"
                   }
                 }
               }
@@ -4378,6 +5033,27 @@
           }
         }
       },
+      "InstitutionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateInstitutionBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          }
+        }
+      },
       "LineaDeInvestigacionDto": {
         "type": "object",
         "additionalProperties": false,
@@ -4441,6 +5117,105 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "NormaDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "institutionId": {
+            "type": "string"
+          },
+          "institutionNombre": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateNormaBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "institutionId": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateNormaBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "institutionId": {
+            "type": "string"
+          }
+        }
+      },
+      "PatenteDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "numeroSolicitudConcesion": {
+            "type": "string"
+          },
+          "esNacional": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreatePatenteBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "numeroSolicitudConcesion": {
+            "type": "string"
+          },
+          "esNacional": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdatePatenteBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "numeroSolicitudConcesion": {
+            "type": "string"
+          },
+          "esNacional": {
+            "type": "boolean"
           }
         }
       },
@@ -4553,6 +5328,60 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "ProductoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "tipoProductoComercializadoId": {
+            "type": "string"
+          },
+          "tipoProductoComercializadoNombre": {
+            "type": "string"
+          },
+          "institutionId": {
+            "type": "string"
+          },
+          "institutionNombre": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateProductoBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "tipoProductoComercializadoId": {
+            "type": "string"
+          },
+          "institutionId": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateProductoBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "tipoProductoComercializadoId": {
+            "type": "string"
+          },
+          "institutionId": {
+            "type": "string"
           }
         }
       },
@@ -5312,11 +6141,98 @@
           }
         }
       },
+      "RegistroDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "numeroCertificado": {
+            "type": "string"
+          },
+          "esInformatico": {
+            "type": "boolean"
+          },
+          "countryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "countryName": {
+            "type": "string"
+          },
+          "institutionId": {
+            "type": "string"
+          },
+          "institutionNombre": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateRegistroBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "numeroCertificado": {
+            "type": "string"
+          },
+          "esInformatico": {
+            "type": "boolean"
+          },
+          "countryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "institutionId": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateRegistroBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "numeroCertificado": {
+            "type": "string"
+          },
+          "esInformatico": {
+            "type": "boolean"
+          },
+          "countryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "institutionId": {
+            "type": "string"
+          }
+        }
+      },
       "RoleDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "name": {
+            "type": "string"
+          }
+        }
+      },
+      "TipoProductoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
             "type": "string"
           }
         }

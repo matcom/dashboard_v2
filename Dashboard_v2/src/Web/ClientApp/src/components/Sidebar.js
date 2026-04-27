@@ -77,6 +77,10 @@ const adminGroups = [
       { to: '/proyectos', icon: 'bi-kanban', label: 'Proyectos' },
       { to: '/publicaciones', icon: 'bi-journal-text', label: 'Publicaciones' },
       { to: '/clasificaciones', icon: 'bi-tags', label: 'Clasificaciones' },
+          { to: '/registros', icon: 'bi-file-earmark-text', label: 'Registros' },
+          { to: '/normas', icon: 'bi-book', label: 'Normas' },
+          { to: '/patentes', icon: 'bi-lightbulb', label: 'Patentes' },
+          { to: '/productos-comercializados', icon: 'bi-box-seam', label: 'Productos comercializados' },
     ],
   },
   {
