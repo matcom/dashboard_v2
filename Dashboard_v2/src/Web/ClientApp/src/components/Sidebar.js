@@ -81,6 +81,7 @@ const adminGroups = [
           { to: '/normas', icon: 'bi-book', label: 'Normas' },
           { to: '/patentes', icon: 'bi-lightbulb', label: 'Patentes' },
           { to: '/productos-comercializados', icon: 'bi-box-seam', label: 'Productos comercializados' },
+              { to: '/redes', icon: 'bi-globe', label: 'Redes' },
     ],
   },
   {

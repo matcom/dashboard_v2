@@ -12,6 +12,7 @@ import RegistrosPage from "./pages/RegistrosPage";
 import NormasPage from "./pages/NormasPage";
 import PatentesPage from "./pages/PatentesPage";
 import ProductosComercializadosPage from "./pages/ProductosComercializadosPage";
+import RedesPage from "./pages/RedesPage";
 import LineasDeInvestigacionPage from "./pages/LineasDeInvestigacionPage";
 import ProyectosPage from "./pages/ProyectosPage";
 import ClasificacionesPage from "./pages/ClasificacionesPage";
@@ -133,6 +134,12 @@ const AppRoutes = [
     path: '/productos-comercializados',
     element: <ProductosComercializadosPage />,
     pageTitle: 'Productos comercializados',
+    adminOnly: true,
+  },
+  {
+    path: '/redes',
+    element: <RedesPage />,
+    pageTitle: 'Redes',
     adminOnly: true,
   },
 ];
