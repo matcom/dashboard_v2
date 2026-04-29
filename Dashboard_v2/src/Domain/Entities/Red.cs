@@ -36,4 +36,10 @@ public class Red
     /// Eventos coordinados por esta red.
     /// </summary>
     public ICollection<Event> Events { get; set; } = new List<Event>();
+
+    /// <summary>
+    /// Usuarios que participan en esta red (miembros).
+    /// Relación N:N con User.
+    /// </summary>
+    public ICollection<User> Usuarios { get; set; } = new List<User>();
 }
