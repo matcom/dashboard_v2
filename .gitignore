@@ -222,3 +222,6 @@ __marimo__/
 /TemplateGen/*.suo
 /TemplateGen/.vs/
 /TemplateGen/.vscode/
+
+# CODEX files
+*.codex
