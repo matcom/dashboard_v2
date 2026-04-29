@@ -3,6 +3,7 @@ using System;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260428162149_AddRedEntity")]
+    partial class AddRedEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,16 +254,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<string>("RedId")
-                        .HasColumnType("character varying(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CountryId");
 
                     b.HasIndex("EventTypeId");
-
-                    b.HasIndex("RedId");
 
                     b.ToTable("Events", (string)null);
                 });
@@ -604,58 +602,21 @@ namespace Dashboard_v2.Infrastructure.Migrations
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Red", b =>
                 {
                     b.Property<string>("Id")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
+                        .HasColumnType("text");
 
                     b.Property<int>("CantidadProfesores")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("CountryId")
-                        .HasColumnType("integer");
+                    b.Property<bool>("EsNacional")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CountryId");
-
-                    b.ToTable("Reds", (string)null);
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.RedCoordinada", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("AreaId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("CoordinadorId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("RedId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AreaId");
-
-                    b.HasIndex("CoordinadorId");
-
-                    b.HasIndex("RedId", "AreaId")
-                        .IsUnique();
-
-                    b.ToTable("RedesCoordinadas", (string)null);
+                    b.ToTable("Reds");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Registro", b =>
@@ -950,21 +911,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("GruposEstudiantilesLineasDeInvestigacion", (string)null);
                 });
 
-            modelBuilder.Entity("RedUsuario", b =>
-                {
-                    b.Property<string>("RedId")
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("UsuarioId")
-                        .HasColumnType("character varying(450)");
-
-                    b.HasKey("RedId", "UsuarioId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("RedsUsuarios", (string)null);
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.ProyectoEnEjecucion", b =>
                 {
                     b.HasBaseType("Dashboard_v2.Domain.Entities.Proyecto");
@@ -1218,16 +1164,9 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Dashboard_v2.Domain.Entities.Red", "Red")
-                        .WithMany("Events")
-                        .HasForeignKey("RedId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Country");
 
                     b.Navigation("EventType");
-
-                    b.Navigation("Red");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.GrupoDeInvestigacion", b =>
@@ -1362,43 +1301,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Proyecto");
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Red", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Country", "Country")
-                        .WithMany("Reds")
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Country");
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.RedCoordinada", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Area", "Area")
-                        .WithMany("RedesCoordinadas")
-                        .HasForeignKey("AreaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.User", "Coordinador")
-                        .WithMany("RedesCoordinadas")
-                        .HasForeignKey("CoordinadorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.Red", "Red")
-                        .WithMany("RedesCoordinadas")
-                        .HasForeignKey("RedId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Area");
-
-                    b.Navigation("Coordinador");
-
-                    b.Navigation("Red");
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Registro", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.Country", "Country")
@@ -1529,21 +1431,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RedUsuario", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Red", null)
-                        .WithMany()
-                        .HasForeignKey("RedId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.ProyectoEnEjecucion", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.Proyecto", null)
@@ -1620,8 +1507,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                 {
                     b.Navigation("GruposDeInvestigacion");
 
-                    b.Navigation("RedesCoordinadas");
-
                     b.Navigation("Users");
                 });
 
@@ -1650,8 +1535,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Country", b =>
                 {
                     b.Navigation("Events");
-
-                    b.Navigation("Reds");
 
                     b.Navigation("Registros");
                 });
@@ -1699,13 +1582,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("JournalPublication");
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.Red", b =>
-                {
-                    b.Navigation("Events");
-
-                    b.Navigation("RedesCoordinadas");
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.TipoProductoComercializado", b =>
                 {
                     b.Navigation("Productos");
@@ -1723,8 +1599,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("OwnedResources");
 
                     b.Navigation("ProyectosComoJefe");
-
-                    b.Navigation("RedesCoordinadas");
 
                     b.Navigation("UserRoles");
                 });

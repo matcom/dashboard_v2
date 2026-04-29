@@ -40,6 +40,15 @@ const jefeGroups = [
   },
 ];
 
+const jefeRedesGroups = [
+  {
+    heading: 'Gestión de Redes',
+    items: [
+      { to: '/redes', icon: 'bi-globe', label: 'Redes' },
+    ],
+  },
+];
+
 const jefeDeProyectoGroups = [
   {
     heading: 'Gestión de Proyectos',
@@ -81,6 +90,7 @@ const adminGroups = [
           { to: '/normas', icon: 'bi-book', label: 'Normas' },
           { to: '/patentes', icon: 'bi-lightbulb', label: 'Patentes' },
           { to: '/productos-comercializados', icon: 'bi-box-seam', label: 'Productos comercializados' },
+              { to: '/redes', icon: 'bi-globe', label: 'Redes' },
     ],
   },
   {
@@ -98,6 +108,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     ...baseGroups,
     ...(user?.role === 'Profesor' ? [...profesorGroups, ...investigacionGroups] : []),
     ...(user?.role === 'Jefe_de_Grupo_de_investigacion' ? jefeGroups : []),
+    ...(user?.role === 'Jefe_de_Redes' ? jefeRedesGroups : []),
     ...(user?.role === 'Jefe_de_Proyecto' ? jefeDeProyectoGroups : []),
     ...(user?.role === 'Superuser' ? adminGroups : []),
   ];

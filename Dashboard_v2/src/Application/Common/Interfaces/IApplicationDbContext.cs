@@ -33,6 +33,7 @@ public interface IApplicationDbContext
     DbSet<Proyecto> Proyectos { get; }
     DbSet<Registro> Registros { get; }
     DbSet<Norma> Normas { get; }
+    DbSet<Red> Reds { get; }
     DbSet<TipoProductoComercializado> TipoProductosComercializados { get; }
     DbSet<ProductoComercializado> ProductosComercializados { get; }
     DbSet<Patente> Patentes { get; }
