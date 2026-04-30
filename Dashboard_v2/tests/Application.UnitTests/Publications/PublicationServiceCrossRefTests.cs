@@ -70,6 +70,7 @@ public class PublicationServiceCrossRefTests
             new Mock<IUser>().Object,
             crossRefClient.Object,
             new Mock<IAuthorResolutionService>().Object,
-            new Mock<IAuthorCleanupService>().Object);
+            new Mock<IAuthorCleanupService>().Object,
+            new Mock<Dashboard_v2.Application.Common.Interfaces.IPublicationDatabaseResolver>().Object);
     }
 }

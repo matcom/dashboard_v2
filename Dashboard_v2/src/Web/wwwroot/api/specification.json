@@ -3870,6 +3870,56 @@
         }
       }
     },
+    "/api/Publications/resolve-database": {
+      "get": {
+        "tags": [
+          "Publications"
+        ],
+        "operationId": "ResolvePublicationDatabaseFromCrossRef",
+        "parameters": [
+          {
+            "name": "doi",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationDatabaseMatchDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Publications/{id}/coauthors": {
       "post": {
         "tags": [
@@ -6492,6 +6542,9 @@
             "type": "string",
             "nullable": true
           },
+          "resolveDatabaseFromCrossRef": {
+            "type": "boolean"
+          },
           "proyectoId": {
             "type": "string",
             "nullable": true
@@ -6612,6 +6665,33 @@
           }
         }
       },
+      "PublicationDatabaseMatchDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "databaseName": {
+            "type": "string",
+            "nullable": true
+          },
+          "group": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "cuartil": {
+            "type": "string",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "confidence": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "UpdatePublicationBody": {
         "type": "object",
         "additionalProperties": false,
@@ -6671,6 +6751,9 @@
           "proyectoId": {
             "type": "string",
             "nullable": true
+          },
+          "resolveDatabaseFromCrossRef": {
+            "type": "boolean"
           }
         }
       },

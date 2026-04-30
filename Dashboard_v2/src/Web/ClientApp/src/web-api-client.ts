@@ -4936,6 +4936,52 @@ export class PublicationsClient {
         return Promise.resolve<PublicationCrossRefDto[]>(null as any);
     }
 
+    resolvePublicationDatabaseFromCrossRef(doi: string | null | undefined, title: string | null | undefined): Promise<PublicationDatabaseMatchDto> {
+        let url_ = this.baseUrl + "/api/Publications/resolve-database?";
+        if (doi !== undefined && doi !== null)
+            url_ += "doi=" + encodeURIComponent("" + doi) + "&";
+        if (title !== undefined && title !== null)
+            url_ += "title=" + encodeURIComponent("" + title) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResolvePublicationDatabaseFromCrossRef(_response);
+        });
+    }
+
+    protected processResolvePublicationDatabaseFromCrossRef(response: Response): Promise<PublicationDatabaseMatchDto> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PublicationDatabaseMatchDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PublicationDatabaseMatchDto>(null as any);
+    }
+
     addCurrentUserAsCoauthor(id: string): Promise<void> {
         let url_ = this.baseUrl + "/api/Publications/{id}/coauthors";
         if (id === undefined || id === null)
@@ -10005,6 +10051,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
+    resolveDatabaseFromCrossRef?: boolean;
     proyectoId?: string | undefined;
 
     constructor(data?: ICreatePublicationRequest) {
@@ -10041,6 +10088,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
             this.dataBase = _data["dataBase"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
+            this.resolveDatabaseFromCrossRef = _data["resolveDatabaseFromCrossRef"];
             this.proyectoId = _data["proyectoId"];
         }
     }
@@ -10077,6 +10125,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
         data["dataBase"] = this.dataBase;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
+        data["resolveDatabaseFromCrossRef"] = this.resolveDatabaseFromCrossRef;
         data["proyectoId"] = this.proyectoId;
         return data;
     }
@@ -10094,6 +10143,7 @@ export interface ICreatePublicationRequest {
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
+    resolveDatabaseFromCrossRef?: boolean;
     proyectoId?: string | undefined;
 }
 
@@ -10273,6 +10323,58 @@ export interface IPublicationCrossRefDto {
     type?: string | undefined;
 }
 
+export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto {
+    databaseName?: string | undefined;
+    group?: number | undefined;
+    cuartil?: string | undefined;
+    source?: string | undefined;
+    confidence?: number;
+
+    constructor(data?: IPublicationDatabaseMatchDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.databaseName = _data["databaseName"];
+            this.group = _data["group"];
+            this.cuartil = _data["cuartil"];
+            this.source = _data["source"];
+            this.confidence = _data["confidence"];
+        }
+    }
+
+    static fromJS(data: any): PublicationDatabaseMatchDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicationDatabaseMatchDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["databaseName"] = this.databaseName;
+        data["group"] = this.group;
+        data["cuartil"] = this.cuartil;
+        data["source"] = this.source;
+        data["confidence"] = this.confidence;
+        return data;
+    }
+}
+
+export interface IPublicationDatabaseMatchDto {
+    databaseName?: string | undefined;
+    group?: number | undefined;
+    cuartil?: string | undefined;
+    source?: string | undefined;
+    confidence?: number;
+}
+
 export class UpdatePublicationBody implements IUpdatePublicationBody {
     title?: string;
     publicationData?: string;
@@ -10286,6 +10388,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    resolveDatabaseFromCrossRef?: boolean;
 
     constructor(data?: IUpdatePublicationBody) {
         if (data) {
@@ -10322,6 +10425,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
             this.proyectoId = _data["proyectoId"];
+            this.resolveDatabaseFromCrossRef = _data["resolveDatabaseFromCrossRef"];
         }
     }
 
@@ -10358,6 +10462,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
         data["proyectoId"] = this.proyectoId;
+        data["resolveDatabaseFromCrossRef"] = this.resolveDatabaseFromCrossRef;
         return data;
     }
 }
@@ -10375,6 +10480,7 @@ export interface IUpdatePublicationBody {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    resolveDatabaseFromCrossRef?: boolean;
 }
 
 export class RedDto implements IRedDto {

@@ -72,6 +72,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.Events.IEventService, Dashboard_v2.Application.Events.EventService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Publications.IPublicationService, Dashboard_v2.Application.Publications.PublicationService>();
         builder.Services.AddCrossRefIntegration(builder.Configuration);
+        // Publication database resolver (ISSN -> database/group). Bind options and register resolver.
+        builder.Services.Configure<Dashboard_v2.Infrastructure.Configuration.PublicationDatabaseOptions>(builder.Configuration.GetSection("PublicationDatabase"));
+        builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IPublicationDatabaseResolver, Dashboard_v2.Infrastructure.Services.PublicationDatabaseResolver>();
         builder.Services.AddScoped<Dashboard_v2.Application.Users.IUserService, Dashboard_v2.Application.Users.UserService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Authors.IAuthorService, Dashboard_v2.Application.Authors.AuthorService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Roles.IRoleService, Dashboard_v2.Application.Roles.RoleService>();

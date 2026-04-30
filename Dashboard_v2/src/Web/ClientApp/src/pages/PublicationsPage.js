@@ -50,6 +50,8 @@ const EMPTY_FORM = {
   dataBase: '',
   group: '',
   cuartil: '',
+  // Flag para indicar si al guardar se debe intentar resolver la base/grupo desde CrossRef
+  resolveDatabaseFromCrossRef: false,
 };
 
 export default function PublicationsPage() {
@@ -78,6 +80,9 @@ export default function PublicationsPage() {
   const [crossrefCandidates, setCrossrefCandidates] = useState([]);
   const [crossrefError, setCrossrefError] = useState('');
   const [crossrefLoading, setCrossrefLoading] = useState(false);
+  // Resolver ahora state
+  const [resolveLoading, setResolveLoading] = useState(false);
+  const [resolveError, setResolveError] = useState('');
 
   // Detalles modal para ver una publicación candidata
   const [detailsModal, setDetailsModal] = useState(false);
@@ -175,7 +180,8 @@ export default function PublicationsPage() {
   }
 
   function handleFormChange(e) {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+    const { name, type, value, checked } = e.target;
+    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   }
 
   function canSearchCrossRef() {
@@ -251,6 +257,8 @@ export default function PublicationsPage() {
         dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
         group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
         cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
+        // Control explícito: si true, el servidor intentará resolver DB/Grupo desde CrossRef
+        resolveDatabaseFromCrossRef: !!form.resolveDatabaseFromCrossRef,
       }),
     });
     setModal(false);
@@ -275,6 +283,8 @@ export default function PublicationsPage() {
         dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
         group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
         cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
+        // Control explícito: si true, el servidor intentará resolver DB/Grupo desde CrossRef
+        resolveDatabaseFromCrossRef: !!form.resolveDatabaseFromCrossRef,
       }),
     });
     setModal(false);
@@ -297,7 +307,6 @@ export default function PublicationsPage() {
     try {
       await apiFetch(`/api/Publications/${toDelete.id}`, { method: 'DELETE' });
       setDeleteModal(false);
-      loadData();
     } catch (e) {
       setDeleteError(e.message);
     } finally {
@@ -380,6 +389,30 @@ export default function PublicationsPage() {
       setCrossrefError(e.message);
     } finally {
       setCrossrefLoading(false);
+    }
+  }
+
+  async function resolveDatabaseNow() {
+    setResolveError('');
+    if (!canSearchCrossRef()) {
+      setResolveError('Escribe al menos un título o un DOI antes de resolver.');
+      return;
+    }
+    setResolveLoading(true);
+    try {
+      const res = await apiFetch(`/api/Publications/resolve-database?doi=${encodeURIComponent(form.urlDoi || '')}&title=${encodeURIComponent(form.title || '')}`);
+      if (res) {
+        setForm(f => ({
+          ...f,
+          dataBase: res.databaseName ?? f.dataBase,
+          group: res.group != null ? String(res.group) : f.group,
+          cuartil: res.cuartil ?? f.cuartil,
+        }));
+      }
+    } catch (e) {
+      setResolveError(e.message);
+    } finally {
+      setResolveLoading(false);
     }
   }
 
@@ -710,10 +743,26 @@ export default function PublicationsPage() {
                 <Button type="button" color="outline-secondary" size="sm" onClick={searchCrossRef} disabled={crossrefLoading}>
                   {crossrefLoading ? <Spinner size="sm" className="me-1" /> : null} Buscar en CrossRef
                 </Button>
+                <Button type="button" color="outline-primary" size="sm" className="ms-2" onClick={resolveDatabaseNow} disabled={resolveLoading}>
+                  {resolveLoading ? <Spinner size="sm" className="me-1" /> : null} Resolver ahora
+                </Button>
                 <div className="text-muted small mt-1">
                   La búsqueda usa el título o el DOI actual y solo rellena el formulario para que puedas revisar y ajustar antes de guardar.
                 </div>
                 {crossrefError && <div className="text-danger small mt-1">{crossrefError}</div>}
+                {resolveError && <div className="text-danger small mt-1">{resolveError}</div>}
+                <FormGroup check className="mt-2">
+                  <Label check>
+                    <Input
+                      type="checkbox"
+                      id="resolveDatabaseFromCrossRef"
+                      name="resolveDatabaseFromCrossRef"
+                      checked={!!form.resolveDatabaseFromCrossRef}
+                      onChange={handleFormChange}
+                    />{' '}
+                    Activar búsqueda de base de datos y cuartil desde CrossRef al guardar
+                  </Label>
+                </FormGroup>
               </div>
             </FormGroup>
             {proyectosError ? (

@@ -65,6 +65,15 @@ public class Publications : EndpointGroupBase
             .WithName("GetCrossRefCandidates")
             .Produces<List<PublicationCrossRefDto>>(200);
 
+        // GET /api/Publications/resolve-database?doi=&title=
+        // Best-effort: fetch CrossRef metadata for the DOI/title and resolve
+        // the journal's database/group using configured providers.
+        groupBuilder.MapGet("resolve-database", ResolveDatabaseFromCrossRef)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor)))
+            .WithName("ResolvePublicationDatabaseFromCrossRef")
+            .Produces<Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto>(200)
+            .ProducesProblem(404);
+
         // POST /api/Publications/{id}/coauthors -> assign current user as coauthor (idempotent)
         groupBuilder.MapPost("{id}/coauthors", AddCurrentUserAsCoauthor)
             .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor)))
@@ -142,6 +151,30 @@ public class Publications : EndpointGroupBase
         return Results.Ok(items);
     }
 
+    private async Task<IResult> ResolveDatabaseFromCrossRef(ICrossRefClient crossRefClient, Application.Common.Interfaces.IPublicationDatabaseResolver resolver, string? doi, string? title)
+    {
+        // Prefer DOI if provided
+        Dashboard_v2.Application.Publications.PublicationCrossRefDto? cr = null;
+        if (!string.IsNullOrWhiteSpace(doi))
+        {
+            cr = await crossRefClient.GetWorkByDoiAsync(doi);
+        }
+
+        if (cr == null && !string.IsNullOrWhiteSpace(title))
+        {
+            var list = await crossRefClient.SearchWorksByTitleAsync(title, rows: 1);
+            if (list != null && list.Count > 0) cr = list[0];
+        }
+
+        if (cr == null || cr.Issns == null || cr.Issns.Count == 0)
+            return Results.NotFound(new { message = "No se encontró metadata de revista (ISSN) en CrossRef para los parámetros dados." });
+
+        var match = await resolver.ResolveByIssnsAsync(cr.Issns);
+        if (match == null) return Results.NotFound(new { message = "No se pudo resolver la base de datos para los ISSN proporcionados." });
+
+        return Results.Ok(match);
+    }
+
     private async Task<IResult> AddCurrentUserAsCoauthor(IPublicationService service, string id)
     {
         var result = await service.AddCurrentUserAsCoauthorAsync(id);
@@ -165,6 +198,7 @@ public class Publications : EndpointGroupBase
             DataBase = body.DataBase,
             Group = body.Group,
             Cuartil = body.Cuartil,
+            ResolveDatabaseFromCrossRef = body.ResolveDatabaseFromCrossRef,
             ProyectoId = body.ProyectoId,
         };
 
@@ -201,4 +235,5 @@ public record UpdatePublicationBody(
     string? DataBase,
     int? Group,
     string? Cuartil,
-    string? ProyectoId);
+    string? ProyectoId,
+    bool ResolveDatabaseFromCrossRef);
