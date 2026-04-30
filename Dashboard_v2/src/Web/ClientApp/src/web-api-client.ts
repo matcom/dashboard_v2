@@ -4890,6 +4890,52 @@ export class PublicationsClient {
         return Promise.resolve<PublicationDuplicateDto[]>(null as any);
     }
 
+    getCrossRefCandidates(doi: string | null | undefined, title: string | null | undefined): Promise<PublicationCrossRefDto[]> {
+        let url_ = this.baseUrl + "/api/Publications/crossref?";
+        if (doi !== undefined && doi !== null)
+            url_ += "doi=" + encodeURIComponent("" + doi) + "&";
+        if (title !== undefined && title !== null)
+            url_ += "title=" + encodeURIComponent("" + title) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCrossRefCandidates(_response);
+        });
+    }
+
+    protected processGetCrossRefCandidates(response: Response): Promise<PublicationCrossRefDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PublicationCrossRefDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PublicationCrossRefDto[]>(null as any);
+    }
+
     addCurrentUserAsCoauthor(id: string): Promise<void> {
         let url_ = this.baseUrl + "/api/Publications/{id}/coauthors";
         if (id === undefined || id === null)
@@ -10109,6 +10155,122 @@ export interface IPublicationDuplicateDto {
     urlDoi?: string | undefined;
     matchType?: string;
     score?: number;
+}
+
+export class PublicationCrossRefDto implements IPublicationCrossRefDto {
+    doi?: string | undefined;
+    url?: string | undefined;
+    title?: string | undefined;
+    publicationData?: string | undefined;
+    suggestedPublicationType?: number | undefined;
+    authors?: string[];
+    containerTitle?: string | undefined;
+    issns?: string[];
+    isbns?: string[];
+    volume?: string | undefined;
+    issue?: string | undefined;
+    page?: string | undefined;
+    published?: string | undefined;
+    publisher?: string | undefined;
+    type?: string | undefined;
+
+    constructor(data?: IPublicationCrossRefDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.doi = _data["doi"];
+            this.url = _data["url"];
+            this.title = _data["title"];
+            this.publicationData = _data["publicationData"];
+            this.suggestedPublicationType = _data["suggestedPublicationType"];
+            if (Array.isArray(_data["authors"])) {
+                this.authors = [] as any;
+                for (let item of _data["authors"])
+                    this.authors!.push(item);
+            }
+            this.containerTitle = _data["containerTitle"];
+            if (Array.isArray(_data["issns"])) {
+                this.issns = [] as any;
+                for (let item of _data["issns"])
+                    this.issns!.push(item);
+            }
+            if (Array.isArray(_data["isbns"])) {
+                this.isbns = [] as any;
+                for (let item of _data["isbns"])
+                    this.isbns!.push(item);
+            }
+            this.volume = _data["volume"];
+            this.issue = _data["issue"];
+            this.page = _data["page"];
+            this.published = _data["published"];
+            this.publisher = _data["publisher"];
+            this.type = _data["type"];
+        }
+    }
+
+    static fromJS(data: any): PublicationCrossRefDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicationCrossRefDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["doi"] = this.doi;
+        data["url"] = this.url;
+        data["title"] = this.title;
+        data["publicationData"] = this.publicationData;
+        data["suggestedPublicationType"] = this.suggestedPublicationType;
+        if (Array.isArray(this.authors)) {
+            data["authors"] = [];
+            for (let item of this.authors)
+                data["authors"].push(item);
+        }
+        data["containerTitle"] = this.containerTitle;
+        if (Array.isArray(this.issns)) {
+            data["issns"] = [];
+            for (let item of this.issns)
+                data["issns"].push(item);
+        }
+        if (Array.isArray(this.isbns)) {
+            data["isbns"] = [];
+            for (let item of this.isbns)
+                data["isbns"].push(item);
+        }
+        data["volume"] = this.volume;
+        data["issue"] = this.issue;
+        data["page"] = this.page;
+        data["published"] = this.published;
+        data["publisher"] = this.publisher;
+        data["type"] = this.type;
+        return data;
+    }
+}
+
+export interface IPublicationCrossRefDto {
+    doi?: string | undefined;
+    url?: string | undefined;
+    title?: string | undefined;
+    publicationData?: string | undefined;
+    suggestedPublicationType?: number | undefined;
+    authors?: string[];
+    containerTitle?: string | undefined;
+    issns?: string[];
+    isbns?: string[];
+    volume?: string | undefined;
+    issue?: string | undefined;
+    page?: string | undefined;
+    published?: string | undefined;
+    publisher?: string | undefined;
+    type?: string | undefined;
 }
 
 export class UpdatePublicationBody implements IUpdatePublicationBody {

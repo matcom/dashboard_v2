@@ -16,7 +16,7 @@ public class Publications : EndpointGroupBase
     {
         // GET /api/Publications/types — lista los tipos disponibles (para el selector)
         groupBuilder.MapGet("types", GetPublicationTypes)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor)))
             .WithName("GetPublicationTypes")
             .Produces<List<PublicationTypeDto>>(200);
 
@@ -48,7 +48,7 @@ public class Publications : EndpointGroupBase
 
         // POST /api/Publications
         groupBuilder.MapPost("", CreatePublication)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor)))
             .WithName("CreatePublication")
             .Produces(201)
             .ProducesProblem(400);
@@ -58,6 +58,12 @@ public class Publications : EndpointGroupBase
             .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor)))
             .WithName("FindPublicationDuplicates")
             .Produces<List<PublicationDuplicateDto>>(200);
+
+        // GET /api/Publications/crossref?doi=&title=
+        groupBuilder.MapGet("crossref", GetCrossRefCandidates)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor)))
+            .WithName("GetCrossRefCandidates")
+            .Produces<List<PublicationCrossRefDto>>(200);
 
         // POST /api/Publications/{id}/coauthors -> assign current user as coauthor (idempotent)
         groupBuilder.MapPost("{id}/coauthors", AddCurrentUserAsCoauthor)
@@ -128,6 +134,12 @@ public class Publications : EndpointGroupBase
     {
         var candidates = await service.FindDuplicatesAsync(title, doi, url, excludeId);
         return Results.Ok(candidates);
+    }
+
+    private async Task<IResult> GetCrossRefCandidates(IPublicationService service, string? doi, string? title)
+    {
+        var items = await service.SearchCrossRefCandidatesAsync(doi, title);
+        return Results.Ok(items);
     }
 
     private async Task<IResult> AddCurrentUserAsCoauthor(IPublicationService service, string id)

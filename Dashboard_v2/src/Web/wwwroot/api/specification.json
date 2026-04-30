@@ -3827,6 +3827,49 @@
         }
       }
     },
+    "/api/Publications/crossref": {
+      "get": {
+        "tags": [
+          "Publications"
+        ],
+        "operationId": "GetCrossRefCandidates",
+        "parameters": [
+          {
+            "name": "doi",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicationCrossRefDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Publications/{id}/coauthors": {
       "post": {
         "tags": [
@@ -6493,6 +6536,79 @@
           "score": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "PublicationCrossRefDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "doi": {
+            "type": "string",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "publicationData": {
+            "type": "string",
+            "nullable": true
+          },
+          "suggestedPublicationType": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "containerTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "issns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isbns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "volume": {
+            "type": "string",
+            "nullable": true
+          },
+          "issue": {
+            "type": "string",
+            "nullable": true
+          },
+          "page": {
+            "type": "string",
+            "nullable": true
+          },
+          "published": {
+            "type": "string",
+            "nullable": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

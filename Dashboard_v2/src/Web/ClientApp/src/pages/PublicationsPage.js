@@ -73,11 +73,18 @@ export default function PublicationsPage() {
   const [duplicatesError, setDuplicatesError] = useState('');
   const [duplicatesLoading, setDuplicatesLoading] = useState(false);
 
+  // CrossRef search
+  const [crossrefModal, setCrossrefModal] = useState(false);
+  const [crossrefCandidates, setCrossrefCandidates] = useState([]);
+  const [crossrefError, setCrossrefError] = useState('');
+  const [crossrefLoading, setCrossrefLoading] = useState(false);
+
   // Detalles modal para ver una publicación candidata
   const [detailsModal, setDetailsModal] = useState(false);
   const [detailsPublication, setDetailsPublication] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState('');
+  const [detailsReturnToCrossRef, setDetailsReturnToCrossRef] = useState(false);
 
   // Modal de confirmación de borrado
   const [deleteModal, setDeleteModal] = useState(false);
@@ -169,6 +176,10 @@ export default function PublicationsPage() {
 
   function handleFormChange(e) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+  }
+
+  function canSearchCrossRef() {
+    return Boolean(form.title.trim() || form.urlDoi.trim());
   }
 
   async function handleSubmit() {
@@ -339,6 +350,7 @@ export default function PublicationsPage() {
   }
 
   async function viewDetails(id) {
+    setDetailsReturnToCrossRef(false);
     setDetailsError('');
     setDetailsLoading(true);
     try {
@@ -350,6 +362,147 @@ export default function PublicationsPage() {
     } finally {
       setDetailsLoading(false);
     }
+  }
+
+  async function searchCrossRef() {
+    if (!canSearchCrossRef()) {
+      setCrossrefError('Escribe al menos un título o un DOI antes de buscar en CrossRef.');
+      return;
+    }
+
+    setCrossrefError('');
+    setCrossrefLoading(true);
+    try {
+      const res = await apiFetch(`/api/Publications/crossref?doi=${encodeURIComponent(form.urlDoi || '')}&title=${encodeURIComponent(form.title || '')}`);
+      setCrossrefCandidates(res || []);
+      setCrossrefModal(true);
+    } catch (e) {
+      setCrossrefError(e.message);
+    } finally {
+      setCrossrefLoading(false);
+    }
+  }
+
+  function importFromCrossRef(candidate) {
+    if (!candidate) return;
+    setForm(f => ({
+      ...f,
+      title: candidate.title || f.title,
+      urlDoi: candidate.doi ? `https://doi.org/${candidate.doi}` : (candidate.url || f.urlDoi),
+      publicationData: candidate.publicationData || f.publicationData,
+      publicationType: candidate.suggestedPublicationType ?? f.publicationType,
+    }));
+    setCrossrefModal(false);
+  }
+
+  function buildCrossRefPreview(candidate) {
+    const publicationType = candidate?.suggestedPublicationType ?? null;
+    const publicationTypeName = publicationType == null
+      ? null
+      : (types.find(t => t.value === publicationType)?.name ?? null);
+
+    return {
+      title: candidate?.title ?? 'Sin título',
+      publicationData: candidate?.publicationData ?? '',
+      urlDoi: candidate?.doi ? `https://doi.org/${candidate.doi}` : (candidate?.url ?? null),
+      authors: (candidate?.authors ?? []).map((name, index) => ({
+        id: `crossref-author-${index}`,
+        name,
+        linkedUser: null,
+      })),
+      publicationTypeName,
+      crossRef: {
+        doi: candidate?.doi ?? null,
+        url: candidate?.url ?? null,
+        containerTitle: candidate?.containerTitle ?? null,
+        publisher: candidate?.publisher ?? null,
+        published: candidate?.published ?? null,
+        type: candidate?.type ?? null,
+        volume: candidate?.volume ?? null,
+        issue: candidate?.issue ?? null,
+        page: candidate?.page ?? null,
+        issns: candidate?.issns ?? [],
+        isbns: candidate?.isbns ?? [],
+      },
+    };
+  }
+
+  function previewCrossRefCandidate(candidate) {
+    setDetailsReturnToCrossRef(true);
+    setDetailsError('');
+    setDetailsLoading(false);
+    setDetailsPublication(buildCrossRefPreview(candidate));
+    setCrossrefModal(false);
+    setDetailsModal(true);
+  }
+
+  function closeDetailsModal() {
+    setDetailsModal(false);
+    setDetailsError('');
+    setDetailsLoading(false);
+    setDetailsPublication(null);
+
+    if (detailsReturnToCrossRef) {
+      setCrossrefModal(true);
+      setDetailsReturnToCrossRef(false);
+    }
+  }
+
+  function renderPublicationDetails(pub) {
+    if (!pub) return null;
+
+    const isCrossRefPreview = Boolean(pub.crossRef);
+
+    return (
+      <div>
+        <h5>{pub.title}</h5>
+        {pub.publicationTypeName && (
+          <p><strong>Tipo:</strong> {pub.publicationTypeName}</p>
+        )}
+        {!isCrossRefPreview && pub.publicationData && (
+          <p style={{ whiteSpace: 'pre-line' }}>{pub.publicationData}</p>
+        )}
+        <p>
+          <strong>URL / DOI:</strong>{' '}
+          {pub.urlDoi
+            ? <a href={pub.urlDoi} target="_blank" rel="noopener noreferrer">{pub.urlDoi}</a>
+            : <span className="text-muted">—</span>}
+        </p>
+        <p><strong>Autores:</strong></p>
+        <ul>
+          {(pub.authors || []).length > 0
+            ? (pub.authors || []).map(a => (
+              <li key={a.id}>
+                {a.name}
+                {a.linkedUser ? ' (usuario del sistema)' : ''}
+              </li>
+            ))
+            : <li className="text-muted">—</li>}
+        </ul>
+        {pub.journalPublication && (
+          <p><strong>Base de datos:</strong> {pub.journalPublication.dataBase} (Grupo {pub.journalPublication.group}) {pub.journalPublication.cuartil && <>- {pub.journalPublication.cuartil}</>}</p>
+        )}
+        {pub.indexedPublication && (
+          <p><strong>Indexación:</strong> {pub.indexedPublication.index}</p>
+        )}
+        {pub.proyectoTitulo && (
+          <p><strong>Proyecto vinculado:</strong> {pub.proyectoTitulo}</p>
+        )}
+        {pub.crossRef && (
+          <>
+            <p><strong>Fuente CrossRef:</strong> {pub.crossRef.containerTitle ?? <span className="text-muted">—</span>}</p>
+            <p><strong>Publisher:</strong> {pub.crossRef.publisher ?? <span className="text-muted">—</span>}</p>
+            <p><strong>Fecha publicada:</strong> {pub.crossRef.published ?? <span className="text-muted">—</span>}</p>
+            <p><strong>Tipo CrossRef:</strong> {pub.crossRef.type ?? <span className="text-muted">—</span>}</p>
+            <p><strong>Volumen:</strong> {pub.crossRef.volume ?? <span className="text-muted">—</span>}</p>
+            <p><strong>Número:</strong> {pub.crossRef.issue ?? <span className="text-muted">—</span>}</p>
+            <p><strong>Páginas:</strong> {pub.crossRef.page ?? <span className="text-muted">—</span>}</p>
+            <p><strong>ISSN:</strong> {pub.crossRef.issns?.length ? pub.crossRef.issns.join(', ') : <span className="text-muted">—</span>}</p>
+            <p><strong>ISBN:</strong> {pub.crossRef.isbns?.length ? pub.crossRef.isbns.join(', ') : <span className="text-muted">—</span>}</p>
+          </>
+        )}
+      </div>
+    );
   }
 
   const urlCell = (urlDoi) => urlDoi
@@ -553,6 +706,15 @@ export default function PublicationsPage() {
                 onChange={handleFormChange}
                 placeholder="https://doi.org/10.xxxx/... o URL de la publicación"
               />
+              <div className="mt-2">
+                <Button type="button" color="outline-secondary" size="sm" onClick={searchCrossRef} disabled={crossrefLoading}>
+                  {crossrefLoading ? <Spinner size="sm" className="me-1" /> : null} Buscar en CrossRef
+                </Button>
+                <div className="text-muted small mt-1">
+                  La búsqueda usa el título o el DOI actual y solo rellena el formulario para que puedas revisar y ajustar antes de guardar.
+                </div>
+                {crossrefError && <div className="text-danger small mt-1">{crossrefError}</div>}
+              </div>
             </FormGroup>
             {proyectosError ? (
               <FormGroup>
@@ -728,7 +890,7 @@ export default function PublicationsPage() {
                     <td style={{ maxWidth: 220 }}>{c.urlDoi ?? '—'}</td>
                     <td>{renderMatchLabel(c.matchType, c.score)}</td>
                     <td className="text-end" style={{ whiteSpace: 'nowrap' }}>
-                      <Button color="primary" size="sm" className="me-2"
+                      <Button type="button" color="primary" size="sm" className="me-2"
                         onClick={async () => {
                           try {
                             await apiFetch(`/api/Publications/${c.id}/coauthors`, { method: 'POST' });
@@ -741,7 +903,7 @@ export default function PublicationsPage() {
                         }}>
                         Sí — añadirme como coautor
                       </Button>
-                      <Button color="outline-secondary" size="sm" onClick={() => viewDetails(c.id)}>Ver</Button>
+                      <Button type="button" color="outline-secondary" size="sm" onClick={() => viewDetails(c.id)}>Ver</Button>
                     </td>
                   </tr>
                 ))}
@@ -753,43 +915,66 @@ export default function PublicationsPage() {
           <Button color="secondary" outline onClick={() => { setDuplicatesModal(false); }} disabled={duplicatesLoading}>
             Volver
           </Button>
-          <Button color="success" onClick={async () => { try { if (editing) await performUpdate(); else await performCreate(); setDuplicatesModal(false); } catch (e) { setDuplicatesError(e.message); } }} disabled={duplicatesLoading}>
+          <Button type="button" color="success" onClick={async () => { try { if (editing) await performUpdate(); else await performCreate(); setDuplicatesModal(false); } catch (e) { setDuplicatesError(e.message); } }} disabled={duplicatesLoading}>
             {editing ? 'Actualizar publicación' : 'Crear nueva publicación'}
           </Button>
         </ModalFooter>
       </Modal>
 
-      {/* ── Modal ver detalles de publicación ── */}
-      <Modal isOpen={detailsModal} toggle={() => setDetailsModal(false)} size="lg">
-        <ModalHeader toggle={() => setDetailsModal(false)}>Detalles de la publicación</ModalHeader>
+      {/* ── Modal resultados CrossRef ── */}
+      <Modal isOpen={crossrefModal} toggle={() => setCrossrefModal(false)} size="lg">
+        <ModalHeader toggle={() => setCrossrefModal(false)}>Resultados CrossRef</ModalHeader>
         <ModalBody>
-          {detailsError && <Alert color="danger">{detailsError}</Alert>}
-          {detailsLoading && <div className="text-center py-3"><Spinner /></div>}
-          {detailsPublication && (
-            <div>
-              <h5>{detailsPublication.title}</h5>
-              {detailsPublication.publicationData && <p>{detailsPublication.publicationData}</p>}
-              <p><strong>URL / DOI:</strong> {detailsPublication.urlDoi ? <a href={detailsPublication.urlDoi} target="_blank" rel="noopener noreferrer">{detailsPublication.urlDoi}</a> : <span className="text-muted">—</span>}</p>
-              <p><strong>Autores:</strong></p>
-              <ul>
-                {(detailsPublication.authors || []).map(a => (
-                  <li key={a.id}>{a.name}{a.linkedUser ? ' (usuario del sistema)' : ''}</li>
+          {crossrefError && <Alert color="danger">{crossrefError}</Alert>}
+          {crossrefLoading && <div className="text-center py-3"><Spinner /></div>}
+          {!crossrefLoading && crossrefCandidates.length === 0 && (
+            <p className="text-muted">No se encontraron resultados en CrossRef.</p>
+          )}
+          {!crossrefLoading && crossrefCandidates.length > 0 && (
+            <Table hover responsive size="sm">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>DOI / URL</th>
+                  <th>Fuente</th>
+                  <th style={{ width: 220 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {crossrefCandidates.map((c, idx) => (
+                  <tr key={c.doi ?? c.url ?? idx}>
+                    <td style={{ maxWidth: 420 }}>{c.title}</td>
+                    <td style={{ maxWidth: 220 }}>{c.doi ? `https://doi.org/${c.doi}` : (c.url ?? '—')}</td>
+                    <td>{c.containerTitle ?? '—'}</td>
+                    <td className="text-end">
+                      <Button type="button" color="primary" size="sm" className="me-2" onClick={() => importFromCrossRef(c)}>
+                        Rellenar formulario
+                      </Button>
+                      <Button type="button" color="outline-secondary" size="sm" onClick={() => previewCrossRefCandidate(c)}>
+                        Previsualizar
+                      </Button>
+                    </td>
+                  </tr>
                 ))}
-              </ul>
-              {detailsPublication.journalPublication && (
-                <p><strong>Base de datos:</strong> {detailsPublication.journalPublication.dataBase} (Grupo {detailsPublication.journalPublication.group}) {detailsPublication.journalPublication.cuartil && <>- {detailsPublication.journalPublication.cuartil}</>}</p>
-              )}
-              {detailsPublication.indexedPublication && (
-                <p><strong>Indexación:</strong> {detailsPublication.indexedPublication.index}</p>
-              )}
-              {detailsPublication.proyectoTitulo && (
-                <p><strong>Proyecto vinculado:</strong> {detailsPublication.proyectoTitulo}</p>
-              )}
-            </div>
+              </tbody>
+            </Table>
           )}
         </ModalBody>
         <ModalFooter>
-          <Button color="secondary" onClick={() => setDetailsModal(false)}>Cerrar</Button>
+          <Button color="secondary" outline onClick={() => setCrossrefModal(false)}>Cerrar</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* ── Modal ver detalles de publicación ── */}
+      <Modal isOpen={detailsModal} toggle={closeDetailsModal} size="lg">
+        <ModalHeader toggle={closeDetailsModal}>Detalles de la publicación</ModalHeader>
+        <ModalBody>
+          {detailsError && <Alert color="danger">{detailsError}</Alert>}
+          {detailsLoading && <div className="text-center py-3"><Spinner /></div>}
+          {detailsPublication && renderPublicationDetails(detailsPublication)}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={closeDetailsModal}>Cerrar</Button>
         </ModalFooter>
       </Modal>
     </>

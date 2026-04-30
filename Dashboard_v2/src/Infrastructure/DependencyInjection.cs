@@ -20,6 +20,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using System;
+using Dashboard_v2.Infrastructure.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -69,6 +71,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.Awards.IAwardService, Dashboard_v2.Application.Awards.AwardService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Events.IEventService, Dashboard_v2.Application.Events.EventService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Publications.IPublicationService, Dashboard_v2.Application.Publications.PublicationService>();
+        builder.Services.AddCrossRefIntegration(builder.Configuration);
         builder.Services.AddScoped<Dashboard_v2.Application.Users.IUserService, Dashboard_v2.Application.Users.UserService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Authors.IAuthorService, Dashboard_v2.Application.Authors.AuthorService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Roles.IRoleService, Dashboard_v2.Application.Roles.RoleService>();

@@ -13,17 +13,20 @@ public sealed class PublicationService : IPublicationService
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly ICrossRefClient _crossRefClient;
     private readonly IAuthorResolutionService _authorResolution;
     private readonly IAuthorCleanupService _authorCleanup;
 
     public PublicationService(
         IApplicationDbContext context,
         IUser currentUser,
+        ICrossRefClient crossRefClient,
         IAuthorResolutionService authorResolution,
         IAuthorCleanupService authorCleanup)
     {
         _context = context;
         _currentUser = currentUser;
+        _crossRefClient = crossRefClient;
         _authorResolution = authorResolution;
         _authorCleanup = authorCleanup;
     }
@@ -462,6 +465,24 @@ public sealed class PublicationService : IPublicationService
             .ToListAsync(ct);
     }
 
+    public async Task<List<PublicationCrossRefDto>> SearchCrossRefCandidatesAsync(string? doi, string? title, CancellationToken ct = default)
+    {
+        if (!string.IsNullOrWhiteSpace(doi))
+        {
+            var single = await _crossRefClient.GetWorkByDoiAsync(doi, ct);
+            if (single is not null)
+                return new List<PublicationCrossRefDto> { EnrichCrossRefCandidate(single) };
+        }
+
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            var items = await _crossRefClient.SearchWorksByTitleAsync(title, rows: 10, ct);
+            return items.Select(EnrichCrossRefCandidate).ToList();
+        }
+
+        return new List<PublicationCrossRefDto>();
+    }
+
     /// <summary>
     /// Proyección reutilizable de publicaciones hacia el DTO usado por las vistas.
     /// Centraliza la forma en que se exponen autores, metadatos de revista,
@@ -528,5 +549,13 @@ public sealed class PublicationService : IPublicationService
             .ToList();
 
         return Task.FromResult(types);
+    }
+
+    private static PublicationCrossRefDto EnrichCrossRefCandidate(PublicationCrossRefDto dto)
+    {
+        var publicationType = CrossRefToPublicationMapper.MapCrossRefTypeToPublicationType(dto.Type);
+        dto.PublicationData = CrossRefToPublicationMapper.BuildPublicationData(dto);
+        dto.SuggestedPublicationType = publicationType is null ? null : (int)publicationType.Value;
+        return dto;
     }
 }
