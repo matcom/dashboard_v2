@@ -10051,7 +10051,6 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
-    resolveDatabaseFromCrossRef?: boolean;
     proyectoId?: string | undefined;
 
     constructor(data?: ICreatePublicationRequest) {
@@ -10088,7 +10087,6 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
             this.dataBase = _data["dataBase"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
-            this.resolveDatabaseFromCrossRef = _data["resolveDatabaseFromCrossRef"];
             this.proyectoId = _data["proyectoId"];
         }
     }
@@ -10125,7 +10123,6 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
         data["dataBase"] = this.dataBase;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
-        data["resolveDatabaseFromCrossRef"] = this.resolveDatabaseFromCrossRef;
         data["proyectoId"] = this.proyectoId;
         return data;
     }
@@ -10143,7 +10140,6 @@ export interface ICreatePublicationRequest {
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
-    resolveDatabaseFromCrossRef?: boolean;
     proyectoId?: string | undefined;
 }
 
@@ -10324,6 +10320,7 @@ export interface IPublicationCrossRefDto {
 }
 
 export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto {
+    issns?: string[];
     databaseName?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
@@ -10341,6 +10338,11 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
 
     init(_data?: any) {
         if (_data) {
+            if (Array.isArray(_data["issns"])) {
+                this.issns = [] as any;
+                for (let item of _data["issns"])
+                    this.issns!.push(item);
+            }
             this.databaseName = _data["databaseName"];
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
@@ -10358,6 +10360,11 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.issns)) {
+            data["issns"] = [];
+            for (let item of this.issns)
+                data["issns"].push(item);
+        }
         data["databaseName"] = this.databaseName;
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
@@ -10368,6 +10375,7 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
 }
 
 export interface IPublicationDatabaseMatchDto {
+    issns?: string[];
     databaseName?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
@@ -10388,7 +10396,6 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
-    resolveDatabaseFromCrossRef?: boolean;
 
     constructor(data?: IUpdatePublicationBody) {
         if (data) {
@@ -10425,7 +10432,6 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
             this.proyectoId = _data["proyectoId"];
-            this.resolveDatabaseFromCrossRef = _data["resolveDatabaseFromCrossRef"];
         }
     }
 
@@ -10462,7 +10468,6 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
         data["proyectoId"] = this.proyectoId;
-        data["resolveDatabaseFromCrossRef"] = this.resolveDatabaseFromCrossRef;
         return data;
     }
 }
@@ -10480,7 +10485,6 @@ export interface IUpdatePublicationBody {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
-    resolveDatabaseFromCrossRef?: boolean;
 }
 
 export class RedDto implements IRedDto {

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Dashboard_v2.Application.Publications;
 
 /// <summary>
@@ -7,6 +9,12 @@ namespace Dashboard_v2.Application.Publications;
 /// </summary>
 public class PublicationDatabaseMatchDto
 {
+    /// <summary>
+    /// ISSNs returned by CrossRef for this journal. Populated even when no
+    /// database provider found a match, so the client can display them.
+    /// </summary>
+    public List<string> Issns { get; set; } = [];
+
     /// <summary>
     /// Primary database name determined for the journal, e.g. "Scopus", "DOAJ",
     /// "SciELO", "MEDLINE". Null when no match found.

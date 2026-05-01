@@ -16,12 +16,6 @@ public record CreatePublicationRequest
     public string? DataBase { get; init; }
     public int? Group { get; init; }
     public string? Cuartil { get; init; }
-    /// <summary>
-    /// Si es verdadero, al guardar se intentará resolver la base de datos
-    /// y el grupo (y cuartil para grupo 1) a partir de ISSN obtenidos
-    /// desde CrossRef. Valor por defecto: false.
-    /// </summary>
-    public bool ResolveDatabaseFromCrossRef { get; init; } = false;
     public string? ProyectoId { get; init; }
 }
 
@@ -39,11 +33,5 @@ public record UpdatePublicationRequest
     public string? DataBase { get; init; }
     public int? Group { get; init; }
     public string? Cuartil { get; init; }
-    /// <summary>
-    /// Indica si debe intentar resolver la base de datos/grupo desde CrossRef
-    /// usando ISSN al actualizar. Útil para controlar el comportamiento desde
-    /// la UI (checkbox).
-    /// </summary>
-    public bool ResolveDatabaseFromCrossRef { get; init; } = false;
     public string? ProyectoId { get; init; }
 }

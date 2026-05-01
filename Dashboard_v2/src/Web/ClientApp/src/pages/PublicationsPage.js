@@ -50,8 +50,6 @@ const EMPTY_FORM = {
   dataBase: '',
   group: '',
   cuartil: '',
-  // Flag para indicar si al guardar se debe intentar resolver la base/grupo desde CrossRef
-  resolveDatabaseFromCrossRef: false,
 };
 
 export default function PublicationsPage() {
@@ -83,6 +81,7 @@ export default function PublicationsPage() {
   // Resolver ahora state
   const [resolveLoading, setResolveLoading] = useState(false);
   const [resolveError, setResolveError] = useState('');
+  const [resolveSuccess, setResolveSuccess] = useState('');
 
   // Detalles modal para ver una publicación candidata
   const [detailsModal, setDetailsModal] = useState(false);
@@ -138,6 +137,8 @@ export default function PublicationsPage() {
       group: groupVal != null ? String(groupVal) : '',
     });
     setFormError('');
+    setResolveError('');
+    setResolveSuccess('');
     setCoauthorTags([]);
     setModal(true);
   }
@@ -171,6 +172,8 @@ export default function PublicationsPage() {
       cuartil: pub.journalPublication?.cuartil ?? '',
     });
     setFormError('');
+    setResolveError('');
+    setResolveSuccess('');
     // Pre-cargar coautores (todos excepto el usuario actual)
     const initialTags = (pub.authors ?? [])
       .filter(a => a.userId !== user?.id)
@@ -179,8 +182,32 @@ export default function PublicationsPage() {
     setModal(true);
   }
 
+  /**
+   * Infers the publication group (1–4) from a database name using the same
+   * rules as the backend PublicationGroupMapper.
+   */
+  function inferGroupFromDatabase(db) {
+    if (!db) return '';
+    const d = db.toLowerCase();
+    if (d.includes('scopus') || d.includes('scimago') || d.includes('web of science') ||
+        d.includes('scie') || d.includes('ssci') || d.includes('ahci')) return '1';
+    if (d.includes('scielo') || d.includes('medline') || d.includes('emerging') ||
+        d.includes('chemical') || d.includes('biosis') || d.includes('compendex') ||
+        d.includes('cab') || d.includes('inspec')) return '2';
+    if (d.includes('doaj') || d.includes('lilacs') || d.includes('redalyc') ||
+        d.includes('latindex') || d.includes('ime') || d.includes('icyt') ||
+        d.includes('periodica') || d.includes('clase')) return '3';
+    return '';
+  }
+
   function handleFormChange(e) {
     const { name, type, value, checked } = e.target;
+    if (name === 'dataBase') {
+      // Auto-infer group whenever the user changes the database name field.
+      const inferred = inferGroupFromDatabase(value);
+      setForm(f => ({ ...f, dataBase: value, group: inferred || f.group }));
+      return;
+    }
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   }
 
@@ -257,8 +284,6 @@ export default function PublicationsPage() {
         dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
         group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
         cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
-        // Control explícito: si true, el servidor intentará resolver DB/Grupo desde CrossRef
-        resolveDatabaseFromCrossRef: !!form.resolveDatabaseFromCrossRef,
       }),
     });
     setModal(false);
@@ -283,8 +308,6 @@ export default function PublicationsPage() {
         dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
         group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
         cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
-        // Control explícito: si true, el servidor intentará resolver DB/Grupo desde CrossRef
-        resolveDatabaseFromCrossRef: !!form.resolveDatabaseFromCrossRef,
       }),
     });
     setModal(false);
@@ -394,6 +417,7 @@ export default function PublicationsPage() {
 
   async function resolveDatabaseNow() {
     setResolveError('');
+    setResolveSuccess('');
     if (!canSearchCrossRef()) {
       setResolveError('Escribe al menos un título o un DOI antes de resolver.');
       return;
@@ -402,12 +426,23 @@ export default function PublicationsPage() {
     try {
       const res = await apiFetch(`/api/Publications/resolve-database?doi=${encodeURIComponent(form.urlDoi || '')}&title=${encodeURIComponent(form.title || '')}`);
       if (res) {
+        const resolved = !!res.databaseName;
         setForm(f => ({
           ...f,
           dataBase: res.databaseName ?? f.dataBase,
-          group: res.group != null ? String(res.group) : f.group,
+          group: res.group != null ? String(res.group) : (res.databaseName ? inferGroupFromDatabase(res.databaseName) : f.group),
           cuartil: res.cuartil ?? f.cuartil,
         }));
+        if (resolved) {
+          setResolveSuccess(`Base de datos resuelta: ${res.databaseName} (Grupo ${res.group}${res.cuartil ? ', ' + res.cuartil : ''})`);
+        } else {
+          const issnText = res.issns?.length > 0
+            ? `ISSNs encontrados en CrossRef: ${res.issns.join(', ')}. `
+            : '';
+          setResolveError(
+            `${issnText}No se pudo determinar la base de datos automáticamente (la revista no está indexada en DOAJ ni en los archivos CSV configurados). Por favor complete los campos manualmente.`
+          );
+        }
       }
     } catch (e) {
       setResolveError(e.message);
@@ -744,25 +779,15 @@ export default function PublicationsPage() {
                   {crossrefLoading ? <Spinner size="sm" className="me-1" /> : null} Buscar en CrossRef
                 </Button>
                 <Button type="button" color="outline-primary" size="sm" className="ms-2" onClick={resolveDatabaseNow} disabled={resolveLoading}>
-                  {resolveLoading ? <Spinner size="sm" className="me-1" /> : null} Resolver ahora
+                  {resolveLoading ? <Spinner size="sm" className="me-1" /> : null} Resolver base de datos
                 </Button>
                 <div className="text-muted small mt-1">
-                  La búsqueda usa el título o el DOI actual y solo rellena el formulario para que puedas revisar y ajustar antes de guardar.
+                  <strong>Buscar en CrossRef</strong>: rellena título, autores, tipo y fecha.{' '}
+                  <strong>Resolver base de datos</strong>: busca el ISSN de la revista en DOAJ y en los archivos CSV del administrador para determinar la base, grupo y cuartil.
                 </div>
                 {crossrefError && <div className="text-danger small mt-1">{crossrefError}</div>}
-                {resolveError && <div className="text-danger small mt-1">{resolveError}</div>}
-                <FormGroup check className="mt-2">
-                  <Label check>
-                    <Input
-                      type="checkbox"
-                      id="resolveDatabaseFromCrossRef"
-                      name="resolveDatabaseFromCrossRef"
-                      checked={!!form.resolveDatabaseFromCrossRef}
-                      onChange={handleFormChange}
-                    />{' '}
-                    Activar búsqueda de base de datos y cuartil desde CrossRef al guardar
-                  </Label>
-                </FormGroup>
+                {resolveSuccess && <div className="text-success small mt-1">✓ {resolveSuccess}</div>}
+                {resolveError && <div className="text-warning small mt-1">{resolveError}</div>}
               </div>
             </FormGroup>
             {proyectosError ? (

@@ -16,22 +16,19 @@ public sealed class PublicationService : IPublicationService
     private readonly ICrossRefClient _crossRefClient;
     private readonly IAuthorResolutionService _authorResolution;
     private readonly IAuthorCleanupService _authorCleanup;
-    private readonly IPublicationDatabaseResolver _publicationDatabaseResolver;
 
     public PublicationService(
         IApplicationDbContext context,
         IUser currentUser,
         ICrossRefClient crossRefClient,
         IAuthorResolutionService authorResolution,
-        IAuthorCleanupService authorCleanup,
-        IPublicationDatabaseResolver publicationDatabaseResolver)
+        IAuthorCleanupService authorCleanup)
     {
         _context = context;
         _currentUser = currentUser;
         _crossRefClient = crossRefClient;
         _authorResolution = authorResolution;
         _authorCleanup = authorCleanup;
-        _publicationDatabaseResolver = publicationDatabaseResolver;
     }
 
     public async Task<(Result Result, string? PublicationId)> CreateAsync(CreatePublicationRequest request, CancellationToken ct = default)
@@ -39,10 +36,6 @@ public sealed class PublicationService : IPublicationService
         if (!System.Enum.IsDefined(typeof(Dashboard_v2.Domain.Enums.PublicationType), request.PublicationType))
             return (Result.Failure(new[] { "Tipo de publicación no válido." }), null);
 
-        // Allow automatic ISSN-based resolution for journals (Diario) when the
-        // client did not provide DataBase/Group. We will attempt to fetch
-        // CrossRef metadata (if a DOI/UrlDoi was supplied) and then call the
-        // PublicationDatabaseResolver to infer the database/group/cuatril.
         var dataBase = string.IsNullOrWhiteSpace(request.DataBase) ? null : request.DataBase.Trim();
         var group = request.Group;
         var cuartil = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
@@ -50,36 +43,9 @@ public sealed class PublicationService : IPublicationService
         if (request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario)
         {
             if (string.IsNullOrWhiteSpace(dataBase) || group is null or < 1 or > 4)
-            {
-                // Only attempt automatic resolution when explicitly requested by the client.
-                if (request.ResolveDatabaseFromCrossRef && !string.IsNullOrWhiteSpace(request.UrlDoi))
-                {
-                    try
-                    {
-                        var cr = await _crossRefClient.GetWorkByDoiAsync(request.UrlDoi!, ct);
-                        if (cr != null && cr.Issns != null && cr.Issns.Count > 0)
-                        {
-                            var match = await _publicationDatabaseResolver.ResolveByIssnsAsync(cr.Issns, ct);
-                            if (match != null)
-                            {
-                                dataBase ??= match.DatabaseName;
-                                group ??= match.Group;
-                                if (group == 1 && string.IsNullOrWhiteSpace(cuartil) && !string.IsNullOrWhiteSpace(match.Cuartil))
-                                    cuartil = match.Cuartil;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // Non-fatal: resolution is best-effort. Proceed to validation below.
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(dataBase) || group is null or < 1 or > 4)
-                    return (Result.Failure(new[] { "Datos de la revista son obligatorios: base de datos y grupo (1–4)." }), null);
-                if (group == 1 && string.IsNullOrWhiteSpace(cuartil))
-                    return (Result.Failure(new[] { "Cuartil es obligatorio para revistas de grupo 1." }), null);
-            }
+                return (Result.Failure(new[] { "Datos de la revista son obligatorios: base de datos y grupo (1–4)." }), null);
+            if (group == 1 && string.IsNullOrWhiteSpace(cuartil))
+                return (Result.Failure(new[] { "Cuartil es obligatorio para revistas de grupo 1." }), null);
         }
         else if (string.IsNullOrWhiteSpace(request.Index))
         {
@@ -196,45 +162,13 @@ public sealed class PublicationService : IPublicationService
             var group = request.Group;
             var cuartil = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
 
-                if (string.IsNullOrWhiteSpace(dataBase) || group is null or < 1 or > 4)
-                {
-                    // Try to auto-resolve only if explicitly requested by the client.
-                    if (request.ResolveDatabaseFromCrossRef)
-                    {
-                        // Try to auto-resolve using CrossRef (preferring the new request DOI, falling back to existing publication DOI)
-                        var doiCandidate = !string.IsNullOrWhiteSpace(request.UrlDoi) ? request.UrlDoi : publication.UrlDoi;
-                        if (!string.IsNullOrWhiteSpace(doiCandidate))
-                        {
-                            try
-                            {
-                                var cr = await _crossRefClient.GetWorkByDoiAsync(doiCandidate!, ct);
-                                if (cr != null && cr.Issns != null && cr.Issns.Count > 0)
-                                {
-                                    var match = await _publicationDatabaseResolver.ResolveByIssnsAsync(cr.Issns, ct);
-                                    if (match != null)
-                                    {
-                                        dataBase ??= match.DatabaseName;
-                                        group ??= match.Group;
-                                        if (group == 1 && string.IsNullOrWhiteSpace(cuartil) && !string.IsNullOrWhiteSpace(match.Cuartil))
-                                            cuartil = match.Cuartil;
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                                // best-effort; ignore resolution errors
-                            }
-                        }
-                    }
+            if (string.IsNullOrWhiteSpace(dataBase) || group is null or < 1 or > 4)
+                return Result.Failure(new[] { "Datos de la revista son obligatorios: base de datos y grupo (1–4)." });
+            if (group == 1 && string.IsNullOrWhiteSpace(cuartil))
+                return Result.Failure(new[] { "Cuartil es obligatorio para revistas de grupo 1." });
 
-                    if (string.IsNullOrWhiteSpace(dataBase) || group is null or < 1 or > 4)
-                        return Result.Failure(new[] { "Datos de la revista son obligatorios: base de datos y grupo (1–4)." });
-                    if (group == 1 && string.IsNullOrWhiteSpace(cuartil))
-                        return Result.Failure(new[] { "Cuartil es obligatorio para revistas de grupo 1." });
-
-                    // Apply resolved values back to request-like local values for persistence below
-                    request = request with { DataBase = dataBase, Group = group, Cuartil = cuartil };
-                }
+            // Apply validated values back for persistence below
+            request = request with { DataBase = dataBase, Group = group, Cuartil = cuartil };
         }
         else if (string.IsNullOrWhiteSpace(request.Index))
         {

@@ -72,8 +72,53 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.Events.IEventService, Dashboard_v2.Application.Events.EventService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Publications.IPublicationService, Dashboard_v2.Application.Publications.PublicationService>();
         builder.Services.AddCrossRefIntegration(builder.Configuration);
-        // Publication database resolver (ISSN -> database/group). Bind options and register resolver.
+        // Publication database resolver (ISSN -> database/group).
+        // Providers are registered in resolution priority order:
+        //   1. LocalCsv  — Scopus/Scimago CSV files (Group 1, includes quartile). Singleton, loaded at startup.
+        //   2. MEDLINE   — NLM E-utilities API (Group 2). Free, no key. ~3 req/s limit.
+        //   3. SciELO    — SciELO Article Meta API (Group 2). Free, no key.
+        //   4. DOAJ      — DOAJ REST API (Group 3). Free, no key.
+        // The resolver tries each provider in order and returns on the first match.
         builder.Services.Configure<Dashboard_v2.Infrastructure.Configuration.PublicationDatabaseOptions>(builder.Configuration.GetSection("PublicationDatabase"));
+
+        // 1. LocalCsv (Singleton — loads CSV files once at startup)
+        builder.Services.AddSingleton<Dashboard_v2.Application.Common.Interfaces.IPublicationDatabaseProvider>(sp =>
+        {
+            var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<Dashboard_v2.Infrastructure.Configuration.PublicationDatabaseOptions>>().Value;
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Dashboard_v2.Infrastructure.Services.Providers.LocalCsvPublicationDatabaseProvider>>();
+            return new Dashboard_v2.Infrastructure.Services.Providers.LocalCsvPublicationDatabaseProvider(opts.LocalMappingFiles ?? [], logger);
+        });
+
+        // 2. MEDLINE via NLM E-utilities
+        builder.Services.AddHttpClient<Dashboard_v2.Infrastructure.Services.Providers.MedlinePublicationDatabaseProvider>(client =>
+        {
+            client.BaseAddress = new Uri("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/");
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            client.Timeout = TimeSpan.FromSeconds(8);
+        });
+        builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IPublicationDatabaseProvider>(
+            sp => sp.GetRequiredService<Dashboard_v2.Infrastructure.Services.Providers.MedlinePublicationDatabaseProvider>());
+
+        // 3. SciELO via Article Meta API
+        builder.Services.AddHttpClient<Dashboard_v2.Infrastructure.Services.Providers.SciELOPublicationDatabaseProvider>(client =>
+        {
+            client.BaseAddress = new Uri("https://articlemeta.scielo.org/");
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            client.Timeout = TimeSpan.FromSeconds(8);
+        });
+        builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IPublicationDatabaseProvider>(
+            sp => sp.GetRequiredService<Dashboard_v2.Infrastructure.Services.Providers.SciELOPublicationDatabaseProvider>());
+
+        // 4. DOAJ
+        builder.Services.AddHttpClient<Dashboard_v2.Infrastructure.Services.Providers.DoajPublicationDatabaseProvider>(client =>
+        {
+            client.BaseAddress = new Uri("https://doaj.org/api/v3/");
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            client.Timeout = TimeSpan.FromSeconds(8);
+        });
+        builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IPublicationDatabaseProvider>(
+            sp => sp.GetRequiredService<Dashboard_v2.Infrastructure.Services.Providers.DoajPublicationDatabaseProvider>());
+
         builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IPublicationDatabaseResolver, Dashboard_v2.Infrastructure.Services.PublicationDatabaseResolver>();
         builder.Services.AddScoped<Dashboard_v2.Application.Users.IUserService, Dashboard_v2.Application.Users.UserService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Authors.IAuthorService, Dashboard_v2.Application.Authors.AuthorService>();
