@@ -7,6 +7,7 @@ import {
   Spinner, Alert,
   Modal, ModalHeader, ModalBody, ModalFooter,
   Form, FormGroup, Label, Input,
+  ButtonGroup, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem,
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import CoauthorPicker from '../components/CoauthorPicker';
@@ -82,6 +83,9 @@ export default function PublicationsPage() {
   const [resolveLoading, setResolveLoading] = useState(false);
   const [resolveError, setResolveError] = useState('');
   const [resolveSuccess, setResolveSuccess] = useState('');
+  // Metadata search dropdown
+  const [metaDropdownOpen, setMetaDropdownOpen] = useState(false);
+  const [metaSearchLoading, setMetaSearchLoading] = useState(false);
 
   // Detalles modal para ver una publicación candidata
   const [detailsModal, setDetailsModal] = useState(false);
@@ -403,6 +407,7 @@ export default function PublicationsPage() {
     }
 
     setCrossrefError('');
+    setMetaSearchLoading(true);
     setCrossrefLoading(true);
     try {
       const res = await apiFetch(`/api/Publications/crossref?doi=${encodeURIComponent(form.urlDoi || '')}&title=${encodeURIComponent(form.title || '')}`);
@@ -412,6 +417,28 @@ export default function PublicationsPage() {
       setCrossrefError(e.message);
     } finally {
       setCrossrefLoading(false);
+      setMetaSearchLoading(false);
+    }
+  }
+
+  async function searchOpenAire() {
+    if (!canSearchCrossRef()) {
+      setCrossrefError('Escribe al menos un título o un DOI antes de buscar en OpenAIRE.');
+      return;
+    }
+
+    setCrossrefError('');
+    setMetaSearchLoading(true);
+    setCrossrefLoading(true);
+    try {
+      const res = await apiFetch(`/api/Publications/openaire?doi=${encodeURIComponent(form.urlDoi || '')}&title=${encodeURIComponent(form.title || '')}`);
+      setCrossrefCandidates(res || []);
+      setCrossrefModal(true);
+    } catch (e) {
+      setCrossrefError(e.message);
+    } finally {
+      setCrossrefLoading(false);
+      setMetaSearchLoading(false);
     }
   }
 
@@ -775,15 +802,55 @@ export default function PublicationsPage() {
                 placeholder="https://doi.org/10.xxxx/... o URL de la publicación"
               />
               <div className="mt-2">
-                <Button type="button" color="outline-secondary" size="sm" onClick={searchCrossRef} disabled={crossrefLoading}>
-                  {crossrefLoading ? <Spinner size="sm" className="me-1" /> : null} Buscar en CrossRef
-                </Button>
-                <Button type="button" color="outline-primary" size="sm" className="ms-2" onClick={resolveDatabaseNow} disabled={resolveLoading}>
-                  {resolveLoading ? <Spinner size="sm" className="me-1" /> : null} Resolver base de datos
+                <ButtonGroup size="sm">
+                  {/* Primary action: CrossRef (most common) */}
+                  <Button
+                    type="button"
+                    color="outline-secondary"
+                    onClick={searchCrossRef}
+                    disabled={metaSearchLoading}
+                  >
+                    {metaSearchLoading ? <Spinner size="sm" className="me-1" /> : null}
+                    Buscar metadatos
+                  </Button>
+                  {/* Dropdown for choosing the source */}
+                  <ButtonDropdown
+                    isOpen={metaDropdownOpen}
+                    toggle={() => setMetaDropdownOpen(o => !o)}
+                  >
+                    <DropdownToggle
+                      caret
+                      color="outline-secondary"
+                      size="sm"
+                      disabled={metaSearchLoading}
+                    />
+                    <DropdownMenu>
+                      <DropdownItem header>Fuente de metadatos</DropdownItem>
+                      <DropdownItem onClick={searchCrossRef} disabled={metaSearchLoading}>
+                        CrossRef
+                        <small className="d-block text-muted">Título, autores, fecha, ISSN</small>
+                      </DropdownItem>
+                      <DropdownItem onClick={searchOpenAire} disabled={metaSearchLoading}>
+                        OpenAIRE
+                        <small className="d-block text-muted">Incluye SciELO, repositorios LA</small>
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </ButtonDropdown>
+                </ButtonGroup>
+                <Button
+                  type="button"
+                  color="outline-primary"
+                  size="sm"
+                  className="ms-2"
+                  onClick={resolveDatabaseNow}
+                  disabled={resolveLoading}
+                >
+                  {resolveLoading ? <Spinner size="sm" className="me-1" /> : null}
+                  Resolver base de datos
                 </Button>
                 <div className="text-muted small mt-1">
-                  <strong>Buscar en CrossRef</strong>: rellena título, autores, tipo y fecha.{' '}
-                  <strong>Resolver base de datos</strong>: busca el ISSN de la revista en DOAJ y en los archivos CSV del administrador para determinar la base, grupo y cuartil.
+                  <strong>Buscar metadatos</strong>: rellena título, autores, tipo y fecha desde CrossRef u OpenAIRE.{' '}
+                  <strong>Resolver base de datos</strong>: determina en qué índice (Scopus, SciELO, DOAJ…) está la revista y asigna el grupo.
                 </div>
                 {crossrefError && <div className="text-danger small mt-1">{crossrefError}</div>}
                 {resolveSuccess && <div className="text-success small mt-1">✓ {resolveSuccess}</div>}

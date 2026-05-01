@@ -65,6 +65,13 @@ public class Publications : EndpointGroupBase
             .WithName("GetCrossRefCandidates")
             .Produces<List<PublicationCrossRefDto>>(200);
 
+        // GET /api/Publications/openaire?doi=&title=
+        // Searches OpenAIRE — covers SciELO, PubMed, institutional repos and more.
+        groupBuilder.MapGet("openaire", GetOpenAireCandidates)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor)))
+            .WithName("GetOpenAireCandidates")
+            .Produces<List<PublicationCrossRefDto>>(200);
+
         // GET /api/Publications/resolve-database?doi=&title=
         // Best-effort: fetch CrossRef metadata for the DOI/title and resolve
         // the journal's database/group using configured providers.
@@ -148,6 +155,12 @@ public class Publications : EndpointGroupBase
     private async Task<IResult> GetCrossRefCandidates(IPublicationService service, string? doi, string? title)
     {
         var items = await service.SearchCrossRefCandidatesAsync(doi, title);
+        return Results.Ok(items);
+    }
+
+    private async Task<IResult> GetOpenAireCandidates(IPublicationService service, string? doi, string? title)
+    {
+        var items = await service.SearchOpenAireCandidatesAsync(doi, title);
         return Results.Ok(items);
     }
 

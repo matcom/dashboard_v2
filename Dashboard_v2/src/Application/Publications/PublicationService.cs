@@ -14,6 +14,7 @@ public sealed class PublicationService : IPublicationService
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
     private readonly ICrossRefClient _crossRefClient;
+    private readonly IOpenAireClient _openAireClient;
     private readonly IAuthorResolutionService _authorResolution;
     private readonly IAuthorCleanupService _authorCleanup;
 
@@ -21,12 +22,14 @@ public sealed class PublicationService : IPublicationService
         IApplicationDbContext context,
         IUser currentUser,
         ICrossRefClient crossRefClient,
+        IOpenAireClient openAireClient,
         IAuthorResolutionService authorResolution,
         IAuthorCleanupService authorCleanup)
     {
         _context = context;
         _currentUser = currentUser;
         _crossRefClient = crossRefClient;
+        _openAireClient = openAireClient;
         _authorResolution = authorResolution;
         _authorCleanup = authorCleanup;
     }
@@ -488,6 +491,24 @@ public sealed class PublicationService : IPublicationService
         if (!string.IsNullOrWhiteSpace(title))
         {
             var items = await _crossRefClient.SearchWorksByTitleAsync(title, rows: 10, ct);
+            return items.Select(EnrichCrossRefCandidate).ToList();
+        }
+
+        return new List<PublicationCrossRefDto>();
+    }
+
+    public async Task<List<PublicationCrossRefDto>> SearchOpenAireCandidatesAsync(string? doi, string? title, CancellationToken ct = default)
+    {
+        if (!string.IsNullOrWhiteSpace(doi))
+        {
+            var single = await _openAireClient.GetWorkByDoiAsync(doi, ct);
+            if (single is not null)
+                return new List<PublicationCrossRefDto> { EnrichCrossRefCandidate(single) };
+        }
+
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            var items = await _openAireClient.SearchWorksByTitleAsync(title, rows: 10, ct);
             return items.Select(EnrichCrossRefCandidate).ToList();
         }
 

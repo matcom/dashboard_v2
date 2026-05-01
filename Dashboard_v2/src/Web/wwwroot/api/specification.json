@@ -3870,6 +3870,49 @@
         }
       }
     },
+    "/api/Publications/openaire": {
+      "get": {
+        "tags": [
+          "Publications"
+        ],
+        "operationId": "GetOpenAireCandidates",
+        "parameters": [
+          {
+            "name": "doi",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicationCrossRefDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Publications/resolve-database": {
       "get": {
         "tags": [

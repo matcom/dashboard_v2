@@ -72,6 +72,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.Events.IEventService, Dashboard_v2.Application.Events.EventService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Publications.IPublicationService, Dashboard_v2.Application.Publications.PublicationService>();
         builder.Services.AddCrossRefIntegration(builder.Configuration);
+        builder.Services.AddOpenAireIntegration();
         // Publication database resolver (ISSN -> database/group).
         // Providers are registered in resolution priority order:
         //   1. LocalCsv  — Scopus/Scimago CSV files (Group 1, includes quartile). Singleton, loaded at startup.
