@@ -79,10 +79,9 @@ public sealed class PublicationService : IPublicationService
 
         foreach (var name in request.AdditionalAuthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
         {
-            publication.AuthorPublications.Add(new AuthorPublication
-            {
-                Author = new Author { Name = name.Trim() }
-            });
+            var resolved = await _authorResolution.ResolveByNameAsync(name, ct);
+            if (publication.AuthorPublications.All(ap => ap.AuthorId != resolved.Id))
+                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = resolved.Id });
         }
 
         foreach (var userId in request.AdditionalUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
@@ -259,10 +258,9 @@ public sealed class PublicationService : IPublicationService
 
         foreach (var name in request.AdditionalAuthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
         {
-            publication.AuthorPublications.Add(new AuthorPublication
-            {
-                Author = new Author { Name = name.Trim() }
-            });
+            var resolved = await _authorResolution.ResolveByNameAsync(name, ct);
+            if (publication.AuthorPublications.All(ap => ap.AuthorId != resolved.Id))
+                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = resolved.Id });
         }
 
         foreach (var userId in request.AdditionalUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
@@ -536,6 +534,8 @@ public sealed class PublicationService : IPublicationService
                 {
                     Id = ap.Author.Id,
                     Name = ap.Author.Name,
+                    LastName = ap.Author.LastName,
+                    FirstName = ap.Author.FirstName,
                     UserId = ap.Author.UserId,
                     LinkedUser = ap.Author.User == null ? null : new LinkedUserSummaryDto
                     {

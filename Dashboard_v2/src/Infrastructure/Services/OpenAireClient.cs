@@ -159,14 +159,28 @@ public sealed class OpenAireClient : IOpenAireClient
                 }
             }
 
-            // Authors
+            // Authors — preferir campos estructurados (surname/name) cuando estén disponibles.
+            // Formato bibliográfico de salida: "Apellidos, Nombres".
             if (item.TryGetProperty("authors", out var authors) && authors.ValueKind == JsonValueKind.Array)
             {
                 foreach (var a in authors.EnumerateArray())
                 {
-                    var fullName = GetString(a, "fullName");
-                    if (!string.IsNullOrWhiteSpace(fullName))
-                        dto.Authors.Add(fullName);
+                    var surname   = GetString(a, "surname");
+                    var givenName = GetString(a, "name");
+                    string? authorName;
+                    if (!string.IsNullOrWhiteSpace(surname))
+                    {
+                        authorName = string.IsNullOrWhiteSpace(givenName)
+                            ? surname
+                            : $"{surname}, {givenName}";
+                    }
+                    else
+                    {
+                        // Fallback: fullName ya puede venir en formato "Apellido, Nombre" de algunas fuentes.
+                        authorName = GetString(a, "fullName");
+                    }
+                    if (!string.IsNullOrWhiteSpace(authorName))
+                        dto.Authors.Add(authorName);
                 }
             }
 

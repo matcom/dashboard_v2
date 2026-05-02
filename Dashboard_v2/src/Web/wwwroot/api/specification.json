@@ -529,6 +529,41 @@
         }
       }
     },
+    "/api/Authors/resolve-external": {
+      "post": {
+        "tags": [
+          "Authors"
+        ],
+        "operationId": "ResolveExternalAuthors",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveExternalAuthorsRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExternalAuthorResolutionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Awards": {
       "get": {
         "tags": [
@@ -5031,6 +5066,13 @@
           },
           "name": {
             "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -5137,6 +5179,62 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "ExternalAuthorResolutionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "externalName": {
+            "type": "string"
+          },
+          "match": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ExternalAuthorMatchDto"
+              }
+            ]
+          }
+        }
+      },
+      "ExternalAuthorMatchDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "linkedUser": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LinkedUserSummaryDto"
+              }
+            ]
+          }
+        }
+      },
+      "ResolveExternalAuthorsRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6501,6 +6599,13 @@
           },
           "name": {
             "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
           },
           "userId": {
             "type": "string",

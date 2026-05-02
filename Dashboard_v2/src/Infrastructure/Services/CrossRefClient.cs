@@ -207,9 +207,16 @@ public class CrossRefClient : ICrossRefClient
             {
                 foreach (var a in authors.EnumerateArray())
                 {
-                    var given = TryGetString(a, "given");
+                    var given  = TryGetString(a, "given");
                     var family = TryGetString(a, "family");
-                    var name = string.IsNullOrWhiteSpace(given) ? family : (string.IsNullOrWhiteSpace(family) ? given : $"{given} {family}");
+                    // Formato bibliográfico: "Apellidos, Nombres"
+                    string? name;
+                    if (string.IsNullOrWhiteSpace(family))
+                        name = given;
+                    else if (string.IsNullOrWhiteSpace(given))
+                        name = family;
+                    else
+                        name = $"{family}, {given}";
                     if (!string.IsNullOrWhiteSpace(name))
                         dto.Authors.Add(name);
                 }

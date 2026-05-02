@@ -7,6 +7,10 @@ public record AuthorDto
 {
     public string Id { get; init; } = default!;
     public string Name { get; init; } = default!;
+    /// <summary>Apellido(s) del autor.</summary>
+    public string LastName { get; init; } = default!;
+    /// <summary>Nombre(s) de pila. Puede ser nulo.</summary>
+    public string? FirstName { get; init; }
     /// <summary>null si el autor no tiene cuenta en el sistema.</summary>
     public string? UserId { get; init; }
     /// <summary>

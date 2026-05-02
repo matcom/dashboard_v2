@@ -726,6 +726,52 @@ export class AuthorsClient {
         }
         return Promise.resolve<void>(null as any);
     }
+
+    resolveExternalAuthors(body: ResolveExternalAuthorsRequest): Promise<ExternalAuthorResolutionDto[]> {
+        let url_ = this.baseUrl + "/api/Authors/resolve-external";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResolveExternalAuthors(_response);
+        });
+    }
+
+    protected processResolveExternalAuthors(response: Response): Promise<ExternalAuthorResolutionDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ExternalAuthorResolutionDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ExternalAuthorResolutionDto[]>(null as any);
+    }
 }
 
 export class AwardsClient {
@@ -6632,6 +6678,8 @@ export interface ICurrentUserDto {
 export class AuthorSearchDto implements IAuthorSearchDto {
     id?: string;
     name?: string;
+    lastName?: string;
+    firstName?: string | undefined;
 
     constructor(data?: IAuthorSearchDto) {
         if (data) {
@@ -6646,6 +6694,8 @@ export class AuthorSearchDto implements IAuthorSearchDto {
         if (_data) {
             this.id = _data["id"];
             this.name = _data["name"];
+            this.lastName = _data["lastName"];
+            this.firstName = _data["firstName"];
         }
     }
 
@@ -6660,6 +6710,8 @@ export class AuthorSearchDto implements IAuthorSearchDto {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["name"] = this.name;
+        data["lastName"] = this.lastName;
+        data["firstName"] = this.firstName;
         return data;
     }
 }
@@ -6667,6 +6719,8 @@ export class AuthorSearchDto implements IAuthorSearchDto {
 export interface IAuthorSearchDto {
     id?: string;
     name?: string;
+    lastName?: string;
+    firstName?: string | undefined;
 }
 
 export class CoauthorSearchDto implements ICoauthorSearchDto {
@@ -6895,6 +6949,142 @@ export class PotentialAuthorMatchDto implements IPotentialAuthorMatchDto {
 export interface IPotentialAuthorMatchDto {
     id?: string;
     name?: string;
+}
+
+export class ExternalAuthorResolutionDto implements IExternalAuthorResolutionDto {
+    externalName?: string;
+    match?: ExternalAuthorMatchDto | undefined;
+
+    constructor(data?: IExternalAuthorResolutionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.externalName = _data["externalName"];
+            this.match = _data["match"] ? ExternalAuthorMatchDto.fromJS(_data["match"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ExternalAuthorResolutionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ExternalAuthorResolutionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["externalName"] = this.externalName;
+        data["match"] = this.match ? this.match.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IExternalAuthorResolutionDto {
+    externalName?: string;
+    match?: ExternalAuthorMatchDto | undefined;
+}
+
+export class ExternalAuthorMatchDto implements IExternalAuthorMatchDto {
+    id?: string;
+    name?: string;
+    lastName?: string;
+    firstName?: string | undefined;
+    linkedUser?: LinkedUserSummaryDto | undefined;
+
+    constructor(data?: IExternalAuthorMatchDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.lastName = _data["lastName"];
+            this.firstName = _data["firstName"];
+            this.linkedUser = _data["linkedUser"] ? LinkedUserSummaryDto.fromJS(_data["linkedUser"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ExternalAuthorMatchDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ExternalAuthorMatchDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["lastName"] = this.lastName;
+        data["firstName"] = this.firstName;
+        data["linkedUser"] = this.linkedUser ? this.linkedUser.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IExternalAuthorMatchDto {
+    id?: string;
+    name?: string;
+    lastName?: string;
+    firstName?: string | undefined;
+    linkedUser?: LinkedUserSummaryDto | undefined;
+}
+
+export class ResolveExternalAuthorsRequest implements IResolveExternalAuthorsRequest {
+    names?: string[];
+
+    constructor(data?: IResolveExternalAuthorsRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["names"])) {
+                this.names = [] as any;
+                for (let item of _data["names"])
+                    this.names!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ResolveExternalAuthorsRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ResolveExternalAuthorsRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.names)) {
+            data["names"] = [];
+            for (let item of this.names)
+                data["names"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IResolveExternalAuthorsRequest {
+    names?: string[];
 }
 
 export class AwardWithGrantingsDto implements IAwardWithGrantingsDto {
@@ -9962,6 +10152,8 @@ export interface IPublicationDto {
 export class AuthorDto implements IAuthorDto {
     id?: string;
     name?: string;
+    lastName?: string;
+    firstName?: string | undefined;
     userId?: string | undefined;
     linkedUser?: LinkedUserSummaryDto | undefined;
 
@@ -9978,6 +10170,8 @@ export class AuthorDto implements IAuthorDto {
         if (_data) {
             this.id = _data["id"];
             this.name = _data["name"];
+            this.lastName = _data["lastName"];
+            this.firstName = _data["firstName"];
             this.userId = _data["userId"];
             this.linkedUser = _data["linkedUser"] ? LinkedUserSummaryDto.fromJS(_data["linkedUser"]) : undefined as any;
         }
@@ -9994,6 +10188,8 @@ export class AuthorDto implements IAuthorDto {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["name"] = this.name;
+        data["lastName"] = this.lastName;
+        data["firstName"] = this.firstName;
         data["userId"] = this.userId;
         data["linkedUser"] = this.linkedUser ? this.linkedUser.toJSON() : undefined as any;
         return data;
@@ -10003,6 +10199,8 @@ export class AuthorDto implements IAuthorDto {
 export interface IAuthorDto {
     id?: string;
     name?: string;
+    lastName?: string;
+    firstName?: string | undefined;
     userId?: string | undefined;
     linkedUser?: LinkedUserSummaryDto | undefined;
 }

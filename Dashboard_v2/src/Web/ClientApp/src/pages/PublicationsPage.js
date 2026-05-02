@@ -11,6 +11,7 @@ import {
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import CoauthorPicker from '../components/CoauthorPicker';
+import AuthorResolutionModal from '../components/AuthorResolutionModal';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -87,6 +88,11 @@ export default function PublicationsPage() {
   // Metadata search dropdown
   const [metaDropdownOpen, setMetaDropdownOpen] = useState(false);
   const [metaSearchLoading, setMetaSearchLoading] = useState(false);
+
+  // Author resolution modal (after CrossRef / OpenAIRE import)
+  const [authorResolutionModal, setAuthorResolutionModal] = useState(false);
+  const [authorResolutionItems, setAuthorResolutionItems] = useState([]);
+  const [authorResolutionLoading, setAuthorResolutionLoading] = useState(false);
 
   // Detalles modal para ver una publicación candidata
   const [detailsModal, setDetailsModal] = useState(false);
@@ -508,6 +514,33 @@ export default function PublicationsPage() {
     // Cache ISSNs so resolve-database can skip the CrossRef round-trip.
     setResolvedIssns(candidate.issns ?? []);
     setCrossrefModal(false);
+
+    // Resolve authors: ask the backend if any of the external names are already
+    // in the system before adding them to the coauthor picker.
+    const externalAuthors = candidate.authors ?? [];
+    if (externalAuthors.length > 0) {
+      setAuthorResolutionLoading(true);
+      apiFetch('/api/Authors/resolve-external', {
+        method: 'POST',
+        body: JSON.stringify({ names: externalAuthors }),
+      })
+        .then(items => {
+          setAuthorResolutionItems(items ?? []);
+          setAuthorResolutionModal(true);
+        })
+        .catch(() => {
+          // On error fall back to adding all as new authors
+          const fallbackTags = externalAuthors.map(name => ({
+            id: null, name, type: 'new', linkedUser: null,
+          }));
+          setCoauthorTags(prev => {
+            const existing = new Set(prev.map(t => (t.id ?? t.name).toLowerCase()));
+            const added = fallbackTags.filter(t => !existing.has(t.name.toLowerCase()));
+            return [...prev, ...added];
+          });
+        })
+        .finally(() => setAuthorResolutionLoading(false));
+    }
   }
 
   function buildCrossRefPreview(candidate) {
@@ -1117,8 +1150,8 @@ export default function PublicationsPage() {
                     <td style={{ maxWidth: 220 }}>{c.doi ? `https://doi.org/${c.doi}` : (c.url ?? '—')}</td>
                     <td>{c.containerTitle ?? '—'}</td>
                     <td className="text-end">
-                      <Button type="button" color="primary" size="sm" className="me-2" onClick={() => importFromCrossRef(c)}>
-                        Rellenar formulario
+                      <Button type="button" color="primary" size="sm" className="me-2" onClick={() => importFromCrossRef(c)} disabled={authorResolutionLoading}>
+                        {authorResolutionLoading ? <><Spinner size="sm" className="me-1" />Resolviendo…</> : 'Rellenar formulario'}
                       </Button>
                       <Button type="button" color="outline-secondary" size="sm" onClick={() => previewCrossRefCandidate(c)}>
                         Previsualizar
@@ -1147,6 +1180,28 @@ export default function PublicationsPage() {
           <Button color="secondary" onClick={closeDetailsModal}>Cerrar</Button>
         </ModalFooter>
       </Modal>
+
+      {/* ── Modal revisión de autores externos (CrossRef / OpenAIRE) ── */}
+      {authorResolutionModal && (
+        <AuthorResolutionModal
+          isOpen={authorResolutionModal}
+          items={authorResolutionItems}
+          onConfirm={(resolvedTags) => {
+            setAuthorResolutionModal(false);
+            setCoauthorTags(prev => {
+              const existing = new Set(
+                prev.map(t => t.id ? `id:${t.id}` : `name:${t.name.trim().toLowerCase()}`)
+              );
+              const toAdd = resolvedTags.filter(t => {
+                const key = t.id ? `id:${t.id}` : `name:${t.name.trim().toLowerCase()}`;
+                return !existing.has(key);
+              });
+              return [...prev, ...toAdd];
+            });
+          }}
+          onCancel={() => setAuthorResolutionModal(false)}
+        />
+      )}
     </>
   );
 }
