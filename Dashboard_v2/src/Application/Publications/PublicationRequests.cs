@@ -12,7 +12,7 @@ public record CreatePublicationRequest
     public List<string> AdditionalAuthorIds { get; init; } = [];
     public List<string> AdditionalAuthorNames { get; init; } = [];
     public List<string> AdditionalUserIds { get; init; } = [];
-    public string? Index { get; init; }
+    public int? Index { get; init; }
     public string? DataBase { get; init; }
     public int? Group { get; init; }
     public string? Cuartil { get; init; }
@@ -29,7 +29,7 @@ public record UpdatePublicationRequest
     public List<string> AdditionalAuthorIds { get; init; } = [];
     public List<string> AdditionalAuthorNames { get; init; } = [];
     public List<string> AdditionalUserIds { get; init; } = [];
-    public string? Index { get; init; }
+    public int? Index { get; init; }
     public string? DataBase { get; init; }
     public int? Group { get; init; }
     public string? Cuartil { get; init; }

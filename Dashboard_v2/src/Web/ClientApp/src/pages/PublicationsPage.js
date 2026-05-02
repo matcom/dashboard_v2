@@ -215,6 +215,12 @@ export default function PublicationsPage() {
       setForm(f => ({ ...f, dataBase: value, group: inferred || f.group }));
       return;
     }
+    if (name === 'publicationType') {
+      // Clear resolve states when switching type to avoid stale journal messages.
+      setResolveSuccess('');
+      setResolveError('');
+      setResolvedIssns([]);
+    }
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   }
 
@@ -287,7 +293,7 @@ export default function PublicationsPage() {
         additionalAuthorNames: coauthorTags.filter(t => t.type === 'new').map(t => t.name),
         additionalUserIds: coauthorTags.filter(t => t.type === 'user').map(t => t.id),
         // Especialización
-        index: parseInt(form.publicationType, 10) !== 0 ? form.index || null : null,
+        index: parseInt(form.publicationType, 10) !== 0 ? (parseInt(form.index, 10) || null) : null,
         dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
         group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
         cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
@@ -311,7 +317,7 @@ export default function PublicationsPage() {
         additionalAuthorNames: coauthorTags.filter(t => t.type === 'new').map(t => t.name),
         additionalUserIds: coauthorTags.filter(t => t.type === 'user').map(t => t.id),
         // Especialización
-        index: parseInt(form.publicationType, 10) !== 0 ? form.index || null : null,
+        index: parseInt(form.publicationType, 10) !== 0 ? (parseInt(form.index, 10) || null) : null,
         dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
         group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
         cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
@@ -592,7 +598,7 @@ export default function PublicationsPage() {
           <p><strong>Base de datos:</strong> {pub.journalPublication.dataBase} (Grupo {pub.journalPublication.group}) {pub.journalPublication.cuartil && <>- {pub.journalPublication.cuartil}</>}</p>
         )}
         {pub.indexedPublication && (
-          <p><strong>Indexación:</strong> {pub.indexedPublication.index}</p>
+          <p><strong>Indexación:</strong> {pub.indexedPublication.index ? `Grupo ${pub.indexedPublication.index}` : '—'}</p>
         )}
         {pub.proyectoTitulo && (
           <p><strong>Proyecto vinculado:</strong> {pub.proyectoTitulo}</p>
@@ -752,7 +758,7 @@ export default function PublicationsPage() {
                                 <tr key={pub.id}>
                                   <td>{pub.title}</td>
                                   <td>{pub.publicationData}</td>
-                                  <td>{pub.indexedPublication?.index ?? <span className="text-muted">—</span>}</td>
+                                  <td>{pub.indexedPublication?.index ? `Grupo ${pub.indexedPublication.index}` : <span className="text-muted">—</span>}</td>
                                   <td style={{ maxWidth: 180 }}>{urlCell(pub.urlDoi)}</td>
                                   <td>{authorsList(pub.authors)}</td>
                                   <td className="text-end">{actionBtns(pub)}</td>
@@ -842,7 +848,7 @@ export default function PublicationsPage() {
                       <DropdownItem header>Fuente de metadatos</DropdownItem>
                       <DropdownItem onClick={searchCrossRef} disabled={metaSearchLoading}>
                         CrossRef
-                        <small className="d-block text-muted">Título, autores, fecha, ISSN</small>
+                        <small className="d-block text-muted">Título, autores, fecha, ISSN/ISBN</small>
                       </DropdownItem>
                       <DropdownItem onClick={searchOpenAire} disabled={metaSearchLoading}>
                         OpenAIRE
@@ -851,24 +857,10 @@ export default function PublicationsPage() {
                     </DropdownMenu>
                   </ButtonDropdown>
                 </ButtonGroup>
-                <Button
-                  type="button"
-                  color="outline-primary"
-                  size="sm"
-                  className="ms-2"
-                  onClick={resolveDatabaseNow}
-                  disabled={resolveLoading}
-                >
-                  {resolveLoading ? <Spinner size="sm" className="me-1" /> : null}
-                  Resolver base de datos
-                </Button>
                 <div className="text-muted small mt-1">
-                  <strong>Buscar metadatos</strong>: rellena título, autores, tipo y fecha desde CrossRef u OpenAIRE.{' '}
-                  <strong>Resolver base de datos</strong>: determina en qué índice (Scopus, SciELO, DOAJ…) está la revista y asigna el grupo.
+                  <strong>Buscar metadatos</strong>: rellena título, autores, tipo y fecha desde CrossRef u OpenAIRE.
                 </div>
                 {crossrefError && <div className="text-danger small mt-1">{crossrefError}</div>}
-                {resolveSuccess && <div className="text-success small mt-1">✓ {resolveSuccess}</div>}
-                {resolveError && <Alert color="warning" className="small mt-1 mb-0 py-2">{resolveError}</Alert>}
               </div>
             </FormGroup>
             {proyectosError ? (
@@ -943,19 +935,42 @@ export default function PublicationsPage() {
                     </Input>
                   </FormGroup>
                 )}
+                {/* Resolver base de datos: solo aplica para revistas (tipo 0) */}
+                <div className="mb-3">
+                  <Button
+                    type="button"
+                    color="outline-primary"
+                    size="sm"
+                    onClick={resolveDatabaseNow}
+                    disabled={resolveLoading}
+                  >
+                    {resolveLoading ? <Spinner size="sm" className="me-1" /> : null}
+                    Resolver base de datos
+                  </Button>
+                  <div className="text-muted small mt-1">
+                    Determina en qué índice (Scopus, SciELO, DOAJ…) está la revista y asigna base de datos y grupo automáticamente.
+                  </div>
+                  {resolveSuccess && <div className="text-success small mt-1">✓ {resolveSuccess}</div>}
+                  {resolveError && <Alert color="warning" className="small mt-1 mb-0 py-2">{resolveError}</Alert>}
+                </div>
               </>
-            ) : (
+            ) : [1, 2, 3].includes(parseInt(form.publicationType, 10)) ? (
               <FormGroup>
                 <Label for="index">Indexación <span className="text-danger">*</span></Label>
                 <Input
+                  type="select"
                   id="index"
                   name="index"
                   value={form.index}
                   onChange={handleFormChange}
-                  placeholder="Ej. Scopus, SciELO, Latindex..."
-                />
+                >
+                  <option value="">— Selecciona el grupo —</option>
+                  <option value="1">Grupo 1 — BkCI (Web de la Ciencia)</option>
+                  <option value="2">Grupo 2 — Editoriales de prestigio internacional (SciELO Libros, SPI, PSM)</option>
+                  <option value="3">Grupo 3 — Editoriales nacionales u otras</option>
+                </Input>
               </FormGroup>
-            )}
+            ) : null}
 
             <FormGroup>
               <Label for="publicationData">Datos / Resumen</Label>

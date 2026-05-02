@@ -19,7 +19,7 @@ public record AuthorDto
 /// <summary>Datos de indexación para publicaciones de tipo Libro, Monografía, Capítulo o Artículo de Divulgación.</summary>
 public record IndexedPublicationDto
 {
-    public string Index { get; init; } = default!;
+    public int? Index { get; init; }
 }
 
 /// <summary>Datos de revista para publicaciones de tipo Diario (journal).</summary>

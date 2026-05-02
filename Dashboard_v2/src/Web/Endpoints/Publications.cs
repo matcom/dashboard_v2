@@ -267,7 +267,7 @@ public record UpdatePublicationBody(
     List<string>? AdditionalAuthorNames,
     List<string>? AdditionalUserIds,
     // Especialización
-    string? Index,
+    int? Index,
     string? DataBase,
     int? Group,
     string? Cuartil,

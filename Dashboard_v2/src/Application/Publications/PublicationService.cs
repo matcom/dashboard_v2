@@ -49,9 +49,10 @@ public sealed class PublicationService : IPublicationService
                 return (Result.Failure(new[] { "El grupo de la revista es obligatorio (1–4)." }), null);
 
         }
-        else if (string.IsNullOrWhiteSpace(request.Index))
+        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
+                 && request.Index is null or < 1 or > 3)
         {
-            return (Result.Failure(new[] { "La indexación es obligatoria para este tipo de publicación." }), null);
+            return (Result.Failure(new[] { "La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)." }), null);
         }
 
         var author = await _authorResolution.GetOrCreateForUserAsync(_currentUser.Id!, ct);
@@ -112,7 +113,7 @@ public sealed class PublicationService : IPublicationService
             publication.IndexedPublication = new IndexedPublication
             {
                 PublicationId = publication.Id,
-                Index = request.Index!.Trim()
+                Index = request.Index
             };
         }
 
@@ -171,9 +172,10 @@ public sealed class PublicationService : IPublicationService
             // Apply validated values back for persistence below
             request = request with { DataBase = dataBase, Group = group, Cuartil = cuartil };
         }
-        else if (string.IsNullOrWhiteSpace(request.Index))
+        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
+                 && request.Index is null or < 1 or > 3)
         {
-            return Result.Failure(new[] { "La indexación es obligatoria para este tipo de publicación." });
+            return Result.Failure(new[] { "La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)." });
         }
 
         if (wasJournal && !isNowJournal)
@@ -229,13 +231,13 @@ public sealed class PublicationService : IPublicationService
         {
             if (publication.IndexedPublication == null)
             {
-                var indexed = new IndexedPublication { PublicationId = publication.Id, Index = request.Index!.Trim() };
+                var indexed = new IndexedPublication { PublicationId = publication.Id, Index = request.Index };
                 publication.IndexedPublication = indexed;
                 _context.IndexedPublications.Add(indexed);
             }
             else
             {
-                publication.IndexedPublication.Index = request.Index!.Trim();
+                publication.IndexedPublication.Index = request.Index;
             }
         }
 

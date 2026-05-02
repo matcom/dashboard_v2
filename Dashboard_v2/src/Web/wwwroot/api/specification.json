@@ -6521,7 +6521,9 @@
         "additionalProperties": false,
         "properties": {
           "index": {
-            "type": "string"
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -6579,7 +6581,8 @@
             }
           },
           "index": {
-            "type": "string",
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           },
           "dataBase": {
@@ -6795,7 +6798,8 @@
             }
           },
           "index": {
-            "type": "string",
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           },
           "dataBase": {

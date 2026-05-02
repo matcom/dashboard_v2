@@ -10008,7 +10008,7 @@ export interface IAuthorDto {
 }
 
 export class IndexedPublicationDto implements IIndexedPublicationDto {
-    index?: string;
+    index?: number | undefined;
 
     constructor(data?: IIndexedPublicationDto) {
         if (data) {
@@ -10040,7 +10040,7 @@ export class IndexedPublicationDto implements IIndexedPublicationDto {
 }
 
 export interface IIndexedPublicationDto {
-    index?: string;
+    index?: number | undefined;
 }
 
 export class JournalPublicationDto implements IJournalPublicationDto {
@@ -10095,7 +10095,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
     additionalAuthorIds?: string[];
     additionalAuthorNames?: string[];
     additionalUserIds?: string[];
-    index?: string | undefined;
+    index?: number | undefined;
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
@@ -10184,7 +10184,7 @@ export interface ICreatePublicationRequest {
     additionalAuthorIds?: string[];
     additionalAuthorNames?: string[];
     additionalUserIds?: string[];
-    index?: string | undefined;
+    index?: number | undefined;
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
@@ -10447,7 +10447,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     additionalAuthorIds?: string[] | undefined;
     additionalAuthorNames?: string[] | undefined;
     additionalUserIds?: string[] | undefined;
-    index?: string | undefined;
+    index?: number | undefined;
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
@@ -10536,7 +10536,7 @@ export interface IUpdatePublicationBody {
     additionalAuthorIds?: string[] | undefined;
     additionalAuthorNames?: string[] | undefined;
     additionalUserIds?: string[] | undefined;
-    index?: string | undefined;
+    index?: number | undefined;
     dataBase?: string | undefined;
     group?: number | undefined;
     cuartil?: string | undefined;
