@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard_v2.Application.Publications;
 
-public sealed class PublicationService : IPublicationService
+public sealed partial class PublicationService : IPublicationService
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
@@ -75,29 +75,7 @@ public sealed class PublicationService : IPublicationService
             AuthorPublications = new List<AuthorPublication> { new() { AuthorId = author.Id } }
         };
 
-        foreach (var authorId in request.AdditionalAuthorIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (authorId != author.Id && await _context.Authors.AnyAsync(a => a.Id == authorId, ct))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = authorId });
-        }
-
-        foreach (var name in request.AdditionalAuthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
-        {
-            var resolved = await _authorResolution.ResolveByNameAsync(name, ct);
-            if (publication.AuthorPublications.All(ap => ap.AuthorId != resolved.Id))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = resolved.Id });
-        }
-
-        foreach (var userId in request.AdditionalUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (userId == _currentUser.Id) continue;
-
-            var coAuthor = await _authorResolution.GetOrCreateForUserAsync(userId, ct);
-            if (coAuthor == null) continue;
-
-            if (publication.AuthorPublications.All(ap => ap.AuthorId != coAuthor.Id))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = coAuthor.Id });
-        }
+        await AddCoauthorsAsync(publication, author, request.AdditionalAuthorIds, request.AdditionalAuthorNames, request.AdditionalUserIds, ct);
 
         if (request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario)
         {
@@ -163,21 +141,17 @@ public sealed class PublicationService : IPublicationService
         publication.NormalizedUrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : NormalizeUrlDoi(request.UrlDoi);
         publication.ProyectoId = string.IsNullOrWhiteSpace(request.ProyectoId) ? null : request.ProyectoId;
 
+        var dataBase = string.IsNullOrWhiteSpace(request.DataBase) ? null : request.DataBase.Trim();
+        var group    = request.Group;
+        var cuartil  = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
+
         var isNowJournal = request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario;
         var wasJournal = publication.JournalPublication != null;
 
         if (isNowJournal)
         {
-            var dataBase = string.IsNullOrWhiteSpace(request.DataBase) ? null : request.DataBase.Trim();
-            var group = request.Group;
-            var cuartil = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
-
             if (string.IsNullOrWhiteSpace(dataBase) || group is null or < 1 or > 4)
                 return Result.Failure(new[] { "Datos de la revista son obligatorios: base de datos y grupo (1–4)." });
-
-
-            // Apply validated values back for persistence below
-            request = request with { DataBase = dataBase, Group = group, Cuartil = cuartil };
         }
         else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
                  && request.Index is null or < 1 or > 3)
@@ -205,27 +179,27 @@ public sealed class PublicationService : IPublicationService
                 publication.JournalPublication = new JournalPublication
                 {
                     PublicationId = publication.Id,
-                    DataBase = request.DataBase?.Trim(),
-                    Group = request.Group!.Value
+                    DataBase = dataBase,
+                    Group = group!.Value
                 };
             }
             else
             {
-                publication.JournalPublication.DataBase = request.DataBase?.Trim();
-                publication.JournalPublication.Group = request.Group!.Value;
+                publication.JournalPublication.DataBase = dataBase;
+                publication.JournalPublication.Group = group!.Value;
             }
 
-            if (request.Group == 1)
+            if (group == 1)
             {
                 if (publication.JournalPublication.JournalGroup1Publication == null)
                 {
-                    var g1 = new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = request.Cuartil };
+                    var g1 = new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = cuartil };
                     publication.JournalPublication.JournalGroup1Publication = g1;
                     _context.JournalGroup1Publications.Add(g1);
                 }
                 else
                 {
-                    publication.JournalPublication.JournalGroup1Publication.Cuartil = request.Cuartil;
+                    publication.JournalPublication.JournalGroup1Publication.Cuartil = cuartil;
                 }
             }
             else if (publication.JournalPublication.JournalGroup1Publication != null)
@@ -258,29 +232,7 @@ public sealed class PublicationService : IPublicationService
             publication.AuthorPublications.Remove(ap);
         }
 
-        foreach (var authorId in request.AdditionalAuthorIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (authorId != currentAuthor.Id && await _context.Authors.AnyAsync(a => a.Id == authorId, ct))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = authorId });
-        }
-
-        foreach (var name in request.AdditionalAuthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
-        {
-            var resolved = await _authorResolution.ResolveByNameAsync(name, ct);
-            if (publication.AuthorPublications.All(ap => ap.AuthorId != resolved.Id))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = resolved.Id });
-        }
-
-        foreach (var userId in request.AdditionalUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (userId == _currentUser.Id) continue;
-
-            var coAuthor = await _authorResolution.GetOrCreateForUserAsync(userId, ct);
-            if (coAuthor == null) continue;
-
-            if (publication.AuthorPublications.All(ap => ap.AuthorId != coAuthor.Id))
-                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = coAuthor.Id });
-        }
+        await AddCoauthorsAsync(publication, currentAuthor, request.AdditionalAuthorIds, request.AdditionalAuthorNames, request.AdditionalUserIds, ct);
 
         await _context.SaveChangesAsync(ct);
 
@@ -289,22 +241,63 @@ public sealed class PublicationService : IPublicationService
         return Result.Success();
     }
 
+    // ── Static compiled regexes — compiled once per AppDomain, reused on every call. ─────
+    [System.Text.RegularExpressions.GeneratedRegex(@"^\d{4}$")]
+    private static partial System.Text.RegularExpressions.Regex YearOnlyRegex();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^\d{4}-(0[1-9]|1[0-2])$")]
+    private static partial System.Text.RegularExpressions.Regex YearMonthRegex();
+
     /// <summary>
     /// Validates a partial ISO date string: "YYYY", "YYYY-MM", or "YYYY-MM-DD".
     /// </summary>
     private static bool IsValidPartialDate(string value)
     {
         var v = value.Trim();
-        // YYYY
-        if (System.Text.RegularExpressions.Regex.IsMatch(v, @"^\d{4}$"))
-            return true;
-        // YYYY-MM
-        if (System.Text.RegularExpressions.Regex.IsMatch(v, @"^\d{4}-(0[1-9]|1[0-2])$"))
-            return true;
-        // YYYY-MM-DD
+        if (YearOnlyRegex().IsMatch(v)) return true;
+        if (YearMonthRegex().IsMatch(v)) return true;
         return System.DateOnly.TryParseExact(v, "yyyy-MM-dd",
             System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.None, out _);
+    }
+
+    /// <summary>
+    /// Adds coauthors to <paramref name="publication"/> from the three coauthor source lists.
+    /// Guarantees no duplicate <see cref="AuthorPublication"/> entries are added.
+    /// </summary>
+    private async Task AddCoauthorsAsync(
+        Publication publication,
+        Author primaryAuthor,
+        IEnumerable<string> additionalAuthorIds,
+        IEnumerable<string> additionalAuthorNames,
+        IEnumerable<string> additionalUserIds,
+        CancellationToken ct)
+    {
+        foreach (var authorId in additionalAuthorIds.Where(id => !string.IsNullOrWhiteSpace(id)))
+        {
+            if (authorId != primaryAuthor.Id
+                && publication.AuthorPublications.All(ap => ap.AuthorId != authorId)
+                && await _context.Authors.AnyAsync(a => a.Id == authorId, ct))
+            {
+                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = authorId });
+            }
+        }
+
+        foreach (var name in additionalAuthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
+        {
+            var resolved = await _authorResolution.ResolveByNameAsync(name, ct);
+            if (publication.AuthorPublications.All(ap => ap.AuthorId != resolved.Id))
+                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = resolved.Id });
+        }
+
+        foreach (var userId in additionalUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
+        {
+            if (userId == _currentUser.Id) continue;
+            var coAuthor = await _authorResolution.GetOrCreateForUserAsync(userId, ct);
+            if (coAuthor == null) continue;
+            if (publication.AuthorPublications.All(ap => ap.AuthorId != coAuthor.Id))
+                publication.AuthorPublications.Add(new AuthorPublication { AuthorId = coAuthor.Id });
+        }
     }
 
     private static string NormalizeTitle(string s)
@@ -369,22 +362,6 @@ public sealed class PublicationService : IPublicationService
                 });
             }
 
-            // Backfill NormalizedUrlDoi for legacy rows where UrlDoi exists but NormalizedUrlDoi is null
-            var toBackfill = matchesRaw.Where(m => string.IsNullOrWhiteSpace(m.NormalizedUrlDoi) && !string.IsNullOrWhiteSpace(m.UrlDoi)).Select(m => m.Id).ToList();
-            if (toBackfill.Any())
-            {
-                var pubs = await _context.Publications.Where(p => toBackfill.Contains(p.Id)).ToListAsync(ct);
-                var changed = false;
-                foreach (var pub in pubs)
-                {
-                    if (string.IsNullOrWhiteSpace(pub.NormalizedUrlDoi) && !string.IsNullOrWhiteSpace(pub.UrlDoi))
-                    {
-                        pub.NormalizedUrlDoi = NormalizeUrlDoi(pub.UrlDoi);
-                        changed = true;
-                    }
-                }
-                if (changed) await _context.SaveChangesAsync(ct);
-            }
         }
 
         if (!string.IsNullOrWhiteSpace(normalizedTitle))
