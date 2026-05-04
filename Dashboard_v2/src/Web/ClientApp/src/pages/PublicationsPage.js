@@ -13,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 import CoauthorPicker from '../components/CoauthorPicker';
 import AuthorResolutionModal from '../components/AuthorResolutionModal';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -743,7 +744,8 @@ export default function PublicationsPage() {
                       const pubs = journalByGroup(g);
                       return (
                         <TabPane tabId={String(g)} key={g}>
-                          <DataTable
+                          <FilterableDataTable
+                            filterConfig={{ search: { fields: ['title', 'publicationData'], placeholder: 'Buscar publicación...' } }}
                             columns={[
                               { key: 'title',                       label: 'Título',       sortable: true },
                               { key: 'publicationData',             label: 'Datos de pub.' },
@@ -780,7 +782,8 @@ export default function PublicationsPage() {
                           <i className="bi bi-plus-lg me-1"></i> Nueva publicación
                         </Button>
                       </div>
-                      <DataTable
+                      <FilterableDataTable
+                        filterConfig={{ search: { fields: ['title', 'publicationData'], placeholder: 'Buscar publicación...' } }}
                         columns={[
                           { key: 'title',                    label: 'Título',      sortable: true },
                           { key: 'publicationData',          label: 'Datos de pub.' },

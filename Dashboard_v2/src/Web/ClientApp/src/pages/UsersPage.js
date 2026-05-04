@@ -7,6 +7,7 @@ import {
   Modal, ModalHeader, ModalBody, ModalFooter,
 } from 'reactstrap';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -122,7 +123,18 @@ export default function UsersPage() {
           <small className="text-muted ms-2">({users.length})</small>
         </CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{
+              search: { fields: ['userName', 'email'], placeholder: 'Buscar usuario...' },
+              filters: [
+                { key: 'isActive', label: 'Estado',
+                  options: [{ value: 'true', label: 'Activo' }, { value: 'false', label: 'Inactivo' }],
+                  match: (item, val) => String(item.isActive) === val },
+                { key: 'role', label: 'Rol',
+                  options: roles.map(r => ({ value: r.name, label: r.name.replace(/_/g, ' ') })),
+                  match: (item, val) => (item.roles ?? []).includes(val) },
+              ],
+            }}
             columns={[
               { key: 'userName', label: 'Usuario', sortable: true, className: 'fw-semibold' },
               { key: 'email',    label: 'Email',   sortable: true },

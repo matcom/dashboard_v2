@@ -8,6 +8,7 @@ import {
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -320,7 +321,22 @@ export default function AwardsPage() {
           {!loading && error && <Alert color="danger">{error}</Alert>}
 
           {!loading && !error && (
-            <DataTable
+            <FilterableDataTable
+              filterConfig={{
+                search: { fields: ['awardName'], placeholder: 'Buscar premio...' },
+                filters: [
+                  { key: 'awardTypeId', label: 'Tipo',
+                    options: AWARD_TYPES.map(t => ({ value: String(t.value), label: t.label })),
+                    match: (item, val) => String(item.awardTypeId) === val },
+                  { key: 'recipient', label: 'Usuario',
+                    options: [...new Map(
+                      awards.flatMap(a => a.recipients ?? []).map(r => [r.id, r])
+                    ).values()]
+                      .sort((a, b) => a.userDisplayName.localeCompare(b.userDisplayName))
+                      .map(r => ({ value: String(r.id), label: r.userDisplayName })),
+                    match: (item, val) => (item.recipients ?? []).some(r => String(r.id) === val) },
+                ],
+              }}
               loading={loading}
               columns={[
                 { key: 'awardName', label: 'Nombre', sortable: true },
@@ -329,7 +345,6 @@ export default function AwardsPage() {
                   label: 'Tipo',
                   render: (v, a) => <Badge color="info" pill>{v != null ? awardTypeLabel(v) : (a.awardTypeName ?? 'Desconocido')}</Badge>,
                 },
-                { key: 'year', label: 'Año', sortable: true },
                 {
                   key: 'awardedAt',
                   label: 'Fecha de otorgamiento',

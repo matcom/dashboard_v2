@@ -11,6 +11,7 @@ import {
 import CoauthorPicker from '../components/CoauthorPicker';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -440,7 +441,10 @@ export default function EventsPage() {
               {presLoading && <div className="text-center py-4"><Spinner color="primary" /></div>}
               {!presLoading && presError && <Alert color="danger">{presError}</Alert>}
               {!presLoading && !presError && (
-                <DataTable
+                <FilterableDataTable
+                  filterConfig={{
+                    search: { fields: ['name', 'eventName'], placeholder: 'Buscar presentación...' },
+                  }}
                   loading={presLoading}
                   columns={[
                     { key: 'name',      label: 'Nombre', sortable: true },
@@ -478,7 +482,15 @@ export default function EventsPage() {
               {evLoading && <div className="text-center py-4"><Spinner color="primary" /></div>}
               {!evLoading && evError && <Alert color="danger">{evError}</Alert>}
               {!evLoading && !evError && (
-                <DataTable
+                <FilterableDataTable
+                  filterConfig={{
+                    search: { fields: ['name', 'countryName'], placeholder: 'Buscar evento...' },
+                    filters: [
+                      { key: 'eventTypeId', label: 'Tipo',
+                        options: Object.entries(EVENT_TYPE_LABELS).map(([k, v]) => ({ value: k, label: v })),
+                        match: (item, val) => String(item.eventTypeId) === val },
+                    ],
+                  }}
                   loading={evLoading}
                   columns={[
                     { key: 'name',        label: 'Nombre', sortable: true },

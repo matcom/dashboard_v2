@@ -7,6 +7,7 @@ import {
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -110,7 +111,15 @@ export default function PatentesPage() {
       <Card>
         <CardHeader><strong>Patentes</strong> <small className="text-muted ms-2">({items.length})</small></CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{
+              search: { fields: ['titulo', 'numeroSolicitudConcesion'], placeholder: 'Buscar patente...' },
+              filters: [
+                { key: 'esNacional', label: 'Tipo',
+                  options: [{ value: 'true', label: 'Nacional' }, { value: 'false', label: 'Internacional' }],
+                  match: (item, val) => String(item.esNacional) === val },
+              ],
+            }}
             columns={[
               { key: 'titulo',                    label: 'Título',           sortable: true },
               { key: 'numeroSolicitudConcesion',  label: 'Número solicitud' },

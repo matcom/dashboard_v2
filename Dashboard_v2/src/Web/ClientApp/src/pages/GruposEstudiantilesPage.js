@@ -7,6 +7,7 @@ import {
 } from 'reactstrap';
 import Select from 'react-select';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -167,7 +168,14 @@ export default function GruposEstudiantilesPage() {
           <small className="text-muted ms-2">({items.length})</small>
         </CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{
+              search: { fields: ['nombre'], placeholder: 'Buscar grupo...' },
+              filters: [
+                { key: 'areaNombre', label: 'Área',
+                  options: areas.map(a => ({ value: a.nombre, label: a.nombre })) },
+              ],
+            }}
             columns={[
               { key: 'nombre',   label: 'Nombre', sortable: true, className: 'fw-semibold' },
               { key: 'areaNombre', label: 'Área', render: v => <Badge color="secondary" pill>{v}</Badge> },

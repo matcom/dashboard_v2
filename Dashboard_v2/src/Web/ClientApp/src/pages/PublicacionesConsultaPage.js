@@ -8,6 +8,7 @@ import {
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 // Etiquetas correspondientes al enum PublicationType del backend (índice = valor entero)
 const PUB_TIPOS = ['Diario', 'Libro', 'Monografía', 'Capítulo', 'Artículo de Divulgación'];
@@ -197,7 +198,8 @@ export default function PublicacionesConsultaPage() {
                     const pubs = journalByGroup(group);
                     return (
                       <TabPane tabId={String(group)} key={group}>
-                        <DataTable
+                        <FilterableDataTable
+                          filterConfig={{ search: { fields: ['title', 'publicationData'], placeholder: 'Buscar publicación...' } }}
                           columns={[
                             { key: 'title',                       label: 'Título',       sortable: true },
                             { key: 'publicationData',             label: 'Datos de pub.' },
@@ -227,7 +229,8 @@ export default function PublicacionesConsultaPage() {
                 const pubs = pubsByType(typeVal);
                 return (
                   <TabPane tabId={String(typeVal)} key={typeVal} className="p-3">
-                    <DataTable
+                    <FilterableDataTable
+                      filterConfig={{ search: { fields: ['title', 'publicationData'], placeholder: 'Buscar publicación...' } }}
                       columns={[
                         { key: 'title',          label: 'Título',       sortable: true },
                         { key: 'publicationData', label: 'Datos de pub.' },

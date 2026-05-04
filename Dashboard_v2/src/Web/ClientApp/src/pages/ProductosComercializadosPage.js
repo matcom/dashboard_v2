@@ -7,6 +7,7 @@ import {
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -141,7 +142,16 @@ export default function ProductosComercializadosPage() {
       <Card>
         <CardHeader><strong>Productos</strong> <small className="text-muted ms-2">({items.length})</small></CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{
+              search: { fields: ['titulo'], placeholder: 'Buscar producto...' },
+              filters: [
+                { key: 'tipoProductoComercializadoNombre', label: 'Tipo',
+                  options: tipos.map(t => ({ value: t.nombre, label: t.nombre })) },
+                { key: 'institutionNombre', label: 'Institución',
+                  options: institutions.map(i => ({ value: i.nombre, label: i.nombre })) },
+              ],
+            }}
             columns={[
               { key: 'titulo',                         label: 'Título', sortable: true },
               { key: 'tipoProductoComercializadoNombre', label: 'Tipo' },

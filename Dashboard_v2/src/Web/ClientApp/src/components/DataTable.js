@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Table, Button, Spinner } from 'reactstrap';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Table, Button, Spinner, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -35,12 +35,14 @@ function SortIcon({ active, direction }) {
  * responsive?  boolean       Tabla con scroll horizontal en móvil (default: true).
  * className?   string        Clase CSS extra para el elemento <table>.
  * actionsLabel? string       Cabecera de la columna de acciones (default: "Acciones").
+ * pageSize?    number        Filas por página (default: 10).
  *
  * ColumnDef
  * ─────────
  * key              string     Propiedad del item. Soporta notación 'a.b.c'.
  * label            string     Texto de cabecera.
  * sortable?        boolean    Si true, la cabecera es clicable para ordenar.
+ * sortValue?       fn         (value, item) => comparable  — valor usado para ordenar en lugar del raw value.
  * render?          fn         (value, item) => ReactNode  — celda personalizada.
  * className?       string     Clase aplicada al <td> y al <th>.
  * headerClassName? string     Clase extra aplicada solo al <th>.
@@ -69,9 +71,14 @@ export default function DataTable({
   responsive = true,
   className = '',
   actionsLabel = 'Acciones',
+  pageSize = 10,
 }) {
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+
+  // Vuelve a la primera página cuando cambian los datos o el orden
+  useEffect(() => { setPage(1); }, [data, sortKey]);
 
   function handleSort(key) {
     if (sortKey === key) {
@@ -84,16 +91,33 @@ export default function DataTable({
 
   const sortedData = useMemo(() => {
     if (!sortKey) return data;
+    const col = columns.find(c => c.key === sortKey);
     return [...data].sort((a, b) => {
-      const va = getValue(a, sortKey) ?? '';
-      const vb = getValue(b, sortKey) ?? '';
+      const rawA = getValue(a, sortKey);
+      const rawB = getValue(b, sortKey);
+      const va = col?.sortValue ? (col.sortValue(rawA, a) ?? '') : (rawA ?? '');
+      const vb = col?.sortValue ? (col.sortValue(rawB, b) ?? '') : (rawB ?? '');
       const cmp =
         typeof va === 'number' && typeof vb === 'number'
           ? va - vb
           : String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' });
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [data, sortKey, sortDir]);
+  }, [data, sortKey, sortDir, columns]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
+
+  const pageNumbers = useMemo(() => {
+    const delta = 2;
+    const start = Math.max(1, page - delta);
+    const end = Math.min(totalPages, page + delta);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [page, totalPages]);
+
+  const pagedData = useMemo(() => {
+    const from = (page - 1) * pageSize;
+    return sortedData.slice(from, from + pageSize);
+  }, [sortedData, page, pageSize]);
 
   const hasActions = actions.length > 0;
   const colSpan = columns.length + (hasActions ? 1 : 0);
@@ -107,6 +131,7 @@ export default function DataTable({
   }
 
   return (
+    <>
     <Table responsive={responsive} hover={hover} className={`mb-0 ${className}`}>
       <thead className="table-light">
         <tr>
@@ -142,7 +167,7 @@ export default function DataTable({
             </td>
           </tr>
         )}
-        {sortedData.map(item => {
+        {pagedData.map(item => {
           const rowKey = keyExtractor ? keyExtractor(item) : item.id;
           return (
             <tr key={rowKey}>
@@ -188,5 +213,32 @@ export default function DataTable({
         })}
       </tbody>
     </Table>
+    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-top bg-light">
+      <small className="text-muted">
+        {sortedData.length === 0
+          ? 'Sin resultados'
+          : `Mostrando ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, sortedData.length)} de ${sortedData.length}`}
+      </small>
+      <Pagination size="sm" className="mb-0">
+        <PaginationItem disabled={page === 1}>
+          <PaginationLink first onClick={() => setPage(1)} />
+        </PaginationItem>
+        <PaginationItem disabled={page === 1}>
+          <PaginationLink previous onClick={() => setPage(p => p - 1)} />
+        </PaginationItem>
+        {pageNumbers.map(n => (
+          <PaginationItem key={n} active={n === page}>
+            <PaginationLink onClick={() => setPage(n)}>{n}</PaginationLink>
+          </PaginationItem>
+        ))}
+        <PaginationItem disabled={page === totalPages}>
+          <PaginationLink next onClick={() => setPage(p => p + 1)} />
+        </PaginationItem>
+        <PaginationItem disabled={page === totalPages}>
+          <PaginationLink last onClick={() => setPage(totalPages)} />
+        </PaginationItem>
+      </Pagination>
+    </div>
+    </>
   );
 }

@@ -6,6 +6,7 @@ import {
   Form, FormGroup, Label, Input,
 } from 'reactstrap';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -120,7 +121,8 @@ export default function UniversidadesPage() {
           <small className="text-muted ms-2">({items.length})</small>
         </CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{ search: { fields: ['nombre'], placeholder: 'Buscar universidad...' } }}
             columns={[
               { key: 'nombre', label: 'Nombre', sortable: true },
             ]}

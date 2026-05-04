@@ -8,6 +8,7 @@ import {
 import Select from 'react-select';
 import UserCard from '../components/UserCard';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -223,13 +224,22 @@ export default function GruposDeInvestigacionPage() {
           <small className="text-muted ms-2">({items.length})</small>
         </CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{
+              search: { fields: ['nombre'], placeholder: 'Buscar grupo...' },
+              filters: [
+                { key: 'areaNombre', label: 'Área',
+                  options: [...new Set(items.map(i => i.areaNombre).filter(Boolean))].sort().map(v => ({ value: v, label: v })) },
+              ],
+            }}
             columns={[
               { key: 'nombre',   label: 'Nombre', sortable: true, className: 'fw-semibold' },
               { key: 'areaNombre', label: 'Área', render: v => <Badge color="secondary" pill>{v}</Badge> },
               {
                 key: 'usuariosIds',
                 label: 'Miembros',
+                sortable: true,
+                sortValue: ids => (ids ?? []).length,
                 render: ids => ids && ids.length > 0
                   ? <Badge color="primary" pill>{ids.length} miembro{ids.length !== 1 ? 's' : ''}</Badge>
                   : <span className="text-muted small">Sin miembros</span>,

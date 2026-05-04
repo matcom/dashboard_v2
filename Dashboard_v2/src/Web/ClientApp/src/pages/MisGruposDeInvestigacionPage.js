@@ -5,6 +5,7 @@ import {
   Spinner, Alert,
 } from 'reactstrap';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -95,7 +96,14 @@ export default function MisGruposDeInvestigacionPage() {
           <small className="text-muted ms-2">({items.length})</small>
         </CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{
+              search: { fields: ['nombre'], placeholder: 'Buscar grupo...' },
+              filters: [
+                { key: 'areaNombre', label: 'Área',
+                  options: [...new Set(items.map(i => i.areaNombre).filter(Boolean))].sort().map(v => ({ value: v, label: v })) },
+              ],
+            }}
             columns={[
               { key: 'nombre',   label: 'Nombre', sortable: true, className: 'fw-semibold' },
               { key: 'areaNombre', label: 'Área', render: v => <Badge color="secondary" pill>{v}</Badge> },

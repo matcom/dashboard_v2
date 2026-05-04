@@ -7,6 +7,7 @@ import {
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -196,7 +197,16 @@ export default function RegistrosPage() {
           <small className="text-muted ms-2">({items.length})</small>
         </CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{
+              search: { fields: ['titulo', 'numeroCertificado'], placeholder: 'Buscar registro...' },
+              filters: [
+                { key: 'countryName', label: 'País',
+                  options: countries.map(c => ({ value: c.name, label: c.name })) },
+                { key: 'institutionNombre', label: 'Institución',
+                  options: institutions.map(i => ({ value: i.nombre, label: i.nombre })) },
+              ],
+            }}
             columns={[
               { key: 'titulo',             label: 'Título', sortable: true },
               { key: 'numeroCertificado',  label: 'Número' },

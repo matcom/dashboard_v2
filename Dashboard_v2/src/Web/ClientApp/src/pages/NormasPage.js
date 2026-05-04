@@ -7,6 +7,7 @@ import {
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -146,7 +147,16 @@ export default function NormasPage() {
       <Card>
         <CardHeader><strong>Normas</strong> <small className="text-muted ms-2">({items.length})</small></CardHeader>
         <CardBody className="p-0">
-          <DataTable
+          <FilterableDataTable
+            filterConfig={{
+              search: { fields: ['titulo'], placeholder: 'Buscar norma...' },
+              filters: [
+                { key: 'tipo', label: 'Tipo',
+                  options: [...new Set(items.map(i => i.tipo).filter(Boolean))].sort().map(v => ({ value: v, label: v })) },
+                { key: 'institutionNombre', label: 'Institución',
+                  options: institutions.map(i => ({ value: i.nombre, label: i.nombre })) },
+              ],
+            }}
             columns={[
               { key: 'titulo',            label: 'Título',      sortable: true },
               { key: 'tipo',              label: 'Tipo' },

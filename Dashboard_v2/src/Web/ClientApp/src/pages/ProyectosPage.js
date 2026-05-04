@@ -7,6 +7,7 @@ import {
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import FilterableDataTable from '../components/FilterableDataTable';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -363,7 +364,17 @@ export default function ProyectosPage() {
           {loading ? (
             <div className="text-center py-4"><Spinner /></div>
           ) : (
-            <DataTable
+            <FilterableDataTable
+              filterConfig={{
+                search: { fields: ['titulo', 'jefe'], placeholder: 'Buscar por título o jefe...' },
+                filters: [
+                  { key: 'tipo', label: 'Tipo',
+                    options: TIPOS.map(t => ({ value: String(t.value), label: t.label })),
+                    match: (item, val) => String(item.tipo) === val },
+                  { key: 'clasificacionNombre', label: 'Clasificación',
+                    options: clasificaciones.map(c => ({ value: c.nombre, label: c.nombre })) },
+                ],
+              }}
               columns={[
                 { key: 'tipo',              label: 'Tipo',        sortable: true, render: v => <Badge color={tipoColor(v)}>{tipoLabel(v)}</Badge> },
                 { key: 'titulo',            label: 'Título',      sortable: true },
