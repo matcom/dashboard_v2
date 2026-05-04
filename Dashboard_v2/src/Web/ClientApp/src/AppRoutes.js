@@ -2,6 +2,7 @@ import DashboardHome from "./pages/DashboardHome";
 import { Counter } from "./components/Counter";
 import UsersPage from "./pages/UsersPage";
 import PublicationsPage from "./pages/PublicationsPage";
+import CurriculumPage from "./pages/CurriculumPage";
 import AwardsPage from "./pages/AwardsPage";
 import EventsPage from "./pages/EventsPage";
 import UniversidadesPage from "./pages/UniversidadesPage";
@@ -40,6 +41,12 @@ const AppRoutes = [
     element: <PublicationsPage />,
     pageTitle: 'Mis publicaciones',
     profesorOnly: true,
+  },
+  {
+    path: '/curriculum',
+    element: <CurriculumPage />,
+    pageTitle: 'Mi Currículum',
+    profesorOrAdminOnly: true,
   },
   {
     path: '/awards',
