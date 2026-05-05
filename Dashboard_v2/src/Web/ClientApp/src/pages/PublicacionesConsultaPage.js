@@ -6,6 +6,7 @@ import {
   Badge, Button,
   Spinner, Alert,
   Input, Label,
+  UncontrolledPopover, PopoverHeader, PopoverBody,
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
@@ -59,6 +60,7 @@ export default function PublicacionesConsultaPage({ apiUrl = '/api/Publications/
       title: publicacion.title ?? publicacion.titulo ?? '',
       publicationType: publicacion.publicationType ?? publicacion.tipo,
       publicationData: publicacion.publicationData ?? '',
+      publishedDate: publicacion.publishedDate ?? '',
       authors: publicacion.authors ?? [],
       urlDoi: publicacion.urlDoi ?? null,
       proyectoTitulo: publicacion.proyectoTitulo ?? null,
@@ -240,8 +242,21 @@ export default function PublicacionesConsultaPage({ apiUrl = '/api/Publications/
                         <FilterableDataTable
                           filterConfig={{ search: { fields: ['title', 'publicationData'], placeholder: 'Buscar publicación...' } }}
                           columns={[
-                            { key: 'title',                       label: 'Título',       sortable: true },
-                            { key: 'publicationData',             label: 'Datos de pub.' },
+                            { key: 'title', label: 'Título', sortable: true, render: (value, item) => (
+                              <>
+                                <span>{value}</span>
+                                {item.publicationData && (
+                                  <>
+                                    <i id={`pubinfo-${item.id}`} className="bi bi-info-circle ms-1 text-muted" style={{ cursor: 'help', fontSize: '0.85em' }} />
+                                    <UncontrolledPopover trigger="hover focus" target={`pubinfo-${item.id}`} placement="right">
+                                      <PopoverHeader>Datos de la publicación</PopoverHeader>
+                                      <PopoverBody style={{ whiteSpace: 'pre-line', maxWidth: 350 }}>{item.publicationData}</PopoverBody>
+                                    </UncontrolledPopover>
+                                  </>
+                                )}
+                              </>
+                            )},
+                            { key: 'publishedDate', label: 'Fecha', sortable: true },
                             { key: 'journalPublication.dataBase', label: 'Base de datos' },
                             ...(group === 1 ? [{
                               key: 'journalPublication.cuartil',
@@ -271,8 +286,21 @@ export default function PublicacionesConsultaPage({ apiUrl = '/api/Publications/
                     <FilterableDataTable
                       filterConfig={{ search: { fields: ['title', 'publicationData'], placeholder: 'Buscar publicación...' } }}
                       columns={[
-                        { key: 'title',          label: 'Título',       sortable: true },
-                        { key: 'publicationData', label: 'Datos de pub.' },
+                        { key: 'title', label: 'Título', sortable: true, render: (value, item) => (
+                          <>
+                            <span>{value}</span>
+                            {item.publicationData && (
+                              <>
+                                <i id={`pubinfo-${item.id}`} className="bi bi-info-circle ms-1 text-muted" style={{ cursor: 'help', fontSize: '0.85em' }} />
+                                <UncontrolledPopover trigger="hover focus" target={`pubinfo-${item.id}`} placement="right">
+                                  <PopoverHeader>Datos de la publicación</PopoverHeader>
+                                  <PopoverBody style={{ whiteSpace: 'pre-line', maxWidth: 350 }}>{item.publicationData}</PopoverBody>
+                                </UncontrolledPopover>
+                              </>
+                            )}
+                          </>
+                        )},
+                        { key: 'publishedDate', label: 'Fecha', sortable: true },
                         {
                           key: 'indexedPublication.index',
                           label: 'Indexación',
