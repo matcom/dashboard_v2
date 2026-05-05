@@ -59,13 +59,9 @@ public sealed class AnexoPublicacionesReport : IDocumentReport
         var fromRaw = parameters is not null && parameters.TryGetValue("from", out var f) ? f : null;
         var toRaw   = parameters is not null && parameters.TryGetValue("to",   out var t) ? t : null;
 
-        // PublishedDate se almacena en formato ISO parcial: "YYYY", "YYYY-MM" o "YYYY-MM-DD".
-        // La comparación lexicográfica es correcta para este formato ya que el orden
-        // alfabético coincide con el orden cronológico.
-        // Normalizamos los límites al prefijo más corto posible para que una publicación
-        // registrada solo con año ("2024") quede dentro del rango "2024-01-01"/"2024-12-31".
-        var from = string.IsNullOrWhiteSpace(fromRaw) ? null : fromRaw[..Math.Min(fromRaw.Length, 10)];
-        var to   = string.IsNullOrWhiteSpace(toRaw)   ? null : toRaw[..Math.Min(toRaw.Length, 10)];
+        // Los límites se reciben en formato YYYY-MM. Se truncan a 7 chars por seguridad.
+        var from = string.IsNullOrWhiteSpace(fromRaw) ? null : fromRaw[..Math.Min(fromRaw.Length, 7)];
+        var to   = string.IsNullOrWhiteSpace(toRaw)   ? null : toRaw[..Math.Min(toRaw.Length, 7)];
 
         var requestingAreaId = await _context.Users
             .AsNoTracking()
@@ -87,22 +83,19 @@ public sealed class AnexoPublicacionesReport : IDocumentReport
             .OrderBy(p => p.Title)
             .ToListAsync(ct);
 
-        // Filtro de rango de fechas en memoria (PublishedDate es un string ISO parcial).
-        // Se usa comparación por prefijo: "2023" se compara con los primeros 4 caracteres
-        // del límite, por lo que una publicación registrada solo con año queda dentro
-        // de cualquier rango que abarque ese año (ej. "2023-01-01"/"2023-12-31").
+        // Filtro de rango de fechas en memoria a granularidad de mes (YYYY-MM).
+        // Las publicaciones con fecha solo de año se expanden al mes mínimo (01) para
+        // el límite inferior y al mes máximo (12) para el superior, evitando falsos
+        // positivos cuando el rango no abarca el año completo.
         var filtered = publications
             .Where(p =>
             {
-                var len = p.PublishedDate.Length;
-                var fromOk = from == null || string.Compare(
-                    p.PublishedDate[..Math.Min(len, from.Length)],
-                    from[..Math.Min(from.Length, len)],
-                    StringComparison.Ordinal) >= 0;
-                var toOk = to == null || string.Compare(
-                    p.PublishedDate[..Math.Min(len, to.Length)],
-                    to[..Math.Min(to.Length, len)],
-                    StringComparison.Ordinal) <= 0;
+                var d = p.PublishedDate;
+                // Expande a YYYY-MM: año solo → YYYY-01 para from, YYYY-12 para to.
+                var dFrom = d.Length == 4 ? d + "-01" : d[..Math.Min(d.Length, 7)];
+                var dTo   = d.Length == 4 ? d + "-12" : d[..Math.Min(d.Length, 7)];
+                var fromOk = from == null || string.Compare(dFrom, from, StringComparison.Ordinal) >= 0;
+                var toOk   = to   == null || string.Compare(dTo,   to,   StringComparison.Ordinal) <= 0;
                 return fromOk && toOk;
             })
             .ToList();

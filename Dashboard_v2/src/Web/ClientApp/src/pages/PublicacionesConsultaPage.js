@@ -5,6 +5,7 @@ import {
   TabContent, TabPane,
   Badge, Button,
   Spinner, Alert,
+  Input, Label,
 } from 'reactstrap';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
@@ -22,12 +23,14 @@ async function apiFetch(url) {
   return data;
 }
 
-export default function PublicacionesConsultaPage() {
+export default function PublicacionesConsultaPage({ apiUrl = '/api/Publications/todas' }) {
   const { user } = useAuth();
   const [publicaciones, setPublicaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [generatingAnexo, setGeneratingAnexo] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [activeType, setActiveType] = useState(0);
   const [activeGroup, setActiveGroup] = useState(1);
 
@@ -35,14 +38,14 @@ export default function PublicacionesConsultaPage() {
     setLoading(true);
     setError('');
     try {
-      const data = await apiFetch('/api/Publications/todas');
+      const data = await apiFetch(apiUrl);
       setPublicaciones(data);
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiUrl]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -111,13 +114,17 @@ export default function PublicacionesConsultaPage() {
 
   /**
    * Dispara la generación y descarga del anexo de publicaciones.
-   * Solo debe estar disponible visualmente para el superuser.
+   * Acepta opcionalmente fechas límite (from/to) que se pasan como query params.
    */
-  async function handleGenerarAnexo() {
+  async function handleGenerarAnexo({ from = '', to = '' } = {}) {
     setGeneratingAnexo(true);
     setError('');
     try {
-      const response = await fetch('/api/Documents/anexo-publicaciones', { credentials: 'include' });
+      const params = new URLSearchParams();
+      if (from) params.set('from', from);
+      if (to)   params.set('to', to);
+      const qs = params.toString() ? `?${params.toString()}` : '';
+      const response = await fetch(`/api/Documents/anexo-publicaciones${qs}`, { credentials: 'include' });
       if (!response.ok) {
         const data = await response.json().catch(() => null);
         throw new Error(data?.error ?? 'Error al generar el Anexo 2.');
@@ -146,9 +153,41 @@ export default function PublicacionesConsultaPage() {
           <small className="text-muted ms-2">({publicationsNormalized.length})</small>
         </div>
         {user?.role === 'Superuser' && (
-          <Button color="outline-success" onClick={handleGenerarAnexo} disabled={generatingAnexo}>
+          <Button color="outline-success" onClick={() => handleGenerarAnexo()} disabled={generatingAnexo}>
             {generatingAnexo ? <Spinner size="sm" /> : '⬇ Generar Anexo 2'}
           </Button>
+        )}
+        {user?.role === 'Vicedecano_de_investigacion' && (
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <div className="d-flex align-items-center gap-1">
+              <Label className="mb-0 text-muted" style={{ fontSize: '0.85em', whiteSpace: 'nowrap' }}>Desde</Label>
+              <Input
+                type="month"
+                bsSize="sm"
+                value={dateFrom}
+                onChange={e => setDateFrom(e.target.value)}
+                style={{ width: 150 }}
+              />
+            </div>
+            <div className="d-flex align-items-center gap-1">
+              <Label className="mb-0 text-muted" style={{ fontSize: '0.85em', whiteSpace: 'nowrap' }}>Hasta</Label>
+              <Input
+                type="month"
+                bsSize="sm"
+                value={dateTo}
+                onChange={e => setDateTo(e.target.value)}
+                style={{ width: 150 }}
+              />
+            </div>
+            <Button
+              color="outline-success"
+              size="sm"
+              onClick={() => handleGenerarAnexo({ from: dateFrom, to: dateTo })}
+              disabled={generatingAnexo}
+            >
+              {generatingAnexo ? <Spinner size="sm" /> : '⬇ Generar Anexo 2'}
+            </Button>
+          </div>
         )}
       </CardHeader>
       <CardBody>

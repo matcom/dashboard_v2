@@ -3585,6 +3585,29 @@
         }
       }
     },
+    "/api/Publications/area": {
+      "get": {
+        "tags": [
+          "Publications"
+        ],
+        "operationId": "GetAreaPublications",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Publications": {
       "get": {
         "tags": [

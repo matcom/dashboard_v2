@@ -114,6 +114,12 @@ const AppRoutes = [
     jefeDeProyectoOrAdminOnly: true,
   },
   {
+    path: '/publicaciones-area',
+    element: <PublicacionesConsultaPage apiUrl="/api/Publications/area" />,
+    pageTitle: 'Publicaciones del Área',
+    vicedecanoOnly: true,
+  },
+  {
     path: '/clasificaciones',
     element: <ClasificacionesPage />,
     pageTitle: 'Clasificaciones de Proyectos',

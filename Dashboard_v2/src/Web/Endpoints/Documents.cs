@@ -30,7 +30,8 @@ public class Documents : EndpointGroupBase
         groupBuilder.MapGet("{reportName}", GetDocument)
             .RequireAuthorization(p => p.RequireRole(
                 nameof(RolesEnum.Superuser),
-                nameof(RolesEnum.Jefe_de_Grupo_de_investigacion)))
+                nameof(RolesEnum.Jefe_de_Grupo_de_investigacion),
+                nameof(RolesEnum.Vicedecano_de_investigacion)))
             .WithName("GetDocument")
             .Produces(200)
             .ProducesProblem(401)
@@ -46,7 +47,8 @@ public class Documents : EndpointGroupBase
         [Microsoft.AspNetCore.Mvc.FromQuery] string? to = null)
     {
         if (reportName.Equals("anexo-publicaciones", StringComparison.OrdinalIgnoreCase) &&
-            !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)))
+            !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)) &&
+            !httpContext.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
         {
             return Results.Forbid();
         }
