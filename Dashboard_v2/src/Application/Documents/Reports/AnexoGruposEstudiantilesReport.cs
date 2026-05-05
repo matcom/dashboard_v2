@@ -45,7 +45,7 @@ public sealed class AnexoGruposEstudiantilesReport : IDocumentReport
     /// </summary>
     /// <param name="ct">Token para cancelar la consulta.</param>
     /// <returns>Variables que se inyectarán en la plantilla Excel.</returns>
-    public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(CancellationToken ct)
+    public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)
     {
         var rows = await _context.GruposEstudiantiles
             .OrderBy(g => g.Nombre)

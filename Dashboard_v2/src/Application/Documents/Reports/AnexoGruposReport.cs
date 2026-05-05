@@ -25,7 +25,7 @@ public sealed class AnexoGruposReport : IDocumentReport
     public string ReportName   => "anexo-grupos";
     public string TemplateName => "AnexoGrupos";
 
-    public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(CancellationToken ct)
+    public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)
     {
         var rows = await _context.GruposDeInvestigacion
             .OrderBy(g => g.Nombre)

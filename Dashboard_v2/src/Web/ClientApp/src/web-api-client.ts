@@ -1258,11 +1258,15 @@ export class DocumentsClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getDocument(reportName: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/Documents/{reportName}";
+    getDocument(reportName: string, from: string | null | undefined, to: string | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Documents/{reportName}?";
         if (reportName === undefined || reportName === null)
             throw new globalThis.Error("The parameter 'reportName' must be defined.");
         url_ = url_.replace("{reportName}", encodeURIComponent("" + reportName));
+        if (from !== undefined && from !== null)
+            url_ += "from=" + encodeURIComponent("" + from) + "&";
+        if (to !== undefined && to !== null)
+            url_ += "to=" + encodeURIComponent("" + to) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {

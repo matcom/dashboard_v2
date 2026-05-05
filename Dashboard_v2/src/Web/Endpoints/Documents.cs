@@ -38,7 +38,12 @@ public class Documents : EndpointGroupBase
             .ProducesProblem(404);
     }
 
-    private static async Task<IResult> GetDocument(string reportName, IDocumentService documentService, HttpContext httpContext)
+    private static async Task<IResult> GetDocument(
+        string reportName,
+        IDocumentService documentService,
+        HttpContext httpContext,
+        [Microsoft.AspNetCore.Mvc.FromQuery] string? from = null,
+        [Microsoft.AspNetCore.Mvc.FromQuery] string? to = null)
     {
         if (reportName.Equals("anexo-publicaciones", StringComparison.OrdinalIgnoreCase) &&
             !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)))
@@ -58,9 +63,17 @@ public class Documents : EndpointGroupBase
             return Results.Forbid();
         }
 
+        Dictionary<string, string>? parameters = null;
+        if (!string.IsNullOrWhiteSpace(from) || !string.IsNullOrWhiteSpace(to))
+        {
+            parameters = [];
+            if (!string.IsNullOrWhiteSpace(from)) parameters["from"] = from;
+            if (!string.IsNullOrWhiteSpace(to))   parameters["to"]   = to;
+        }
+
         try
         {
-            var bytes = await documentService.GenerateAsync(reportName);
+            var bytes = await documentService.GenerateAsync(reportName, parameters);
             var fileName = $"{reportName}_{DateTime.UtcNow:yyyy-MM}.xlsx";
             return Results.File(bytes, ExcelContentType, fileName);
         }

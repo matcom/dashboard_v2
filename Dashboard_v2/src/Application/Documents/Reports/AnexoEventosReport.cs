@@ -66,7 +66,7 @@ public sealed class AnexoEventosReport : IDocumentReport
     /// </summary>
     /// <param name="ct">Token de cancelacion.</param>
     /// <returns>Variables para ClosedXML.Report.</returns>
-    public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(CancellationToken ct)
+    public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)
     {
         var events = await _context.Events
             .AsNoTracking()

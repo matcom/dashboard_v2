@@ -24,12 +24,15 @@ public sealed class DocumentService : IDocumentService
         _renderer = renderer;
     }
 
-    public async Task<byte[]> GenerateAsync(string reportName, CancellationToken ct = default)
+    public async Task<byte[]> GenerateAsync(
+        string reportName,
+        IReadOnlyDictionary<string, string>? parameters = null,
+        CancellationToken ct = default)
     {
         if (!_reports.TryGetValue(reportName, out var report))
             throw new KeyNotFoundException($"No existe un reporte registrado con el nombre '{reportName}'.");
 
-        var variables = await report.GatherVariablesAsync(ct);
+        var variables = await report.GatherVariablesAsync(parameters, ct);
         return _renderer.Render(report.TemplateName, variables);
     }
 }
