@@ -15,13 +15,6 @@ namespace Dashboard_v2.Web.Endpoints;
 /// </summary>
 public class Documents : EndpointGroupBase
 {
-    // TODO(david): El endpoint expone 'anexo-eventos', pero hoy ese documento puede salir
-    // con formato roto por cómo ClosedXML.Report expande la hoja compuesta.
-    // Opciones para arreglarlo:
-    // 1. Mantener el endpoint y cambiar solo la estrategia de render a manual.
-    // 2. Usar la plantilla actual únicamente como base visual con coordenadas fijas.
-    // 3. Rediseñar el anexo en varias hojas si es compatible con el formato oficial.
-    // 4. Simplificar la plantilla para eliminar merges y rangos dinámicos apilados.
     private const string ExcelContentType =
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -60,7 +53,8 @@ public class Documents : EndpointGroupBase
         }
 
         if (reportName.Equals("anexo-eventos", StringComparison.OrdinalIgnoreCase) &&
-            !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)))
+            !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)) &&
+            !httpContext.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
         {
             return Results.Forbid();
         }

@@ -7556,6 +7556,7 @@ export class EventDto implements IEventDto {
     presentationCount?: number;
     redId?: string | undefined;
     redName?: string | undefined;
+    areaIdsPatrocinadoras?: string[];
 
     constructor(data?: IEventDto) {
         if (data) {
@@ -7582,6 +7583,11 @@ export class EventDto implements IEventDto {
             this.presentationCount = _data["presentationCount"];
             this.redId = _data["redId"];
             this.redName = _data["redName"];
+            if (Array.isArray(_data["areaIdsPatrocinadoras"])) {
+                this.areaIdsPatrocinadoras = [] as any;
+                for (let item of _data["areaIdsPatrocinadoras"])
+                    this.areaIdsPatrocinadoras!.push(item);
+            }
         }
     }
 
@@ -7608,6 +7614,11 @@ export class EventDto implements IEventDto {
         data["presentationCount"] = this.presentationCount;
         data["redId"] = this.redId;
         data["redName"] = this.redName;
+        if (Array.isArray(this.areaIdsPatrocinadoras)) {
+            data["areaIdsPatrocinadoras"] = [];
+            for (let item of this.areaIdsPatrocinadoras)
+                data["areaIdsPatrocinadoras"].push(item);
+        }
         return data;
     }
 }
@@ -7623,6 +7634,7 @@ export interface IEventDto {
     presentationCount?: number;
     redId?: string | undefined;
     redName?: string | undefined;
+    areaIdsPatrocinadoras?: string[];
 }
 
 export class CountryDto implements ICountryDto {
@@ -7747,6 +7759,7 @@ export class CreateEventRequest implements ICreateEventRequest {
     eventType?: number;
     institutions?: string[];
     redId?: string | undefined;
+    areaIdsPatrocinadoras?: string[];
 
     constructor(data?: ICreateEventRequest) {
         if (data) {
@@ -7768,6 +7781,11 @@ export class CreateEventRequest implements ICreateEventRequest {
                     this.institutions!.push(item);
             }
             this.redId = _data["redId"];
+            if (Array.isArray(_data["areaIdsPatrocinadoras"])) {
+                this.areaIdsPatrocinadoras = [] as any;
+                for (let item of _data["areaIdsPatrocinadoras"])
+                    this.areaIdsPatrocinadoras!.push(item);
+            }
         }
     }
 
@@ -7789,6 +7807,11 @@ export class CreateEventRequest implements ICreateEventRequest {
                 data["institutions"].push(item);
         }
         data["redId"] = this.redId;
+        if (Array.isArray(this.areaIdsPatrocinadoras)) {
+            data["areaIdsPatrocinadoras"] = [];
+            for (let item of this.areaIdsPatrocinadoras)
+                data["areaIdsPatrocinadoras"].push(item);
+        }
         return data;
     }
 }
@@ -7799,6 +7822,7 @@ export interface ICreateEventRequest {
     eventType?: number;
     institutions?: string[];
     redId?: string | undefined;
+    areaIdsPatrocinadoras?: string[];
 }
 
 export class UpdateEventRequest implements IUpdateEventRequest {
@@ -7807,6 +7831,7 @@ export class UpdateEventRequest implements IUpdateEventRequest {
     eventType?: number;
     institutions?: string[];
     redId?: string | undefined;
+    areaIdsPatrocinadoras?: string[];
 
     constructor(data?: IUpdateEventRequest) {
         if (data) {
@@ -7828,6 +7853,11 @@ export class UpdateEventRequest implements IUpdateEventRequest {
                     this.institutions!.push(item);
             }
             this.redId = _data["redId"];
+            if (Array.isArray(_data["areaIdsPatrocinadoras"])) {
+                this.areaIdsPatrocinadoras = [] as any;
+                for (let item of _data["areaIdsPatrocinadoras"])
+                    this.areaIdsPatrocinadoras!.push(item);
+            }
         }
     }
 
@@ -7849,6 +7879,11 @@ export class UpdateEventRequest implements IUpdateEventRequest {
                 data["institutions"].push(item);
         }
         data["redId"] = this.redId;
+        if (Array.isArray(this.areaIdsPatrocinadoras)) {
+            data["areaIdsPatrocinadoras"] = [];
+            for (let item of this.areaIdsPatrocinadoras)
+                data["areaIdsPatrocinadoras"].push(item);
+        }
         return data;
     }
 }
@@ -7859,6 +7894,7 @@ export interface IUpdateEventRequest {
     eventType?: number;
     institutions?: string[];
     redId?: string | undefined;
+    areaIdsPatrocinadoras?: string[];
 }
 
 export class GrupoDeInvestigacionDto implements IGrupoDeInvestigacionDto {

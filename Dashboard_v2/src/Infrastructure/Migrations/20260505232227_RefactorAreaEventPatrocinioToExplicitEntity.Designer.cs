@@ -3,6 +3,7 @@ using System;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505232227_RefactorAreaEventPatrocinioToExplicitEntity")]
+    partial class RefactorAreaEventPatrocinioToExplicitEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -302,22 +305,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasIndex("AreaId");
 
                     b.ToTable("EventAreasPatrocinio", (string)null);
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.EventInstitution", b =>
-                {
-                    b.Property<int>("EventId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("InstitutionId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.HasKey("EventId", "InstitutionId");
-
-                    b.HasIndex("InstitutionId");
-
-                    b.ToTable("EventsInstitutions", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.EventType", b =>
@@ -958,6 +945,22 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("EventInstitution", b =>
+                {
+                    b.Property<int>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("InstitutionId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("EventId", "InstitutionId");
+
+                    b.HasIndex("InstitutionId");
+
+                    b.ToTable("EventsInstitutions", (string)null);
+                });
+
             modelBuilder.Entity("GrupoDeInvestigacionLineaDeInvestigacion", b =>
                 {
                     b.Property<string>("GrupoDeInvestigacionId")
@@ -1302,25 +1305,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.EventInstitution", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Event", "Event")
-                        .WithMany()
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.Institution", "Institution")
-                        .WithMany()
-                        .HasForeignKey("InstitutionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-
-                    b.Navigation("Institution");
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.GrupoDeInvestigacion", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.Area", "Area")
@@ -1558,6 +1542,21 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EventInstitution", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.Event", null)
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.Institution", null)
+                        .WithMany()
+                        .HasForeignKey("InstitutionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("GrupoDeInvestigacionLineaDeInvestigacion", b =>

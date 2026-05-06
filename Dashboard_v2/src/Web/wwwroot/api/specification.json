@@ -5480,6 +5480,12 @@
           "redName": {
             "type": "string",
             "nullable": true
+          },
+          "areaIdsPatrocinadoras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -5542,6 +5548,12 @@
           "redId": {
             "type": "string",
             "nullable": true
+          },
+          "areaIdsPatrocinadoras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -5569,6 +5581,12 @@
           "redId": {
             "type": "string",
             "nullable": true
+          },
+          "areaIdsPatrocinadoras": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
