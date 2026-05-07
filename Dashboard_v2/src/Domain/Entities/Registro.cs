@@ -14,4 +14,8 @@ public class Registro
     // Institución que otorga (1..1)
     public string InstitutionId { get; set; } = default!;
     public Institution Institution { get; set; } = default!;
+
+    /// <summary>Archivo de evidencia/certificado adjunto (opcional).</summary>
+    public int? EvidenceFileId { get; set; }
+    public StoredFile? EvidenceFile { get; set; }
 }

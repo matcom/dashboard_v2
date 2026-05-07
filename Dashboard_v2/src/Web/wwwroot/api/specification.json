@@ -5652,6 +5652,11 @@
           },
           "userDisplayName": {
             "type": "string"
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -5696,6 +5701,11 @@
           "awardedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -5720,6 +5730,11 @@
           "awardedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -5801,6 +5816,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -5869,6 +5889,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -5902,6 +5927,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -7009,6 +7039,11 @@
           "proyectoTitulo": {
             "type": "string",
             "nullable": true
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -7130,6 +7165,11 @@
           },
           "proyectoId": {
             "type": "string",
+            "nullable": true
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           }
         }
@@ -7482,6 +7522,11 @@
           },
           "institutionNombre": {
             "type": "string"
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -7504,6 +7549,11 @@
           },
           "institutionId": {
             "type": "string"
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -7526,6 +7576,11 @@
           },
           "institutionId": {
             "type": "string"
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },

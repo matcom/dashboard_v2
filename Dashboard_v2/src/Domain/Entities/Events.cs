@@ -26,4 +26,8 @@ public class Event
 
     // Áreas que patrocinan/auspician este Evento (0,*)
     public ICollection<Area> AreasPatrocinadoras { get; set; } = new List<Area>();
+
+    /// <summary>Archivo de evidencia/certificado adjunto (opcional).</summary>
+    public int? EvidenceFileId { get; set; }
+    public StoredFile? EvidenceFile { get; set; }
 }

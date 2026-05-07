@@ -9,6 +9,8 @@ public record RecipientDto
     public int Id { get; init; }
     public string UserId { get; init; } = default!;
     public string UserDisplayName { get; init; } = default!;
+    /// <summary>ID del archivo de evidencia/certificado adjunto. Null si no tiene.</summary>
+    public int? EvidenceFileId { get; init; }
 }
 
 public record GrantingDto

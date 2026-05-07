@@ -19,6 +19,8 @@ public record EventDto
     public string? RedId { get; init; }
     public string? RedName { get; init; }
     public List<string> AreaIdsPatrocinadoras { get; init; } = [];
+    /// <summary>ID del archivo de evidencia/certificado adjunto. Null si no tiene.</summary>
+    public int? EvidenceFileId { get; init; }
 }
 
 public record PresentationDto

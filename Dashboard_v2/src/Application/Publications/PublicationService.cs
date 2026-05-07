@@ -72,6 +72,7 @@ public sealed partial class PublicationService : IPublicationService
             UrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : request.UrlDoi.Trim(),
             NormalizedUrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : NormalizeUrlDoi(request.UrlDoi),
             ProyectoId = string.IsNullOrWhiteSpace(request.ProyectoId) ? null : request.ProyectoId,
+            EvidenceFileId = request.EvidenceFileId,
             AuthorPublications = new List<AuthorPublication> { new() { AuthorId = author.Id } }
         };
 
@@ -140,6 +141,7 @@ public sealed partial class PublicationService : IPublicationService
         publication.UrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : request.UrlDoi.Trim();
         publication.NormalizedUrlDoi = string.IsNullOrWhiteSpace(request.UrlDoi) ? null : NormalizeUrlDoi(request.UrlDoi);
         publication.ProyectoId = string.IsNullOrWhiteSpace(request.ProyectoId) ? null : request.ProyectoId;
+        publication.EvidenceFileId = request.EvidenceFileId;
 
         var dataBase = string.IsNullOrWhiteSpace(request.DataBase) ? null : request.DataBase.Trim();
         var group    = request.Group;
@@ -594,7 +596,8 @@ public sealed partial class PublicationService : IPublicationService
                     : null
             },
             ProyectoId = p.ProyectoId,
-            ProyectoTitulo = p.Proyecto != null ? p.Proyecto.Titulo : null
+            ProyectoTitulo = p.Proyecto != null ? p.Proyecto.Titulo : null,
+            EvidenceFileId = p.EvidenceFileId,
         });
     }
 

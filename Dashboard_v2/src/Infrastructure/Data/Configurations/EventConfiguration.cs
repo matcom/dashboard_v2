@@ -69,5 +69,11 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
                     j.HasKey(ep => new { ep.EventId, ep.AreaId });
                     j.Property(ep => ep.AreaId).HasMaxLength(450);
                 });
+
+        builder.HasOne(e => e.EvidenceFile)
+            .WithMany()
+            .HasForeignKey(e => e.EvidenceFileId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }

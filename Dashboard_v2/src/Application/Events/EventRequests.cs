@@ -10,6 +10,8 @@ public record CreateEventRequest
     public List<string> Institutions { get; init; } = [];
     public string? RedId { get; init; }
     public List<string> AreaIdsPatrocinadoras { get; init; } = [];
+    /// <summary>ID del archivo de evidencia/certificado subido previamente (opcional).</summary>
+    public int? EvidenceFileId { get; init; }
 }
 
 public record UpdateEventRequest
@@ -20,6 +22,8 @@ public record UpdateEventRequest
     public List<string> Institutions { get; init; } = [];
     public string? RedId { get; init; }
     public List<string> AreaIdsPatrocinadoras { get; init; } = [];
+    /// <summary>ID del archivo de evidencia/certificado subido previamente (opcional). Null elimina la evidencia actual.</summary>
+    public int? EvidenceFileId { get; init; }
 }
 
 public record CreatePresentationRequest

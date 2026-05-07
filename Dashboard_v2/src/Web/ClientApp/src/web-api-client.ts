@@ -7587,6 +7587,7 @@ export class RecipientDto implements IRecipientDto {
     id?: number;
     userId?: string;
     userDisplayName?: string;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IRecipientDto) {
         if (data) {
@@ -7602,6 +7603,7 @@ export class RecipientDto implements IRecipientDto {
             this.id = _data["id"];
             this.userId = _data["userId"];
             this.userDisplayName = _data["userDisplayName"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7617,6 +7619,7 @@ export class RecipientDto implements IRecipientDto {
         data["id"] = this.id;
         data["userId"] = this.userId;
         data["userDisplayName"] = this.userDisplayName;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7625,6 +7628,7 @@ export interface IRecipientDto {
     id?: number;
     userId?: string;
     userDisplayName?: string;
+    evidenceFileId?: number | undefined;
 }
 
 export class AwardCatalogDto implements IAwardCatalogDto {
@@ -7680,6 +7684,7 @@ export class CreateAwardRequest implements ICreateAwardRequest {
     newAwardName?: string | undefined;
     awardTypeId?: number | undefined;
     awardedAt?: Date;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: ICreateAwardRequest) {
         if (data) {
@@ -7696,6 +7701,7 @@ export class CreateAwardRequest implements ICreateAwardRequest {
             this.newAwardName = _data["newAwardName"];
             this.awardTypeId = _data["awardTypeId"];
             this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7712,6 +7718,7 @@ export class CreateAwardRequest implements ICreateAwardRequest {
         data["newAwardName"] = this.newAwardName;
         data["awardTypeId"] = this.awardTypeId;
         data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7721,6 +7728,7 @@ export interface ICreateAwardRequest {
     newAwardName?: string | undefined;
     awardTypeId?: number | undefined;
     awardedAt?: Date;
+    evidenceFileId?: number | undefined;
 }
 
 export class UpdateAwardRequest implements IUpdateAwardRequest {
@@ -7728,6 +7736,7 @@ export class UpdateAwardRequest implements IUpdateAwardRequest {
     newAwardName?: string | undefined;
     awardTypeId?: number | undefined;
     awardedAt?: Date;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdateAwardRequest) {
         if (data) {
@@ -7744,6 +7753,7 @@ export class UpdateAwardRequest implements IUpdateAwardRequest {
             this.newAwardName = _data["newAwardName"];
             this.awardTypeId = _data["awardTypeId"];
             this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7760,6 +7770,7 @@ export class UpdateAwardRequest implements IUpdateAwardRequest {
         data["newAwardName"] = this.newAwardName;
         data["awardTypeId"] = this.awardTypeId;
         data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7769,6 +7780,7 @@ export interface IUpdateAwardRequest {
     newAwardName?: string | undefined;
     awardTypeId?: number | undefined;
     awardedAt?: Date;
+    evidenceFileId?: number | undefined;
 }
 
 export class ClasificacionDto implements IClasificacionDto {
@@ -7895,6 +7907,7 @@ export class EventDto implements IEventDto {
     redId?: string | undefined;
     redName?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IEventDto) {
         if (data) {
@@ -7926,6 +7939,7 @@ export class EventDto implements IEventDto {
                 for (let item of _data["areaIdsPatrocinadoras"])
                     this.areaIdsPatrocinadoras!.push(item);
             }
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7957,6 +7971,7 @@ export class EventDto implements IEventDto {
             for (let item of this.areaIdsPatrocinadoras)
                 data["areaIdsPatrocinadoras"].push(item);
         }
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7973,6 +7988,7 @@ export interface IEventDto {
     redId?: string | undefined;
     redName?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 }
 
 export class CountryDto implements ICountryDto {
@@ -8098,6 +8114,7 @@ export class CreateEventRequest implements ICreateEventRequest {
     institutions?: string[];
     redId?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 
     constructor(data?: ICreateEventRequest) {
         if (data) {
@@ -8124,6 +8141,7 @@ export class CreateEventRequest implements ICreateEventRequest {
                 for (let item of _data["areaIdsPatrocinadoras"])
                     this.areaIdsPatrocinadoras!.push(item);
             }
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -8150,6 +8168,7 @@ export class CreateEventRequest implements ICreateEventRequest {
             for (let item of this.areaIdsPatrocinadoras)
                 data["areaIdsPatrocinadoras"].push(item);
         }
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -8161,6 +8180,7 @@ export interface ICreateEventRequest {
     institutions?: string[];
     redId?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 }
 
 export class UpdateEventRequest implements IUpdateEventRequest {
@@ -8170,6 +8190,7 @@ export class UpdateEventRequest implements IUpdateEventRequest {
     institutions?: string[];
     redId?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdateEventRequest) {
         if (data) {
@@ -8196,6 +8217,7 @@ export class UpdateEventRequest implements IUpdateEventRequest {
                 for (let item of _data["areaIdsPatrocinadoras"])
                     this.areaIdsPatrocinadoras!.push(item);
             }
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -8222,6 +8244,7 @@ export class UpdateEventRequest implements IUpdateEventRequest {
             for (let item of this.areaIdsPatrocinadoras)
                 data["areaIdsPatrocinadoras"].push(item);
         }
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -8233,6 +8256,7 @@ export interface IUpdateEventRequest {
     institutions?: string[];
     redId?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 }
 
 export class StoredFileDto implements IStoredFileDto {
@@ -10581,6 +10605,7 @@ export class PublicationDto implements IPublicationDto {
     journalPublication?: JournalPublicationDto | undefined;
     proyectoId?: string | undefined;
     proyectoTitulo?: string | undefined;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IPublicationDto) {
         if (data) {
@@ -10608,6 +10633,7 @@ export class PublicationDto implements IPublicationDto {
             this.journalPublication = _data["journalPublication"] ? JournalPublicationDto.fromJS(_data["journalPublication"]) : undefined as any;
             this.proyectoId = _data["proyectoId"];
             this.proyectoTitulo = _data["proyectoTitulo"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -10635,6 +10661,7 @@ export class PublicationDto implements IPublicationDto {
         data["journalPublication"] = this.journalPublication ? this.journalPublication.toJSON() : undefined as any;
         data["proyectoId"] = this.proyectoId;
         data["proyectoTitulo"] = this.proyectoTitulo;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -10651,6 +10678,7 @@ export interface IPublicationDto {
     journalPublication?: JournalPublicationDto | undefined;
     proyectoId?: string | undefined;
     proyectoTitulo?: string | undefined;
+    evidenceFileId?: number | undefined;
 }
 
 export class AuthorDto implements IAuthorDto {
@@ -10803,6 +10831,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: ICreatePublicationRequest) {
         if (data) {
@@ -10840,6 +10869,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
             this.proyectoId = _data["proyectoId"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -10877,6 +10907,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
         data["proyectoId"] = this.proyectoId;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -10895,6 +10926,7 @@ export interface ICreatePublicationRequest {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    evidenceFileId?: number | undefined;
 }
 
 export enum PublicationType {
@@ -11502,6 +11534,7 @@ export class RegistroDto implements IRegistroDto {
     countryName?: string;
     institutionId?: string;
     institutionNombre?: string;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IRegistroDto) {
         if (data) {
@@ -11522,6 +11555,7 @@ export class RegistroDto implements IRegistroDto {
             this.countryName = _data["countryName"];
             this.institutionId = _data["institutionId"];
             this.institutionNombre = _data["institutionNombre"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -11542,6 +11576,7 @@ export class RegistroDto implements IRegistroDto {
         data["countryName"] = this.countryName;
         data["institutionId"] = this.institutionId;
         data["institutionNombre"] = this.institutionNombre;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -11555,6 +11590,7 @@ export interface IRegistroDto {
     countryName?: string;
     institutionId?: string;
     institutionNombre?: string;
+    evidenceFileId?: number | undefined;
 }
 
 export class CreateRegistroBody implements ICreateRegistroBody {
@@ -11563,6 +11599,7 @@ export class CreateRegistroBody implements ICreateRegistroBody {
     esInformatico?: boolean;
     countryId?: number;
     institutionId?: string;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: ICreateRegistroBody) {
         if (data) {
@@ -11580,6 +11617,7 @@ export class CreateRegistroBody implements ICreateRegistroBody {
             this.esInformatico = _data["esInformatico"];
             this.countryId = _data["countryId"];
             this.institutionId = _data["institutionId"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -11597,6 +11635,7 @@ export class CreateRegistroBody implements ICreateRegistroBody {
         data["esInformatico"] = this.esInformatico;
         data["countryId"] = this.countryId;
         data["institutionId"] = this.institutionId;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -11607,6 +11646,7 @@ export interface ICreateRegistroBody {
     esInformatico?: boolean;
     countryId?: number;
     institutionId?: string;
+    evidenceFileId?: number | undefined;
 }
 
 export class UpdateRegistroBody implements IUpdateRegistroBody {
@@ -11615,6 +11655,7 @@ export class UpdateRegistroBody implements IUpdateRegistroBody {
     esInformatico?: boolean;
     countryId?: number;
     institutionId?: string;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdateRegistroBody) {
         if (data) {
@@ -11632,6 +11673,7 @@ export class UpdateRegistroBody implements IUpdateRegistroBody {
             this.esInformatico = _data["esInformatico"];
             this.countryId = _data["countryId"];
             this.institutionId = _data["institutionId"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -11649,6 +11691,7 @@ export class UpdateRegistroBody implements IUpdateRegistroBody {
         data["esInformatico"] = this.esInformatico;
         data["countryId"] = this.countryId;
         data["institutionId"] = this.institutionId;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -11659,6 +11702,7 @@ export interface IUpdateRegistroBody {
     esInformatico?: boolean;
     countryId?: number;
     institutionId?: string;
+    evidenceFileId?: number | undefined;
 }
 
 export class RoleDto implements IRoleDto {

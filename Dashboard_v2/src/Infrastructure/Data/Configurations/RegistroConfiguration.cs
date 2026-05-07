@@ -24,5 +24,11 @@ public class RegistroConfiguration : IEntityTypeConfiguration<Registro>
             .WithMany(i => i.Registros)
             .HasForeignKey(r => r.InstitutionId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(r => r.EvidenceFile)
+            .WithMany()
+            .HasForeignKey(r => r.EvidenceFileId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }
