@@ -3,6 +3,7 @@ using System;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260506201439_AddTipoToRed")]
+    partial class AddTipoToRed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -582,11 +585,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
-                    b.Property<string>("AreaId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
                     b.Property<int>("CantidadEstudiantes")
                         .HasColumnType("integer");
 
@@ -618,8 +616,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AreaId");
 
                     b.HasIndex("ClasificacionId");
 
@@ -1436,12 +1432,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Proyecto", b =>
                 {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Area", "Area")
-                        .WithMany("Proyectos")
-                        .HasForeignKey("AreaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Dashboard_v2.Domain.Entities.Clasificacion", "Clasificacion")
                         .WithMany("Proyectos")
                         .HasForeignKey("ClasificacionId")
@@ -1453,8 +1443,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasForeignKey("JefeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Area");
 
                     b.Navigation("Clasificacion");
 
@@ -1713,8 +1701,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Area", b =>
                 {
                     b.Navigation("GruposDeInvestigacion");
-
-                    b.Navigation("Proyectos");
 
                     b.Navigation("RedesCoordinadas");
 
