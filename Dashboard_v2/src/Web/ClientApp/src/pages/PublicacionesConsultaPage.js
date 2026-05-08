@@ -12,6 +12,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
 import FilterableDataTable from '../components/FilterableDataTable';
+import { CertificateViewButton } from '../components/CertificateUpload';
 
 // Etiquetas correspondientes al enum PublicationType del backend (índice = valor entero)
 const PUB_TIPOS = ['Diario', 'Libro', 'Monografía', 'Capítulo', 'Artículo de Divulgación'];
@@ -68,6 +69,7 @@ export default function PublicacionesConsultaPage({ apiUrl = '/api/Publications/
       proyectoTitulo: publicacion.proyectoTitulo ?? null,
       indexedPublication: publicacion.indexedPublication ?? null,
       journalPublication: publicacion.journalPublication ?? null,
+      evidenceFileId: publicacion.evidenceFileId ?? null,
     };
   }
 
@@ -281,6 +283,10 @@ export default function PublicacionesConsultaPage({ apiUrl = '/api/Publications/
                           ]}
                           data={pubs}
                           keyExtractor={pub => pub.id}
+                          actions={[
+                            { key: 'certificate', label: 'Certificado', show: pub => pub.evidenceFileId != null,
+                              render: pub => <CertificateViewButton fileId={pub.evidenceFileId} /> },
+                          ]}
                           emptyMessage={`No hay publicaciones en el Grupo ${group}.`}
                         />
                       </TabPane>
@@ -322,6 +328,10 @@ export default function PublicacionesConsultaPage({ apiUrl = '/api/Publications/
                       ]}
                       data={pubs}
                       keyExtractor={pub => pub.id}
+                      actions={[
+                        { key: 'certificate', label: 'Certificado', show: pub => pub.evidenceFileId != null,
+                          render: pub => <CertificateViewButton fileId={pub.evidenceFileId} /> },
+                      ]}
                       emptyMessage="No hay publicaciones de este tipo."
                     />
                   </TabPane>

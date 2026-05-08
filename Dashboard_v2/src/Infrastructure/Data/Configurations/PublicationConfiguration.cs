@@ -31,5 +31,11 @@ public class PublicationConfiguration : IEntityTypeConfiguration<Publication>
             .HasForeignKey(p => p.ProyectoId)
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
+
+        builder.HasOne(p => p.EvidenceFile)
+            .WithMany()
+            .HasForeignKey(p => p.EvidenceFileId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }

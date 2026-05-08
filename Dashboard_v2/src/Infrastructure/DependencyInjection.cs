@@ -22,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System;
 using Dashboard_v2.Infrastructure.Configuration;
+using Minio;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -153,6 +154,31 @@ public static class DependencyInjection
         builder.Services.AddScoped<IDocumentReport, AnexoPremiosReport>();
         builder.Services.AddScoped<IDocumentReport, AnexoEventosReport>();
         builder.Services.AddScoped<IDocumentReport, ProyectosReport>();
+
+        // ── MinIO / Almacenamiento de archivos ────────────────────────────────
+        var minioSection = builder.Configuration
+            .GetSection(Dashboard_v2.Infrastructure.Configuration.MinioOptions.SectionName);
+        builder.Services.Configure<Dashboard_v2.Infrastructure.Configuration.MinioOptions>(minioSection);
+
+        var minioOpts = minioSection
+            .Get<Dashboard_v2.Infrastructure.Configuration.MinioOptions>();
+
+        if (minioOpts is not null)
+        {
+            builder.Services.AddMinio(configureClient => configureClient
+                .WithEndpoint(minioOpts.Endpoint)
+                .WithCredentials(minioOpts.AccessKey, minioOpts.SecretKey)
+                .WithSSL(minioOpts.UseSSL));
+
+            // Registrar la implementación una sola vez y exponerla bajo ambas interfaces.
+            builder.Services.AddSingleton<Dashboard_v2.Infrastructure.Services.MinioFileStorageService>();
+            builder.Services.AddSingleton<Dashboard_v2.Application.Common.Interfaces.IFileStorageService>(
+                sp => sp.GetRequiredService<Dashboard_v2.Infrastructure.Services.MinioFileStorageService>());
+            builder.Services.AddSingleton<Dashboard_v2.Application.Common.Interfaces.IStorageBucketInitialiser>(
+                sp => sp.GetRequiredService<Dashboard_v2.Infrastructure.Services.MinioFileStorageService>());
+            builder.Services.AddScoped<Dashboard_v2.Application.FileStorage.IStoredFileService,
+                Dashboard_v2.Application.FileStorage.StoredFileService>();
+        }
 
         builder.Services.AddAuthorization(options =>
             options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(nameof(RolesEnum.Superuser))));

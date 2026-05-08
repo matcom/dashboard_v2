@@ -45,7 +45,8 @@ public class Registros : EndpointGroupBase
                 r.CountryId,
                 r.Country.Name,
                 r.InstitutionId,
-                r.Institution.Nombre))
+                r.Institution.Nombre,
+                r.EvidenceFileId))
             .ToListAsync();
 
         return Results.Ok(list);
@@ -59,7 +60,8 @@ public class Registros : EndpointGroupBase
             NumeroCertificado = body.NumeroCertificado,
             EsInformatico = body.EsInformatico,
             CountryId = body.CountryId,
-            InstitutionId = body.InstitutionId
+            InstitutionId = body.InstitutionId,
+            EvidenceFileId = body.EvidenceFileId,
         };
 
         db.Registros.Add(registro);
@@ -79,6 +81,7 @@ public class Registros : EndpointGroupBase
         registro.EsInformatico = body.EsInformatico;
         registro.CountryId = body.CountryId;
         registro.InstitutionId = body.InstitutionId;
+        registro.EvidenceFileId = body.EvidenceFileId;
 
         await db.SaveChangesAsync(CancellationToken.None);
         return Results.Ok(new { message = "Registro actualizado." });
@@ -96,6 +99,6 @@ public class Registros : EndpointGroupBase
     }
 }
 
-public record RegistroDto(string Id, string Titulo, string NumeroCertificado, bool EsInformatico, int CountryId, string CountryName, string InstitutionId, string InstitutionNombre);
-public record CreateRegistroBody(string Titulo, string NumeroCertificado, bool EsInformatico, int CountryId, string InstitutionId);
-public record UpdateRegistroBody(string Titulo, string NumeroCertificado, bool EsInformatico, int CountryId, string InstitutionId);
+public record RegistroDto(string Id, string Titulo, string NumeroCertificado, bool EsInformatico, int CountryId, string CountryName, string InstitutionId, string InstitutionNombre, int? EvidenceFileId);
+public record CreateRegistroBody(string Titulo, string NumeroCertificado, bool EsInformatico, int CountryId, string InstitutionId, int? EvidenceFileId = null);
+public record UpdateRegistroBody(string Titulo, string NumeroCertificado, bool EsInformatico, int CountryId, string InstitutionId, int? EvidenceFileId = null);

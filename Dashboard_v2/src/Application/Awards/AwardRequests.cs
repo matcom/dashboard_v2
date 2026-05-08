@@ -6,6 +6,8 @@ public record CreateAwardRequest
     public string? NewAwardName { get; init; }
     public int? AwardTypeId { get; init; }
     public DateTime AwardedAt { get; init; }
+    /// <summary>ID del archivo de evidencia/certificado subido previamente (opcional).</summary>
+    public int? EvidenceFileId { get; init; }
 }
 
 public record UpdateAwardRequest
@@ -14,4 +16,6 @@ public record UpdateAwardRequest
     public string? NewAwardName { get; init; }
     public int? AwardTypeId { get; init; }
     public DateTime AwardedAt { get; init; }
+    /// <summary>ID del archivo de evidencia/certificado subido previamente (opcional). Null elimina la evidencia actual.</summary>
+    public int? EvidenceFileId { get; init; }
 }

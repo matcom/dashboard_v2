@@ -1671,6 +1671,344 @@ export class EventsClient {
     }
 }
 
+export class FileStorageClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getStoredFiles(): Promise<StoredFileDto[]> {
+        let url_ = this.baseUrl + "/api/FileStorage";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetStoredFiles(_response);
+        });
+    }
+
+    protected processGetStoredFiles(response: Response): Promise<StoredFileDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(StoredFileDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<StoredFileDto[]>(null as any);
+    }
+
+    uploadStoredFile(category: string | null | undefined, file: FileParameter | null | undefined): Promise<StoredFileDto> {
+        let url_ = this.baseUrl + "/api/FileStorage?";
+        if (category !== undefined && category !== null)
+            url_ += "category=" + encodeURIComponent("" + category) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file !== null && file !== undefined)
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUploadStoredFile(_response);
+        });
+    }
+
+    protected processUploadStoredFile(response: Response): Promise<StoredFileDto> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = StoredFileDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<StoredFileDto>(null as any);
+    }
+
+    getStoredFileById(id: number): Promise<StoredFileDto> {
+        let url_ = this.baseUrl + "/api/FileStorage/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetStoredFileById(_response);
+        });
+    }
+
+    protected processGetStoredFileById(response: Response): Promise<StoredFileDto> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = StoredFileDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<StoredFileDto>(null as any);
+    }
+
+    replaceStoredFile(id: number, category: string | null | undefined, file: FileParameter | null | undefined): Promise<StoredFileDto> {
+        let url_ = this.baseUrl + "/api/FileStorage/{id}?";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (category !== undefined && category !== null)
+            url_ += "category=" + encodeURIComponent("" + category) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file !== null && file !== undefined)
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReplaceStoredFile(_response);
+        });
+    }
+
+    protected processReplaceStoredFile(response: Response): Promise<StoredFileDto> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = StoredFileDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<StoredFileDto>(null as any);
+    }
+
+    deleteStoredFile(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/FileStorage/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteStoredFile(_response);
+        });
+    }
+
+    protected processDeleteStoredFile(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getStoredFileDownloadUrl(id: number, expirySeconds: number | undefined): Promise<string> {
+        let url_ = this.baseUrl + "/api/FileStorage/{id}/url?";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (expirySeconds === null)
+            throw new globalThis.Error("The parameter 'expirySeconds' cannot be null.");
+        else if (expirySeconds !== undefined)
+            url_ += "expirySeconds=" + encodeURIComponent("" + expirySeconds) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetStoredFileDownloadUrl(_response);
+        });
+    }
+
+    protected processGetStoredFileDownloadUrl(response: Response): Promise<string> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : null as any;
+    
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    downloadStoredFile(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/FileStorage/{id}/download";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDownloadStoredFile(_response);
+        });
+    }
+
+    protected processDownloadStoredFile(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class GruposDeInvestigacionClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -7249,6 +7587,7 @@ export class RecipientDto implements IRecipientDto {
     id?: number;
     userId?: string;
     userDisplayName?: string;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IRecipientDto) {
         if (data) {
@@ -7264,6 +7603,7 @@ export class RecipientDto implements IRecipientDto {
             this.id = _data["id"];
             this.userId = _data["userId"];
             this.userDisplayName = _data["userDisplayName"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7279,6 +7619,7 @@ export class RecipientDto implements IRecipientDto {
         data["id"] = this.id;
         data["userId"] = this.userId;
         data["userDisplayName"] = this.userDisplayName;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7287,6 +7628,7 @@ export interface IRecipientDto {
     id?: number;
     userId?: string;
     userDisplayName?: string;
+    evidenceFileId?: number | undefined;
 }
 
 export class AwardCatalogDto implements IAwardCatalogDto {
@@ -7342,6 +7684,7 @@ export class CreateAwardRequest implements ICreateAwardRequest {
     newAwardName?: string | undefined;
     awardTypeId?: number | undefined;
     awardedAt?: Date;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: ICreateAwardRequest) {
         if (data) {
@@ -7358,6 +7701,7 @@ export class CreateAwardRequest implements ICreateAwardRequest {
             this.newAwardName = _data["newAwardName"];
             this.awardTypeId = _data["awardTypeId"];
             this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7374,6 +7718,7 @@ export class CreateAwardRequest implements ICreateAwardRequest {
         data["newAwardName"] = this.newAwardName;
         data["awardTypeId"] = this.awardTypeId;
         data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7383,6 +7728,7 @@ export interface ICreateAwardRequest {
     newAwardName?: string | undefined;
     awardTypeId?: number | undefined;
     awardedAt?: Date;
+    evidenceFileId?: number | undefined;
 }
 
 export class UpdateAwardRequest implements IUpdateAwardRequest {
@@ -7390,6 +7736,7 @@ export class UpdateAwardRequest implements IUpdateAwardRequest {
     newAwardName?: string | undefined;
     awardTypeId?: number | undefined;
     awardedAt?: Date;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdateAwardRequest) {
         if (data) {
@@ -7406,6 +7753,7 @@ export class UpdateAwardRequest implements IUpdateAwardRequest {
             this.newAwardName = _data["newAwardName"];
             this.awardTypeId = _data["awardTypeId"];
             this.awardedAt = _data["awardedAt"] ? new Date(_data["awardedAt"].toString()) : undefined as any;
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7422,6 +7770,7 @@ export class UpdateAwardRequest implements IUpdateAwardRequest {
         data["newAwardName"] = this.newAwardName;
         data["awardTypeId"] = this.awardTypeId;
         data["awardedAt"] = this.awardedAt ? this.awardedAt.toISOString() : undefined as any;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7431,6 +7780,7 @@ export interface IUpdateAwardRequest {
     newAwardName?: string | undefined;
     awardTypeId?: number | undefined;
     awardedAt?: Date;
+    evidenceFileId?: number | undefined;
 }
 
 export class ClasificacionDto implements IClasificacionDto {
@@ -7557,6 +7907,7 @@ export class EventDto implements IEventDto {
     redId?: string | undefined;
     redName?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IEventDto) {
         if (data) {
@@ -7588,6 +7939,7 @@ export class EventDto implements IEventDto {
                 for (let item of _data["areaIdsPatrocinadoras"])
                     this.areaIdsPatrocinadoras!.push(item);
             }
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7619,6 +7971,7 @@ export class EventDto implements IEventDto {
             for (let item of this.areaIdsPatrocinadoras)
                 data["areaIdsPatrocinadoras"].push(item);
         }
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7635,6 +7988,7 @@ export interface IEventDto {
     redId?: string | undefined;
     redName?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 }
 
 export class CountryDto implements ICountryDto {
@@ -7760,6 +8114,7 @@ export class CreateEventRequest implements ICreateEventRequest {
     institutions?: string[];
     redId?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 
     constructor(data?: ICreateEventRequest) {
         if (data) {
@@ -7786,6 +8141,7 @@ export class CreateEventRequest implements ICreateEventRequest {
                 for (let item of _data["areaIdsPatrocinadoras"])
                     this.areaIdsPatrocinadoras!.push(item);
             }
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7812,6 +8168,7 @@ export class CreateEventRequest implements ICreateEventRequest {
             for (let item of this.areaIdsPatrocinadoras)
                 data["areaIdsPatrocinadoras"].push(item);
         }
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7823,6 +8180,7 @@ export interface ICreateEventRequest {
     institutions?: string[];
     redId?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 }
 
 export class UpdateEventRequest implements IUpdateEventRequest {
@@ -7832,6 +8190,7 @@ export class UpdateEventRequest implements IUpdateEventRequest {
     institutions?: string[];
     redId?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdateEventRequest) {
         if (data) {
@@ -7858,6 +8217,7 @@ export class UpdateEventRequest implements IUpdateEventRequest {
                 for (let item of _data["areaIdsPatrocinadoras"])
                     this.areaIdsPatrocinadoras!.push(item);
             }
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -7884,6 +8244,7 @@ export class UpdateEventRequest implements IUpdateEventRequest {
             for (let item of this.areaIdsPatrocinadoras)
                 data["areaIdsPatrocinadoras"].push(item);
         }
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -7895,6 +8256,63 @@ export interface IUpdateEventRequest {
     institutions?: string[];
     redId?: string | undefined;
     areaIdsPatrocinadoras?: string[];
+    evidenceFileId?: number | undefined;
+}
+
+export class StoredFileDto implements IStoredFileDto {
+    id?: number;
+    fileName?: string;
+    contentType?: string;
+    sizeBytes?: number;
+    uploadedById?: string;
+    created?: Date;
+
+    constructor(data?: IStoredFileDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.fileName = _data["fileName"];
+            this.contentType = _data["contentType"];
+            this.sizeBytes = _data["sizeBytes"];
+            this.uploadedById = _data["uploadedById"];
+            this.created = _data["created"] ? new Date(_data["created"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): StoredFileDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new StoredFileDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["fileName"] = this.fileName;
+        data["contentType"] = this.contentType;
+        data["sizeBytes"] = this.sizeBytes;
+        data["uploadedById"] = this.uploadedById;
+        data["created"] = this.created ? this.created.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IStoredFileDto {
+    id?: number;
+    fileName?: string;
+    contentType?: string;
+    sizeBytes?: number;
+    uploadedById?: string;
+    created?: Date;
 }
 
 export class GrupoDeInvestigacionDto implements IGrupoDeInvestigacionDto {
@@ -10187,6 +10605,7 @@ export class PublicationDto implements IPublicationDto {
     journalPublication?: JournalPublicationDto | undefined;
     proyectoId?: string | undefined;
     proyectoTitulo?: string | undefined;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IPublicationDto) {
         if (data) {
@@ -10214,6 +10633,7 @@ export class PublicationDto implements IPublicationDto {
             this.journalPublication = _data["journalPublication"] ? JournalPublicationDto.fromJS(_data["journalPublication"]) : undefined as any;
             this.proyectoId = _data["proyectoId"];
             this.proyectoTitulo = _data["proyectoTitulo"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -10241,6 +10661,7 @@ export class PublicationDto implements IPublicationDto {
         data["journalPublication"] = this.journalPublication ? this.journalPublication.toJSON() : undefined as any;
         data["proyectoId"] = this.proyectoId;
         data["proyectoTitulo"] = this.proyectoTitulo;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -10257,6 +10678,7 @@ export interface IPublicationDto {
     journalPublication?: JournalPublicationDto | undefined;
     proyectoId?: string | undefined;
     proyectoTitulo?: string | undefined;
+    evidenceFileId?: number | undefined;
 }
 
 export class AuthorDto implements IAuthorDto {
@@ -10409,6 +10831,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: ICreatePublicationRequest) {
         if (data) {
@@ -10446,6 +10869,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
             this.proyectoId = _data["proyectoId"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -10483,6 +10907,7 @@ export class CreatePublicationRequest implements ICreatePublicationRequest {
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
         data["proyectoId"] = this.proyectoId;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -10501,6 +10926,7 @@ export interface ICreatePublicationRequest {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    evidenceFileId?: number | undefined;
 }
 
 export enum PublicationType {
@@ -10765,6 +11191,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdatePublicationBody) {
         if (data) {
@@ -10802,6 +11229,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
             this.proyectoId = _data["proyectoId"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -10839,6 +11267,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
         data["proyectoId"] = this.proyectoId;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -10857,6 +11286,7 @@ export interface IUpdatePublicationBody {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    evidenceFileId?: number | undefined;
 }
 
 export class RedDto implements IRedDto {
@@ -11108,6 +11538,7 @@ export class RegistroDto implements IRegistroDto {
     countryName?: string;
     institutionId?: string;
     institutionNombre?: string;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IRegistroDto) {
         if (data) {
@@ -11128,6 +11559,7 @@ export class RegistroDto implements IRegistroDto {
             this.countryName = _data["countryName"];
             this.institutionId = _data["institutionId"];
             this.institutionNombre = _data["institutionNombre"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -11148,6 +11580,7 @@ export class RegistroDto implements IRegistroDto {
         data["countryName"] = this.countryName;
         data["institutionId"] = this.institutionId;
         data["institutionNombre"] = this.institutionNombre;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -11161,6 +11594,7 @@ export interface IRegistroDto {
     countryName?: string;
     institutionId?: string;
     institutionNombre?: string;
+    evidenceFileId?: number | undefined;
 }
 
 export class CreateRegistroBody implements ICreateRegistroBody {
@@ -11169,6 +11603,7 @@ export class CreateRegistroBody implements ICreateRegistroBody {
     esInformatico?: boolean;
     countryId?: number;
     institutionId?: string;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: ICreateRegistroBody) {
         if (data) {
@@ -11186,6 +11621,7 @@ export class CreateRegistroBody implements ICreateRegistroBody {
             this.esInformatico = _data["esInformatico"];
             this.countryId = _data["countryId"];
             this.institutionId = _data["institutionId"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -11203,6 +11639,7 @@ export class CreateRegistroBody implements ICreateRegistroBody {
         data["esInformatico"] = this.esInformatico;
         data["countryId"] = this.countryId;
         data["institutionId"] = this.institutionId;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -11213,6 +11650,7 @@ export interface ICreateRegistroBody {
     esInformatico?: boolean;
     countryId?: number;
     institutionId?: string;
+    evidenceFileId?: number | undefined;
 }
 
 export class UpdateRegistroBody implements IUpdateRegistroBody {
@@ -11221,6 +11659,7 @@ export class UpdateRegistroBody implements IUpdateRegistroBody {
     esInformatico?: boolean;
     countryId?: number;
     institutionId?: string;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdateRegistroBody) {
         if (data) {
@@ -11238,6 +11677,7 @@ export class UpdateRegistroBody implements IUpdateRegistroBody {
             this.esInformatico = _data["esInformatico"];
             this.countryId = _data["countryId"];
             this.institutionId = _data["institutionId"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -11255,6 +11695,7 @@ export class UpdateRegistroBody implements IUpdateRegistroBody {
         data["esInformatico"] = this.esInformatico;
         data["countryId"] = this.countryId;
         data["institutionId"] = this.institutionId;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -11265,6 +11706,7 @@ export interface IUpdateRegistroBody {
     esInformatico?: boolean;
     countryId?: number;
     institutionId?: string;
+    evidenceFileId?: number | undefined;
 }
 
 export class RoleDto implements IRoleDto {
@@ -11639,6 +12081,11 @@ function formatDate(d: Date) {
     return d.getFullYear() + '-' + 
         (d.getMonth() < 9 ? ('0' + (d.getMonth()+1)) : (d.getMonth()+1)) + '-' +
         (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate());
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export class SwaggerException extends Error {

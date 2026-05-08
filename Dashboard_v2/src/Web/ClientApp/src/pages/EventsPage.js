@@ -12,6 +12,7 @@ import CoauthorPicker from '../components/CoauthorPicker';
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
 import FilterableDataTable from '../components/FilterableDataTable';
+import CertificateUpload, { CertificateViewButton } from '../components/CertificateUpload';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -32,7 +33,7 @@ async function apiFetch(url, options = {}) {
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
 const EMPTY_PRES = { name: '', eventId: '' };
-const EMPTY_EVENT = { name: '', countryId: '', eventType: '', institutions: [], redId: '', areaIds: [] };
+const EMPTY_EVENT = { name: '', countryId: '', eventType: '', institutions: [], redId: '', areaIds: [], evidenceFileId: null };
 
 const EVENT_TYPE_LABELS = { 0: 'Internacional', 1: 'Nacional', 2: 'De área', 3: 'Local' };
 
@@ -292,6 +293,7 @@ export default function EventsPage() {
       institutions: [...ev.institutions],
       redId: ev.redId ?? ev.RedId ?? '',
       areaIds: [...(ev.areaIdsPatrocinadoras ?? [])],
+      evidenceFileId: ev.evidenceFileId ?? null,
     });
     setSelectedInstId('');
     setSelectedAreaId('');
@@ -377,6 +379,7 @@ export default function EventsPage() {
       institutions: evForm.institutions,
       redId: evForm.redId && evForm.redId.length > 0 ? evForm.redId : null,
       areaIdsPatrocinadoras: evForm.areaIds,
+      evidenceFileId: evForm.evidenceFileId ?? null,
     };
 
     try {
@@ -542,8 +545,10 @@ export default function EventsPage() {
                   data={events}
                   keyExtractor={ev => ev.id}
                   actions={[
-                    { key: 'edit',   label: 'Editar',   icon: 'bi-pencil', color: 'outline-secondary', show: () => !isSuperuser, onClick: ev => openEditEv(ev) },
-                    { key: 'delete', label: 'Eliminar', icon: 'bi-trash',  color: 'outline-danger',    show: () => !isSuperuser, onClick: ev => { setEvToDelete(ev); setEvDeleteError(''); setEvDeleteModal(true); } },
+                    { key: 'edit',   label: 'Editar',   icon: 'bi-pencil', color: 'outline-secondary', show: () => !isSuperuser && !isVicedecano, onClick: ev => openEditEv(ev) },
+                    { key: 'delete', label: 'Eliminar', icon: 'bi-trash',  color: 'outline-danger',    show: () => !isSuperuser && !isVicedecano, onClick: ev => { setEvToDelete(ev); setEvDeleteError(''); setEvDeleteModal(true); } },
+                    { key: 'certificate', label: 'Certificado', show: ev => ev.evidenceFileId != null,
+                      render: ev => <CertificateViewButton fileId={ev.evidenceFileId} /> },
                   ]}
                   emptyMessage={isManager ? 'No hay eventos registrados.' : 'No participas en ningún evento aún.'}
                 />
@@ -760,6 +765,17 @@ export default function EventsPage() {
                 ))}
               </Input>
               <small className="text-muted">Selecciona una red coordinadora si aplica.</small>
+            </FormGroup>
+
+            <FormGroup>
+              <Label>Certificado / Evidencia</Label>
+              <CertificateUpload
+                fileId={evForm.evidenceFileId}
+                onFileIdChange={id => setEvForm(f => ({ ...f, evidenceFileId: id }))}
+                canManage={!isManager}
+                canView
+                disabled={evFormLoading}
+              />
             </FormGroup>
           </ModalBody>
           <ModalFooter>

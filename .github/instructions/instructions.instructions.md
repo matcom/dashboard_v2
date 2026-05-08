@@ -7,8 +7,6 @@ applyTo: '**/*.cs' # Se aplica a todos los archivos C# del proyecto
 
 **Basado en**: [Clean Architecture Template de Jason Taylor](https://github.com/jasontaylordev/CleanArchitecture)
 
-⚠️ **NOTA IMPORTANTE**: Los features `TodoItems`, `TodoLists` y `WeatherForecasts` son **ejemplos de la template** y fueron eliminados. NO uses estos como referencia para nuevas funcionalidades.
-
 ## Stack Tecnológico
 
 ### Backend

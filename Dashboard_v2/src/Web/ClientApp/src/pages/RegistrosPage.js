@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
 import FilterableDataTable from '../components/FilterableDataTable';
+import CertificateUpload, { CertificateViewButton } from '../components/CertificateUpload';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -23,7 +24,7 @@ async function apiFetch(url, options = {}) {
   return data;
 }
 
-const emptyForm = { titulo: '', numeroCertificado: '', esInformatico: false, countryId: '', institutionId: '' };
+const emptyForm = { titulo: '', numeroCertificado: '', esInformatico: false, countryId: '', institutionId: '', evidenceFileId: null };
 
 export default function RegistrosPage() {
   const [items, setItems] = useState([]);
@@ -84,6 +85,7 @@ export default function RegistrosPage() {
       esInformatico: item.esInformatico,
       countryId: String(item.countryId ?? ''),
       institutionId: item.institutionId ?? '',
+      evidenceFileId: item.evidenceFileId ?? null,
     });
     setFormError('');
     setModal(true);
@@ -99,6 +101,7 @@ export default function RegistrosPage() {
       esInformatico: form.esInformatico,
       countryId: parseInt(form.countryId, 10),
       institutionId: form.institutionId,
+      evidenceFileId: form.evidenceFileId ?? null,
     };
 
     try {
@@ -218,6 +221,8 @@ export default function RegistrosPage() {
             actions={[
               { key: 'edit',   label: 'Editar',   icon: 'bi-pencil', color: 'outline-secondary', onClick: it => openEdit(it) },
               { key: 'delete', label: 'Eliminar', icon: 'bi-trash',  color: 'outline-danger',    onClick: it => handleDelete(it.id) },
+              { key: 'certificate', label: 'Certificado', show: it => it.evidenceFileId != null,
+                render: it => <CertificateViewButton fileId={it.evidenceFileId} /> },
             ]}
             emptyMessage="No hay registros."
           />
@@ -280,6 +285,16 @@ export default function RegistrosPage() {
                 <Input type="checkbox" checked={form.esInformatico} onChange={e => setForm(f => ({ ...f, esInformatico: e.target.checked }))} />{' '}
                 Es informático
               </Label>
+            </FormGroup>
+            <FormGroup>
+              <Label>Certificado / Evidencia</Label>
+              <CertificateUpload
+                fileId={form.evidenceFileId}
+                onFileIdChange={id => setForm(f => ({ ...f, evidenceFileId: id }))}
+                canManage
+                canView
+                disabled={saving}
+              />
             </FormGroup>
           </ModalBody>
           <ModalFooter>

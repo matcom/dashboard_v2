@@ -15,6 +15,7 @@ import CoauthorPicker from '../components/CoauthorPicker';
 import AuthorResolutionModal from '../components/AuthorResolutionModal';
 import DataTable from '../components/DataTable';
 import FilterableDataTable from '../components/FilterableDataTable';
+import CertificateUpload, { CertificateViewButton } from '../components/CertificateUpload';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -56,6 +57,7 @@ const EMPTY_FORM = {
   dataBase: '',
   group: '',
   cuartil: '',
+  evidenceFileId: null,
 };
 
 export default function PublicationsPage() {
@@ -191,6 +193,7 @@ export default function PublicationsPage() {
       dataBase: pub.journalPublication?.dataBase ?? '',
       group: pub.journalPublication?.group ?? '',
       cuartil: pub.journalPublication?.cuartil ?? '',
+      evidenceFileId: pub.evidenceFileId ?? null,
     });
     setFormError('');
     setResolveError('');
@@ -323,6 +326,7 @@ export default function PublicationsPage() {
         dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
         group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
         cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
+        evidenceFileId: form.evidenceFileId ?? null,
       }),
     });
     setModal(false);
@@ -348,6 +352,7 @@ export default function PublicationsPage() {
         dataBase: parseInt(form.publicationType, 10) === 0 ? form.dataBase || null : null,
         group: parseInt(form.publicationType, 10) === 0 ? parseInt(form.group, 10) || null : null,
         cuartil: parseInt(form.publicationType, 10) === 0 && parseInt(form.group, 10) === 1 ? form.cuartil || null : null,
+        evidenceFileId: form.evidenceFileId ?? null,
       }),
     });
     setModal(false);
@@ -406,6 +411,8 @@ export default function PublicationsPage() {
   const pubActions = [
     { key: 'edit',   label: 'Editar',   icon: 'bi-pencil', color: 'outline-primary', onClick: (pub) => openEdit(pub) },
     { key: 'delete', label: 'Eliminar', icon: 'bi-trash',  color: 'outline-danger',  onClick: (pub) => openDelete(pub) },
+    { key: 'certificate', label: 'Certificado', show: pub => pub.evidenceFileId != null,
+      render: pub => <CertificateViewButton fileId={pub.evidenceFileId} /> },
   ];
 
   function renderMatchLabel(type, score) {
@@ -1067,6 +1074,18 @@ export default function PublicationsPage() {
                 </Input>
               </FormGroup>
             ) : null}
+
+            <hr className="my-3" />
+            <FormGroup>
+              <Label>Certificado / Evidencia</Label>
+              <CertificateUpload
+                fileId={form.evidenceFileId}
+                onFileIdChange={id => setForm(f => ({ ...f, evidenceFileId: id }))}
+                canManage
+                canView
+                disabled={formLoading}
+              />
+            </FormGroup>
           </Form>
         </ModalBody>
         <ModalFooter>

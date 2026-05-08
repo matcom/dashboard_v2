@@ -53,6 +53,7 @@ public sealed class EventService : IEventService
                 RedId = e.RedId,
                 RedName = e.Red != null ? e.Red.Nombre : null,
                 AreaIdsPatrocinadoras = e.AreasPatrocinadoras.Select(a => a.Id).ToList(),
+                EvidenceFileId = e.EvidenceFileId,
             })
             .OrderBy(e => e.Name)
             .ToListAsync(ct);
@@ -75,6 +76,7 @@ public sealed class EventService : IEventService
                 RedId = e.RedId,
                 RedName = e.Red != null ? e.Red.Nombre : null,
                 AreaIdsPatrocinadoras = e.AreasPatrocinadoras.Select(a => a.Id).ToList(),
+                EvidenceFileId = e.EvidenceFileId,
             })
             .ToListAsync(ct);
 
@@ -153,6 +155,7 @@ public sealed class EventService : IEventService
             EventTypeId = request.EventType,
             Institutions = institutions,
             RedId = string.IsNullOrWhiteSpace(request.RedId) ? null : request.RedId,
+            EvidenceFileId = request.EvidenceFileId,
         };
 
         _context.Events.Add(ev);
@@ -195,6 +198,7 @@ public sealed class EventService : IEventService
         ev.CountryId = request.CountryId;
         ev.EventTypeId = request.EventType;
         ev.RedId = string.IsNullOrWhiteSpace(request.RedId) ? null : request.RedId;
+        ev.EvidenceFileId = request.EvidenceFileId;
 
         var updatedNames = request.Institutions
             .Where(i => !string.IsNullOrWhiteSpace(i))

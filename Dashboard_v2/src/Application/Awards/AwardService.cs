@@ -47,7 +47,8 @@ public sealed class AwardService : IAwardService
                             {
                                 Id = r.Id,
                                 UserId = r.UserId,
-                                UserDisplayName = r.User.UserName + " " + r.User.UserLastName1 + (r.User.UserLastName2 ?? "")
+                                UserDisplayName = r.User.UserName + " " + r.User.UserLastName1 + (r.User.UserLastName2 ?? ""),
+                                EvidenceFileId = r.EvidenceFileId,
                             })
                             .OrderBy(x => x.UserDisplayName)
                             .ToList()
@@ -89,7 +90,8 @@ public sealed class AwardService : IAwardService
                             {
                                 Id = r.Id,
                                 UserId = r.UserId,
-                                UserDisplayName = r.User.UserName + " " + r.User.UserLastName1 + (r.User.UserLastName2 ?? "")
+                                UserDisplayName = r.User.UserName + " " + r.User.UserLastName1 + (r.User.UserLastName2 ?? ""),
+                                EvidenceFileId = r.EvidenceFileId,
                             })
                             .OrderBy(x => x.UserDisplayName)
                             .ToList()
@@ -137,6 +139,7 @@ public sealed class AwardService : IAwardService
             UserId = _currentUser.Id!,
             AwardId = award.Id,
             AwardedAt = request.AwardedAt,
+            EvidenceFileId = request.EvidenceFileId,
         };
         _context.UserAwardeds.Add(userAwarded);
         await _context.SaveChangesAsync(ct);
@@ -161,6 +164,7 @@ public sealed class AwardService : IAwardService
 
         userAwarded.AwardId = award.Id;
         userAwarded.AwardedAt = request.AwardedAt;
+        userAwarded.EvidenceFileId = request.EvidenceFileId;
 
         await _context.SaveChangesAsync(ct);
         return Result.Success();

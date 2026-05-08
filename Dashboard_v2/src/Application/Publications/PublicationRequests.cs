@@ -19,6 +19,8 @@ public record CreatePublicationRequest
     public int? Group { get; init; }
     public string? Cuartil { get; init; }
     public string? ProyectoId { get; init; }
+    /// <summary>ID del archivo de evidencia/certificado subido previamente (opcional).</summary>
+    public int? EvidenceFileId { get; init; }
 }
 
 public record UpdatePublicationRequest
@@ -38,4 +40,6 @@ public record UpdatePublicationRequest
     public int? Group { get; init; }
     public string? Cuartil { get; init; }
     public string? ProyectoId { get; init; }
+    /// <summary>ID del archivo de evidencia/certificado subido previamente (opcional). Null elimina la evidencia actual.</summary>
+    public int? EvidenceFileId { get; init; }
 }

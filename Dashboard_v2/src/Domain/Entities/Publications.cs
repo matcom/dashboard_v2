@@ -33,4 +33,8 @@ public class Publication
     public string? ProyectoId { get; set; }
     /// <summary>Navegación al proyecto. Null si la publicación no está vinculada a un proyecto.</summary>
     public Proyecto? Proyecto { get; set; }
+
+    /// <summary>Archivo de evidencia/certificado adjunto (opcional).</summary>
+    public int? EvidenceFileId { get; set; }
+    public StoredFile? EvidenceFile { get; set; }
 }

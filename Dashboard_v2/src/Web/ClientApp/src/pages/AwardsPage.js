@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
 import FilterableDataTable from '../components/FilterableDataTable';
+import CertificateUpload, { CertificateViewButton } from '../components/CertificateUpload';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -55,6 +56,7 @@ const EMPTY_FORM = {
   newAwardName: '',
   awardType: '0',
   awardedAt: new Date().toISOString().slice(0, 10),
+  evidenceFileId: null,
 };
 
 function buildEmptyForm(awardCatalog) {
@@ -117,6 +119,7 @@ export default function AwardsPage() {
           year: (g.awardedAt ? new Date(g.awardedAt).getFullYear() : new Date().getFullYear()),
           recipients: recipients,
           ownerRecipientId: owner ? owner.id : null,
+          ownerEvidenceFileId: owner?.evidenceFileId ?? null,
           isMine: !!owner,
         };
       }));
@@ -191,6 +194,7 @@ export default function AwardsPage() {
         newAwardName: '',
         awardType: String(matchingCatalogEntry.awardTypeId),
         awardedAt: (award.awardedAt ?? '').slice(0, 10),
+        evidenceFileId: award.evidenceFileId ?? null,
       });
     } else {
       setForm({
@@ -199,6 +203,7 @@ export default function AwardsPage() {
         newAwardName: award.awardName,
         awardType: String(award.awardTypeId ?? award.awardType ?? '0'),
         awardedAt: (award.awardedAt ?? '').slice(0, 10),
+        evidenceFileId: award.evidenceFileId ?? null,
       });
     }
 
@@ -248,6 +253,7 @@ export default function AwardsPage() {
       newAwardName: form.createNewAward ? form.newAwardName.trim() : null,
       awardTypeId: form.createNewAward ? parseInt(form.awardType, 10) : null,
       awardedAt: new Date(form.awardedAt).toISOString(),
+      evidenceFileId: form.evidenceFileId ?? null,
     };
     try {
       if (editing) {
@@ -357,6 +363,9 @@ export default function AwardsPage() {
                   render: recipients => (recipients || []).map(r => (
                     <span key={r.id} className="d-inline-block me-3 align-middle">
                       <small>{r.userDisplayName}</small>
+                      {r.evidenceFileId && (
+                        <CertificateViewButton fileId={r.evidenceFileId} />
+                      )}
                     </span>
                   )),
                 },
@@ -370,7 +379,7 @@ export default function AwardsPage() {
                   icon: 'bi-pencil',
                   color: 'outline-secondary',
                   show: a => !isSuperuser && a.isMine,
-                  onClick: a => openEdit({ id: a.ownerRecipientId, awardName: a.awardName, awardTypeId: a.awardTypeId, awardedAt: a.awardedAt }),
+                  onClick: a => openEdit({ id: a.ownerRecipientId, awardName: a.awardName, awardTypeId: a.awardTypeId, awardedAt: a.awardedAt, evidenceFileId: a.ownerEvidenceFileId }),
                 },
                 {
                   key: 'delete',
@@ -476,6 +485,17 @@ export default function AwardsPage() {
                 value={form.awardedAt}
                 onChange={handleChange}
                 required
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <Label>Certificado / Evidencia</Label>
+              <CertificateUpload
+                fileId={form.evidenceFileId}
+                onFileIdChange={id => setForm(f => ({ ...f, evidenceFileId: id }))}
+                canManage
+                canView
+                disabled={formLoading}
               />
             </FormGroup>
           </ModalBody>

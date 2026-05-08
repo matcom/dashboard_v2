@@ -269,6 +269,9 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Property<int>("EventTypeId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("EvidenceFileId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -282,6 +285,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasIndex("CountryId");
 
                     b.HasIndex("EventTypeId");
+
+                    b.HasIndex("EvidenceFileId");
 
                     b.HasIndex("RedId");
 
@@ -636,6 +641,9 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
+                    b.Property<int?>("EvidenceFileId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("NormalizedTitle")
                         .HasColumnType("text");
 
@@ -667,6 +675,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EvidenceFileId");
 
                     b.HasIndex("NormalizedTitle");
 
@@ -751,6 +761,9 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<int?>("EvidenceFileId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("InstitutionId")
                         .IsRequired()
                         .HasColumnType("character varying(450)");
@@ -768,6 +781,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CountryId");
+
+                    b.HasIndex("EvidenceFileId");
 
                     b.HasIndex("InstitutionId");
 
@@ -821,6 +836,64 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasIndex("Type", "OwnerId");
 
                     b.ToTable("Resources");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.StoredFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BucketName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UploadedById")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ObjectKey")
+                        .IsUnique();
+
+                    b.HasIndex("UploadedById");
+
+                    b.ToTable("StoredFiles", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.TipoProductoComercializado", b =>
@@ -941,6 +1014,9 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Property<DateTime>("AwardedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("EvidenceFileId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("character varying(450)");
@@ -948,6 +1024,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AwardId");
+
+                    b.HasIndex("EvidenceFileId");
 
                     b.HasIndex("UserId");
 
@@ -1281,6 +1359,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Dashboard_v2.Domain.Entities.StoredFile", "EvidenceFile")
+                        .WithMany()
+                        .HasForeignKey("EvidenceFileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Dashboard_v2.Domain.Entities.Red", "Red")
                         .WithMany("Events")
                         .HasForeignKey("RedId")
@@ -1289,6 +1372,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Country");
 
                     b.Navigation("EventType");
+
+                    b.Navigation("EvidenceFile");
 
                     b.Navigation("Red");
                 });
@@ -1463,10 +1548,17 @@ namespace Dashboard_v2.Infrastructure.Migrations
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Publication", b =>
                 {
+                    b.HasOne("Dashboard_v2.Domain.Entities.StoredFile", "EvidenceFile")
+                        .WithMany()
+                        .HasForeignKey("EvidenceFileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Dashboard_v2.Domain.Entities.Proyecto", "Proyecto")
                         .WithMany("PublicacionesDerivadas")
                         .HasForeignKey("ProyectoId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("EvidenceFile");
 
                     b.Navigation("Proyecto");
                 });
@@ -1516,6 +1608,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Dashboard_v2.Domain.Entities.StoredFile", "EvidenceFile")
+                        .WithMany()
+                        .HasForeignKey("EvidenceFileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Dashboard_v2.Domain.Entities.Institution", "Institution")
                         .WithMany("Registros")
                         .HasForeignKey("InstitutionId")
@@ -1523,6 +1620,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Country");
+
+                    b.Navigation("EvidenceFile");
 
                     b.Navigation("Institution");
                 });
@@ -1536,6 +1635,17 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.StoredFile", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.User", "UploadedBy")
+                        .WithMany()
+                        .HasForeignKey("UploadedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UploadedBy");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.User", b =>
@@ -1556,6 +1666,11 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Dashboard_v2.Domain.Entities.StoredFile", "EvidenceFile")
+                        .WithMany()
+                        .HasForeignKey("EvidenceFileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Dashboard_v2.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1563,6 +1678,8 @@ namespace Dashboard_v2.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Award");
+
+                    b.Navigation("EvidenceFile");
 
                     b.Navigation("User");
                 });
