@@ -40,9 +40,4 @@ public interface IFileStorageService
     /// <param name="objectKey">Clave del objeto en el bucket.</param>
     /// <param name="expirySeconds">Segundos de validez de la URL.</param>
     Task<string> GetPresignedDownloadUrlAsync(string objectKey, int expirySeconds = 3600, CancellationToken ct = default);
-
-    /// <summary>
-    /// Crea el bucket si no existe. Se llama durante el arranque de la aplicación.
-    /// </summary>
-    Task EnsureBucketExistsAsync(string bucketName, CancellationToken ct = default);
 }

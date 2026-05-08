@@ -156,11 +156,11 @@ public static class DependencyInjection
         builder.Services.AddScoped<IDocumentReport, ProyectosReport>();
 
         // ── MinIO / Almacenamiento de archivos ────────────────────────────────
-        builder.Services.Configure<Dashboard_v2.Infrastructure.Configuration.MinioOptions>(
-            builder.Configuration.GetSection(Dashboard_v2.Infrastructure.Configuration.MinioOptions.SectionName));
+        var minioSection = builder.Configuration
+            .GetSection(Dashboard_v2.Infrastructure.Configuration.MinioOptions.SectionName);
+        builder.Services.Configure<Dashboard_v2.Infrastructure.Configuration.MinioOptions>(minioSection);
 
-        var minioOpts = builder.Configuration
-            .GetSection(Dashboard_v2.Infrastructure.Configuration.MinioOptions.SectionName)
+        var minioOpts = minioSection
             .Get<Dashboard_v2.Infrastructure.Configuration.MinioOptions>();
 
         if (minioOpts is not null)
@@ -170,8 +170,12 @@ public static class DependencyInjection
                 .WithCredentials(minioOpts.AccessKey, minioOpts.SecretKey)
                 .WithSSL(minioOpts.UseSSL));
 
-            builder.Services.AddSingleton<Dashboard_v2.Application.Common.Interfaces.IFileStorageService,
-                Dashboard_v2.Infrastructure.Services.MinioFileStorageService>();
+            // Registrar la implementación una sola vez y exponerla bajo ambas interfaces.
+            builder.Services.AddSingleton<Dashboard_v2.Infrastructure.Services.MinioFileStorageService>();
+            builder.Services.AddSingleton<Dashboard_v2.Application.Common.Interfaces.IFileStorageService>(
+                sp => sp.GetRequiredService<Dashboard_v2.Infrastructure.Services.MinioFileStorageService>());
+            builder.Services.AddSingleton<Dashboard_v2.Application.Common.Interfaces.IStorageBucketInitialiser>(
+                sp => sp.GetRequiredService<Dashboard_v2.Infrastructure.Services.MinioFileStorageService>());
             builder.Services.AddScoped<Dashboard_v2.Application.FileStorage.IStoredFileService,
                 Dashboard_v2.Application.FileStorage.StoredFileService>();
         }

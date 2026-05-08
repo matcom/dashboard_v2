@@ -11,7 +11,7 @@ namespace Dashboard_v2.Infrastructure.Services;
 /// Implementación de <see cref="IFileStorageService"/> usando el SDK oficial de MinIO.
 /// Toda la lógica de comunicación con MinIO reside aquí; Application solo conoce la interfaz.
 /// </summary>
-public sealed class MinioFileStorageService : IFileStorageService
+public sealed class MinioFileStorageService : IFileStorageService, IStorageBucketInitialiser
 {
     private readonly IMinioClient _minio;
     private readonly ILogger<MinioFileStorageService> _logger;
@@ -81,16 +81,16 @@ public sealed class MinioFileStorageService : IFileStorageService
     }
 
     /// <inheritdoc />
-    public async Task EnsureBucketExistsAsync(string bucketName, CancellationToken ct = default)
+    public async Task EnsureBucketExistsAsync(CancellationToken ct = default)
     {
-        var existsArgs = new BucketExistsArgs().WithBucket(bucketName);
+        var existsArgs = new BucketExistsArgs().WithBucket(BucketName);
         var exists = await _minio.BucketExistsAsync(existsArgs, ct);
 
         if (!exists)
         {
-            var makeArgs = new MakeBucketArgs().WithBucket(bucketName);
+            var makeArgs = new MakeBucketArgs().WithBucket(BucketName);
             await _minio.MakeBucketAsync(makeArgs, ct);
-            _logger.LogInformation("Bucket creado en MinIO: {Bucket}", bucketName);
+            _logger.LogInformation("Bucket creado en MinIO: {Bucket}", BucketName);
         }
     }
 }

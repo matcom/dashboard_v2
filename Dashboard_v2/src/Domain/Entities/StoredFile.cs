@@ -10,8 +10,8 @@ namespace Dashboard_v2.Domain.Entities;
 /// Las entidades del dominio que necesiten asociar un archivo (ej. un certificado de premio)
 /// deben declarar una FK opcional hacia esta entidad:
 /// <code>
-///     public int? CertificateFileId { get; set; }
-///     public StoredFile? CertificateFile { get; set; }
+///     public int? EvidenceFileId { get; set; }
+///     public StoredFile? EvidenceFile { get; set; }
 /// </code>
 /// </summary>
 public class StoredFile : BaseAuditableEntity

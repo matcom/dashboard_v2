@@ -7391,6 +7391,11 @@
           "proyectoId": {
             "type": "string",
             "nullable": true
+          },
+          "evidenceFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },

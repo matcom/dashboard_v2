@@ -11191,6 +11191,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdatePublicationBody) {
         if (data) {
@@ -11228,6 +11229,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
             this.group = _data["group"];
             this.cuartil = _data["cuartil"];
             this.proyectoId = _data["proyectoId"];
+            this.evidenceFileId = _data["evidenceFileId"];
         }
     }
 
@@ -11265,6 +11267,7 @@ export class UpdatePublicationBody implements IUpdatePublicationBody {
         data["group"] = this.group;
         data["cuartil"] = this.cuartil;
         data["proyectoId"] = this.proyectoId;
+        data["evidenceFileId"] = this.evidenceFileId;
         return data;
     }
 }
@@ -11283,6 +11286,7 @@ export interface IUpdatePublicationBody {
     group?: number | undefined;
     cuartil?: string | undefined;
     proyectoId?: string | undefined;
+    evidenceFileId?: number | undefined;
 }
 
 export class RedDto implements IRedDto {

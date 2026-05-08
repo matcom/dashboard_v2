@@ -249,6 +249,7 @@ public class Publications : EndpointGroupBase
             Group = body.Group,
             Cuartil = body.Cuartil,
             ProyectoId = body.ProyectoId,
+            EvidenceFileId = body.EvidenceFileId,
         };
 
         var result = await service.UpdateAsync(req);
@@ -285,4 +286,5 @@ public record UpdatePublicationBody(
     string? DataBase,
     int? Group,
     string? Cuartil,
-    string? ProyectoId);
+    string? ProyectoId,
+    int? EvidenceFileId);
