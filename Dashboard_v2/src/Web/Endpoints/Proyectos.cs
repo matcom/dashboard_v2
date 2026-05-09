@@ -18,12 +18,12 @@ public class Proyectos : EndpointGroupBase
     {
         // ── Listado general ───────────────────────────────────────────
         g.MapGet("", GetProyectos)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Profesor)))
             .WithName("GetProyectos")
             .Produces<List<ProyectoResumenDto>>(200);
         // ── Tipos de ejecución disponibles para ProyectoEnRevision.Tipo ────────
         g.MapGet("tipos-ejecucion", GetTiposEjecucion)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Profesor)))
             .WithName("GetTiposEjecucion")
             .Produces<List<string>>(200);
 

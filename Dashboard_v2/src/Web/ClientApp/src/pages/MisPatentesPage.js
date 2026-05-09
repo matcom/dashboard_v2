@@ -3,9 +3,11 @@ import {
   Card, CardBody, CardHeader,
   Button, Spinner, Alert,
   Modal, ModalHeader, ModalBody, ModalFooter,
-  Form, FormGroup, Label, Input,
+  Form, FormGroup, Label, Input, FormFeedback,
 } from 'reactstrap';
 import FilterableDataTable from '../components/FilterableDataTable';
+
+const EMPTY_FORM = { titulo: '', numeroSolicitudConcesion: '', esNacional: true };
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -26,6 +28,19 @@ export default function MisPatentesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState('');
 
+  // CRUD modal
+  const [modal, setModal]     = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm]       = useState(EMPTY_FORM);
+  const [saving, setSaving]   = useState(false);
+  const [formError, setFormError] = useState('');
+
+  // Delete confirmation
+  const [deleteModal, setDeleteModal]   = useState(false);
+  const [toDelete, setToDelete]         = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError]   = useState('');
+
   // Modal proyectos
   const [proyModal, setProyModal]               = useState(false);
   const [selPatente, setSelPatente]             = useState(null);
@@ -43,6 +58,35 @@ export default function MisPatentesPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // --- CRUD handlers ---
+  function openCreate() {
+    setEditing(null); setForm(EMPTY_FORM); setFormError(''); setModal(true);
+  }
+  function openEdit(item) {
+    setEditing(item);
+    setForm({ titulo: item.titulo, numeroSolicitudConcesion: item.numeroSolicitudConcesion, esNacional: item.esNacional });
+    setFormError(''); setModal(true);
+  }
+  async function handleSave(e) {
+    if (e) e.preventDefault();
+    setSaving(true); setFormError('');
+    const body = { titulo: form.titulo, numeroSolicitudConcesion: form.numeroSolicitudConcesion, esNacional: form.esNacional };
+    try {
+      if (editing) await apiFetch(`/api/Patentes/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) });
+      else         await apiFetch('/api/Patentes',               { method: 'POST', body: JSON.stringify(body) });
+      setModal(false); await load();
+    } catch (e) { setFormError(e.message); } finally { setSaving(false); }
+  }
+
+  function openDelete(item) { setToDelete(item); setDeleteError(''); setDeleteModal(true); }
+  async function confirmDelete() {
+    setDeleteLoading(true); setDeleteError('');
+    try {
+      await apiFetch(`/api/Patentes/${toDelete.id}`, { method: 'DELETE' });
+      setDeleteModal(false); await load();
+    } catch (e) { setDeleteError(e.message); } finally { setDeleteLoading(false); }
+  }
 
   const openProyectos = async (patente) => {
     setSelPatente(patente);
@@ -82,7 +126,10 @@ export default function MisPatentesPage() {
 
   return (
     <>
-      <h2 className="mb-4">Mis Patentes</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">Mis Patentes</h2>
+        <Button color="primary" onClick={openCreate}><i className="bi bi-plus-lg me-1" />Nueva patente</Button>
+      </div>
       {error && <Alert color="danger">{error}</Alert>}
 
       <Card>
@@ -103,23 +150,66 @@ export default function MisPatentesPage() {
               ],
             }}
             columns={[
-              { key: 'titulo',                   label: 'Título',          sortable: true },
+              { key: 'titulo',                   label: 'Título',     sortable: true },
               { key: 'numeroSolicitudConcesion', label: 'Nº solicitud' },
-              { key: 'esNacional',               label: 'Tipo',    render: v => v ? 'Nacional' : 'Internacional' },
-              { key: 'creadores',                label: 'Creadores', render: v => (v ?? []).join(', ') },
+              { key: 'esNacional',               label: 'Tipo',       render: v => v ? 'Nacional' : 'Internacional' },
+              { key: 'creadores',                label: 'Creadores',  render: v => (v ?? []).join(', ') },
             ]}
             data={items}
             keyExtractor={i => i.id}
             actions={[
-              {
-                key: 'proyectos', label: 'Proyectos', icon: 'bi-kanban', color: 'outline-info',
-                onClick: i => openProyectos(i),
-              },
+              { key: 'proyectos', label: 'Proyectos', icon: 'bi-kanban',    color: 'outline-info',    onClick: i => openProyectos(i) },
+              { key: 'edit',      label: 'Editar',    icon: 'bi-pencil',    color: 'outline-secondary', onClick: i => openEdit(i) },
+              { key: 'delete',    label: 'Eliminar',  icon: 'bi-trash',     color: 'outline-danger',  onClick: i => openDelete(i) },
             ]}
             emptyMessage="No tienes patentes registradas."
           />
         </CardBody>
       </Card>
+
+      {/* CRUD modal */}
+      <Modal isOpen={modal} toggle={() => setModal(false)}>
+        <ModalHeader toggle={() => setModal(false)}>
+          {editing ? 'Editar patente' : 'Nueva patente'}
+        </ModalHeader>
+        <Form onSubmit={handleSave}>
+          <ModalBody>
+            {formError && <Alert color="danger">{formError}</Alert>}
+            <FormGroup>
+              <Label>Título *</Label>
+              <Input required value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} />
+            </FormGroup>
+            <FormGroup>
+              <Label>Nº solicitud/concesión *</Label>
+              <Input required value={form.numeroSolicitudConcesion} onChange={e => setForm(f => ({ ...f, numeroSolicitudConcesion: e.target.value }))} />
+            </FormGroup>
+            <FormGroup>
+              <Label>Tipo</Label>
+              <Input type="select" value={String(form.esNacional)} onChange={e => setForm(f => ({ ...f, esNacional: e.target.value === 'true' }))}>
+                <option value="true">Nacional</option>
+                <option value="false">Internacional</option>
+              </Input>
+            </FormGroup>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="secondary" type="button" onClick={() => setModal(false)}>Cancelar</Button>
+            <Button color="primary" type="submit" disabled={saving}>{saving ? <Spinner size="sm" /> : 'Guardar'}</Button>
+          </ModalFooter>
+        </Form>
+      </Modal>
+
+      {/* Delete confirmation modal */}
+      <Modal isOpen={deleteModal} toggle={() => setDeleteModal(false)}>
+        <ModalHeader toggle={() => setDeleteModal(false)}>Confirmar eliminación</ModalHeader>
+        <ModalBody>
+          {deleteError && <Alert color="danger">{deleteError}</Alert>}
+          <p>¿Eliminar la patente <strong>{toDelete?.titulo}</strong>? Esta acción no se puede deshacer.</p>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={() => setDeleteModal(false)}>Cancelar</Button>
+          <Button color="danger" onClick={confirmDelete} disabled={deleteLoading}>{deleteLoading ? <Spinner size="sm" /> : 'Eliminar'}</Button>
+        </ModalFooter>
+      </Modal>
 
       {/* Modal proyectos de la patente */}
       <Modal isOpen={proyModal} toggle={() => setProyModal(false)} size="lg">

@@ -19,20 +19,20 @@ public class Normas : EndpointGroupBase
             .Produces<List<NormaDto>>(200);
 
         groupBuilder.MapPost("", CreateNorma)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("CreateNorma")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", UpdateNorma)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("UpdateNorma")
             .Produces(200)
             .ProducesProblem(400)
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", DeleteNorma)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("DeleteNorma")
             .Produces(200)
             .ProducesProblem(404);
@@ -65,7 +65,7 @@ public class Normas : EndpointGroupBase
         return Results.Ok(list);
     }
 
-    private async Task<IResult> CreateNorma(IApplicationDbContext db, CreateNormaBody body)
+    private async Task<IResult> CreateNorma(IApplicationDbContext db, IUser currentUser, CreateNormaBody body)
     {
         var norma = new Dashboard_v2.Domain.Entities.Norma
         {
@@ -73,32 +73,50 @@ public class Normas : EndpointGroupBase
             Tipo = body.Tipo,
             InstitutionId = body.InstitutionId
         };
-
         db.Normas.Add(norma);
+        db.UserNormas.Add(new Dashboard_v2.Domain.Entities.UserNorma
+        {
+            UserId = currentUser.Id!,
+            NormaId = norma.Id
+        });
         await db.SaveChangesAsync(CancellationToken.None);
-
         return Results.Created($"/api/Normas/{norma.Id}", new { id = norma.Id });
     }
 
-    private async Task<IResult> UpdateNorma(IApplicationDbContext db, string id, UpdateNormaBody body)
+    private async Task<IResult> UpdateNorma(IApplicationDbContext db, IUser currentUser, string id, UpdateNormaBody body)
     {
         var norma = await db.Normas.FindAsync(new object[] { id }, CancellationToken.None);
         if (norma == null)
             return Results.NotFound(new { errors = new[] { "Norma no encontrada." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        {
+            var esCreador = await db.UserNormas.AnyAsync(un => un.NormaId == id && un.UserId == currentUser.Id);
+            if (!esCreador)
+                return Results.Forbid();
+        }
 
         norma.Titulo = body.Titulo;
         norma.Tipo = body.Tipo;
         norma.InstitutionId = body.InstitutionId;
-
         await db.SaveChangesAsync(CancellationToken.None);
         return Results.Ok(new { message = "Norma actualizada." });
     }
 
-    private async Task<IResult> DeleteNorma(IApplicationDbContext db, string id)
+    private async Task<IResult> DeleteNorma(IApplicationDbContext db, IUser currentUser, string id)
     {
         var norma = await db.Normas.FindAsync(new object[] { id }, CancellationToken.None);
         if (norma == null)
             return Results.NotFound(new { errors = new[] { "Norma no encontrada." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        {
+            var esCreador = await db.UserNormas.AnyAsync(un => un.NormaId == id && un.UserId == currentUser.Id);
+            if (!esCreador)
+                return Results.Forbid();
+        }
 
         db.Normas.Remove(norma);
         await db.SaveChangesAsync(CancellationToken.None);

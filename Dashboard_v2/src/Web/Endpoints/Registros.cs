@@ -19,20 +19,20 @@ public class Registros : EndpointGroupBase
             .Produces<List<RegistroDto>>(200);
 
         groupBuilder.MapPost("", CreateRegistro)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("CreateRegistro")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", UpdateRegistro)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("UpdateRegistro")
             .Produces(200)
             .ProducesProblem(400)
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", DeleteRegistro)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("DeleteRegistro")
             .Produces(200)
             .ProducesProblem(404);
@@ -69,7 +69,7 @@ public class Registros : EndpointGroupBase
         return Results.Ok(list);
     }
 
-    private async Task<IResult> CreateRegistro(IApplicationDbContext db, CreateRegistroBody body)
+    private async Task<IResult> CreateRegistro(IApplicationDbContext db, IUser currentUser, CreateRegistroBody body)
     {
         var registro = new Dashboard_v2.Domain.Entities.Registro
         {
@@ -80,18 +80,29 @@ public class Registros : EndpointGroupBase
             InstitutionId = body.InstitutionId,
             EvidenceFileId = body.EvidenceFileId,
         };
-
         db.Registros.Add(registro);
+        db.UserRegistros.Add(new Dashboard_v2.Domain.Entities.UserRegistro
+        {
+            UserId = currentUser.Id!,
+            RegistroId = registro.Id
+        });
         await db.SaveChangesAsync(CancellationToken.None);
-
         return Results.Created($"/api/Registros/{registro.Id}", new { id = registro.Id });
     }
 
-    private async Task<IResult> UpdateRegistro(IApplicationDbContext db, string id, UpdateRegistroBody body)
+    private async Task<IResult> UpdateRegistro(IApplicationDbContext db, IUser currentUser, string id, UpdateRegistroBody body)
     {
         var registro = await db.Registros.FindAsync(new object[] { id }, CancellationToken.None);
         if (registro == null)
             return Results.NotFound(new { errors = new[] { "Registro no encontrado." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        {
+            var esCreador = await db.UserRegistros.AnyAsync(ur => ur.RegistroId == id && ur.UserId == currentUser.Id);
+            if (!esCreador)
+                return Results.Forbid();
+        }
 
         registro.Titulo = body.Titulo;
         registro.NumeroCertificado = body.NumeroCertificado;
@@ -99,16 +110,23 @@ public class Registros : EndpointGroupBase
         registro.CountryId = body.CountryId;
         registro.InstitutionId = body.InstitutionId;
         registro.EvidenceFileId = body.EvidenceFileId;
-
         await db.SaveChangesAsync(CancellationToken.None);
         return Results.Ok(new { message = "Registro actualizado." });
     }
 
-    private async Task<IResult> DeleteRegistro(IApplicationDbContext db, string id)
+    private async Task<IResult> DeleteRegistro(IApplicationDbContext db, IUser currentUser, string id)
     {
         var registro = await db.Registros.FindAsync(new object[] { id }, CancellationToken.None);
         if (registro == null)
             return Results.NotFound(new { errors = new[] { "Registro no encontrado." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        {
+            var esCreador = await db.UserRegistros.AnyAsync(ur => ur.RegistroId == id && ur.UserId == currentUser.Id);
+            if (!esCreador)
+                return Results.Forbid();
+        }
 
         db.Registros.Remove(registro);
         await db.SaveChangesAsync(CancellationToken.None);

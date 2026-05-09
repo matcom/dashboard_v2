@@ -38,20 +38,20 @@ public class Patentes : EndpointGroupBase
             .ProducesProblem(404);
 
         groupBuilder.MapPost("", CreatePatente)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("CreatePatente")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", UpdatePatente)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("UpdatePatente")
             .Produces(200)
             .ProducesProblem(400)
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", DeletePatente)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("DeletePatente")
             .Produces(200)
             .ProducesProblem(404);
@@ -150,7 +150,7 @@ public class Patentes : EndpointGroupBase
         return Results.NoContent();
     }
 
-    private async Task<IResult> CreatePatente(IApplicationDbContext db, CreatePatenteBody body)
+    private static async Task<IResult> CreatePatente(IApplicationDbContext db, IUser currentUser, CreatePatenteBody body)
     {
         var p = new Dashboard_v2.Domain.Entities.Patente
         {
@@ -159,15 +159,30 @@ public class Patentes : EndpointGroupBase
             EsNacional = body.EsNacional
         };
         db.Patentes.Add(p);
+        // Auto-add caller as creator
+        db.UserPatentes.Add(new Dashboard_v2.Domain.Entities.UserPatente
+        {
+            UserId = currentUser.Id!,
+            PatenteId = p.Id
+        });
         await db.SaveChangesAsync(CancellationToken.None);
         return Results.Created($"/api/Patentes/{p.Id}", new { id = p.Id });
     }
 
-    private async Task<IResult> UpdatePatente(IApplicationDbContext db, string id, UpdatePatenteBody body)
+    private static async Task<IResult> UpdatePatente(IApplicationDbContext db, IUser currentUser, string id, UpdatePatenteBody body)
     {
         var p = await db.Patentes.FindAsync(new object[] { id }, CancellationToken.None);
         if (p == null)
             return Results.NotFound(new { errors = new[] { "Patente no encontrada." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        {
+            var esCreador = await db.UserPatentes.AnyAsync(up => up.PatenteId == id && up.UserId == currentUser.Id);
+            if (!esCreador)
+                return Results.Forbid();
+        }
+
         p.Titulo = body.Titulo;
         p.NumeroSolicitudConcesion = body.NumeroSolicitudConcesion;
         p.EsNacional = body.EsNacional;
@@ -175,11 +190,20 @@ public class Patentes : EndpointGroupBase
         return Results.Ok(new { message = "Patente actualizada." });
     }
 
-    private async Task<IResult> DeletePatente(IApplicationDbContext db, string id)
+    private static async Task<IResult> DeletePatente(IApplicationDbContext db, IUser currentUser, string id)
     {
         var p = await db.Patentes.FindAsync(new object[] { id }, CancellationToken.None);
         if (p == null)
             return Results.NotFound(new { errors = new[] { "Patente no encontrada." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        {
+            var esCreador = await db.UserPatentes.AnyAsync(up => up.PatenteId == id && up.UserId == currentUser.Id);
+            if (!esCreador)
+                return Results.Forbid();
+        }
+
         db.Patentes.Remove(p);
         await db.SaveChangesAsync(CancellationToken.None);
         return Results.Ok(new { message = "Patente eliminada." });

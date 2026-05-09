@@ -19,20 +19,20 @@ public class ProductosComercializados : EndpointGroupBase
             .Produces<List<ProductoDto>>(200);
 
         groupBuilder.MapPost("", Create)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("CreateProductoComercializado")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", Update)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("UpdateProductoComercializado")
             .Produces(200)
             .ProducesProblem(400)
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", Delete)
-            .RequireAuthorization(p => p.RequireRole("Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
             .WithName("DeleteProductoComercializado")
             .Produces(200)
             .ProducesProblem(404);
@@ -71,7 +71,7 @@ public class ProductosComercializados : EndpointGroupBase
         return Results.Ok(list);
     }
 
-    private async Task<IResult> Create(IApplicationDbContext db, CreateProductoBody body)
+    private async Task<IResult> Create(IApplicationDbContext db, IUser currentUser, CreateProductoBody body)
     {
         var item = new Dashboard_v2.Domain.Entities.ProductoComercializado
         {
@@ -79,32 +79,50 @@ public class ProductosComercializados : EndpointGroupBase
             TipoProductoComercializadoId = body.TipoProductoComercializadoId,
             InstitutionId = body.InstitutionId
         };
-
         db.ProductosComercializados.Add(item);
+        db.UserProductosComercializados.Add(new Dashboard_v2.Domain.Entities.UserProductoComercializado
+        {
+            UserId = currentUser.Id!,
+            ProductoComercializadoId = item.Id
+        });
         await db.SaveChangesAsync(CancellationToken.None);
-
         return Results.Created($"/api/ProductosComercializados/{item.Id}", new { id = item.Id });
     }
 
-    private async Task<IResult> Update(IApplicationDbContext db, string id, UpdateProductoBody body)
+    private async Task<IResult> Update(IApplicationDbContext db, IUser currentUser, string id, UpdateProductoBody body)
     {
         var item = await db.ProductosComercializados.FindAsync(new object[] { id }, CancellationToken.None);
         if (item == null)
             return Results.NotFound(new { errors = new[] { "Producto no encontrado." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        {
+            var esCreador = await db.UserProductosComercializados.AnyAsync(up => up.ProductoComercializadoId == id && up.UserId == currentUser.Id);
+            if (!esCreador)
+                return Results.Forbid();
+        }
 
         item.Titulo = body.Titulo;
         item.TipoProductoComercializadoId = body.TipoProductoComercializadoId;
         item.InstitutionId = body.InstitutionId;
-
         await db.SaveChangesAsync(CancellationToken.None);
         return Results.Ok(new { message = "Producto actualizado." });
     }
 
-    private async Task<IResult> Delete(IApplicationDbContext db, string id)
+    private async Task<IResult> Delete(IApplicationDbContext db, IUser currentUser, string id)
     {
         var item = await db.ProductosComercializados.FindAsync(new object[] { id }, CancellationToken.None);
         if (item == null)
             return Results.NotFound(new { errors = new[] { "Producto no encontrado." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        {
+            var esCreador = await db.UserProductosComercializados.AnyAsync(up => up.ProductoComercializadoId == id && up.UserId == currentUser.Id);
+            if (!esCreador)
+                return Results.Forbid();
+        }
 
         db.ProductosComercializados.Remove(item);
         await db.SaveChangesAsync(CancellationToken.None);
