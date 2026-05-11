@@ -2175,6 +2175,29 @@
         }
       }
     },
+    "/api/Normas/mis": {
+      "get": {
+        "tags": [
+          "Normas"
+        ],
+        "operationId": "GetMisNormas",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NormaDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Normas/{id}": {
       "put": {
         "tags": [
@@ -2218,6 +2241,16 @@
               }
             }
           },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -2249,6 +2282,16 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": "",
@@ -2319,6 +2362,187 @@
         }
       }
     },
+    "/api/Patentes/mis": {
+      "get": {
+        "tags": [
+          "Patentes"
+        ],
+        "operationId": "GetMisPatentes",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PatenteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Patentes/{id}/proyectos": {
+      "get": {
+        "tags": [
+          "Patentes"
+        ],
+        "operationId": "GetProyectosDePatente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProyectoPatenteDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Patentes/{id}/proyectos/{proyectoId}": {
+      "post": {
+        "tags": [
+          "Patentes"
+        ],
+        "operationId": "LinkProyectoAPatente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "proyectoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Patentes"
+        ],
+        "operationId": "UnlinkProyectoDePatente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "proyectoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Patentes/{id}": {
       "put": {
         "tags": [
@@ -2362,6 +2586,16 @@
               }
             }
           },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -2393,6 +2627,16 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": "",
@@ -2622,6 +2866,29 @@
         }
       }
     },
+    "/api/ProductosComercializados/mis": {
+      "get": {
+        "tags": [
+          "ProductosComercializados"
+        ],
+        "operationId": "GetMisProductosComercializados",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ProductosComercializados/{id}": {
       "put": {
         "tags": [
@@ -2665,6 +2932,16 @@
               }
             }
           },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -2696,6 +2973,16 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": "",
@@ -2885,6 +3172,124 @@
           },
           {
             "name": "pubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Proyectos/{id}/patentes": {
+      "get": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "GetPatentesDelProyecto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Proyectos/{id}/patentes/{patenteId}": {
+      "post": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "LinkPatenteAProyecto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "patenteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "UnlinkPatenteDeProyecto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "patenteId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4695,6 +5100,29 @@
         }
       }
     },
+    "/api/Registros/mis": {
+      "get": {
+        "tags": [
+          "Registros"
+        ],
+        "operationId": "GetMisRegistros",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RegistroDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Registros/{id}": {
       "put": {
         "tags": [
@@ -4738,6 +5166,16 @@
               }
             }
           },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -4769,6 +5207,16 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": "",
@@ -6209,6 +6657,34 @@
           },
           "institutionNombre": {
             "type": "string"
+          },
+          "creadores": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "creadoresDetalle": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreatorDto"
+            }
+          }
+        }
+      },
+      "CreatorDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -6224,6 +6700,27 @@
           },
           "institutionId": {
             "type": "string"
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6239,6 +6736,27 @@
           },
           "institutionId": {
             "type": "string"
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6257,6 +6775,30 @@
           },
           "esNacional": {
             "type": "boolean"
+          },
+          "creadores": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "creadoresDetalle": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreatorDto"
+            }
+          }
+        }
+      },
+      "ProyectoPatenteDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "proyectoId": {
+            "type": "string"
+          },
+          "proyectoTitulo": {
+            "type": "string"
           }
         }
       },
@@ -6272,6 +6814,27 @@
           },
           "esNacional": {
             "type": "boolean"
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6287,6 +6850,27 @@
           },
           "esNacional": {
             "type": "boolean"
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6423,6 +7007,18 @@
           },
           "institutionNombre": {
             "type": "string"
+          },
+          "creadores": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "creadoresDetalle": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreatorDto"
+            }
           }
         }
       },
@@ -6438,6 +7034,27 @@
           },
           "institutionId": {
             "type": "string"
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6453,6 +7070,27 @@
           },
           "institutionId": {
             "type": "string"
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -7532,6 +8170,18 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "creadores": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "creadoresDetalle": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreatorDto"
+            }
           }
         }
       },
@@ -7559,6 +8209,27 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -7586,6 +8257,27 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "additionalAuthorIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalAuthorNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "additionalUserIds": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

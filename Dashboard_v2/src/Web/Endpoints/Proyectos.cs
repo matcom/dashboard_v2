@@ -1,4 +1,6 @@
 using Dashboard_v2.Application.Proyectos;
+using Dashboard_v2.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 using Dashboard_v2.Web.Infrastructure;
 using AppResult = Dashboard_v2.Application.Common.Models.Result;
@@ -16,12 +18,12 @@ public class Proyectos : EndpointGroupBase
     {
         // ── Listado general ───────────────────────────────────────────
         g.MapGet("", GetProyectos)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Profesor)))
             .WithName("GetProyectos")
             .Produces<List<ProyectoResumenDto>>(200);
         // ── Tipos de ejecución disponibles para ProyectoEnRevision.Tipo ────────
         g.MapGet("tipos-ejecucion", GetTiposEjecucion)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Profesor)))
             .WithName("GetTiposEjecucion")
             .Produces<List<string>>(200);
 
@@ -54,6 +56,26 @@ public class Proyectos : EndpointGroupBase
             .WithName("UnlinkPublicacion")
             .Produces(204)
             .ProducesProblem(404);
+
+        // ── Patentes derivadas por proyecto (Jefe de Proyecto) ────────
+        g.MapGet("{id}/patentes", GetPatentesDelProyecto)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .WithName("GetPatentesDelProyecto")
+            .Produces(200);
+
+        g.MapPost("{id}/patentes/{patenteId}", LinkPatenteAProyecto)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .WithName("LinkPatenteAProyecto")
+            .Produces(204)
+            .ProducesProblem(400)
+            .ProducesProblem(404);
+
+        g.MapDelete("{id}/patentes/{patenteId}", UnlinkPatenteDeProyecto)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .WithName("UnlinkPatenteDeProyecto")
+            .Produces(204)
+            .ProducesProblem(404);
+
         // ── Delete compartido ─────────────────────────────────────────
         g.MapDelete("{id}", DeleteProyecto)
             .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
@@ -334,4 +356,86 @@ public class Proyectos : EndpointGroupBase
 
     private static bool HasError(AppResult result, string error)
         => result.Errors.Contains(error, StringComparer.Ordinal);
+
+    // ── Patentes derivadas ─────────────────────────────────────────────
+    private static async Task<IResult> GetPatentesDelProyecto(
+        IApplicationDbContext db, IUser currentUser, string id, CancellationToken ct)
+    {
+        if (!await db.Proyectos.AnyAsync(p => p.Id == id, ct))
+            return Results.NotFound(new { errors = new[] { "Proyecto no encontrado." } });
+
+        var roles = currentUser.Roles ?? [];
+        if (!roles.Contains(nameof(RolesEnum.Superuser)))
+        {
+            var eJefe = await db.Proyectos.AnyAsync(
+                p => p.Id == id && p.JefeId == currentUser.Id, ct);
+            if (!eJefe)
+                return Results.Forbid();
+        }
+
+        var list = await db.ProyectoPatentes
+            .Where(pp => pp.ProyectoId == id)
+            .Select(pp => new
+            {
+                patenteId = pp.PatenteId,
+                titulo = pp.Patente.Titulo,
+                numeroSolicitudConcesion = pp.Patente.NumeroSolicitudConcesion,
+                esNacional = pp.Patente.EsNacional,
+                creador = pp.Patente.Creadores
+                    .OrderBy(c => c.Author.Name)
+                    .Select(c => c.Author.Name)
+                    .FirstOrDefault(),
+                creadores = pp.Patente.Creadores
+                    .OrderBy(c => c.Author.Name)
+                    .Select(c => c.Author.Name)
+                    .ToList()
+            })
+            .ToListAsync(ct);
+        return Results.Ok(list);
+    }
+
+    private static async Task<IResult> LinkPatenteAProyecto(
+        IApplicationDbContext db, IUser currentUser, string id, string patenteId, CancellationToken ct)
+    {
+        var roles = currentUser.Roles ?? [];
+        var proyecto = await db.Proyectos.FirstOrDefaultAsync(p => p.Id == id, ct);
+        if (proyecto == null)
+            return Results.NotFound(new { errors = new[] { "Proyecto no encontrado." } });
+        if (!await db.Patentes.AnyAsync(p => p.Id == patenteId, ct))
+            return Results.NotFound(new { errors = new[] { "Patente no encontrada." } });
+        if (await db.ProyectoPatentes.AnyAsync(pp => pp.ProyectoId == id && pp.PatenteId == patenteId, ct))
+            return Results.BadRequest(new { errors = new[] { "El vínculo ya existe." } });
+
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && proyecto.JefeId != currentUser.Id)
+            return Results.Forbid();
+
+        db.ProyectoPatentes.Add(new Dashboard_v2.Domain.Entities.ProyectoPatente
+        {
+            ProyectoId = id,
+            PatenteId = patenteId
+        });
+        await db.SaveChangesAsync(ct);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> UnlinkPatenteDeProyecto(
+        IApplicationDbContext db, IUser currentUser, string id, string patenteId, CancellationToken ct)
+    {
+        var roles = currentUser.Roles ?? [];
+        var proyecto = await db.Proyectos.FirstOrDefaultAsync(p => p.Id == id, ct);
+        if (proyecto == null)
+            return Results.NotFound(new { errors = new[] { "Proyecto no encontrado." } });
+
+        if (!roles.Contains(nameof(RolesEnum.Superuser)) && proyecto.JefeId != currentUser.Id)
+            return Results.Forbid();
+
+        var link = await db.ProyectoPatentes
+            .FirstOrDefaultAsync(pp => pp.ProyectoId == id && pp.PatenteId == patenteId, ct);
+        if (link == null)
+            return Results.NotFound(new { errors = new[] { "Vínculo no encontrado." } });
+
+        db.ProyectoPatentes.Remove(link);
+        await db.SaveChangesAsync(ct);
+        return Results.NoContent();
+    }
 }

@@ -3,6 +3,7 @@ using System;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260508190528_AddProyectoPatenteMN")]
+    partial class AddProyectoPatenteMN
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -144,40 +147,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("Authors", (string)null);
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorNorma", b =>
-                {
-                    b.Property<string>("AuthorId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("NormaId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.HasKey("AuthorId", "NormaId");
-
-                    b.HasIndex("NormaId");
-
-                    b.ToTable("AuthorNormas", (string)null);
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorPatente", b =>
-                {
-                    b.Property<string>("AuthorId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("PatenteId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.HasKey("AuthorId", "PatenteId");
-
-                    b.HasIndex("PatenteId");
-
-                    b.ToTable("AuthorPatentes", (string)null);
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorPresentation", b =>
                 {
                     b.Property<string>("AuthorId")
@@ -192,23 +161,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasIndex("PresentationId");
 
                     b.ToTable("AuthorPresentations", (string)null);
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorProductoComercializado", b =>
-                {
-                    b.Property<string>("AuthorId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("ProductoComercializadoId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.HasKey("AuthorId", "ProductoComercializadoId");
-
-                    b.HasIndex("ProductoComercializadoId");
-
-                    b.ToTable("AuthorProductosComercializados", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorPublication", b =>
@@ -226,23 +178,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.HasIndex("PublicationId");
 
                     b.ToTable("AuthorPublications", (string)null);
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorRegistro", b =>
-                {
-                    b.Property<string>("AuthorId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<string>("RegistroId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.HasKey("AuthorId", "RegistroId");
-
-                    b.HasIndex("RegistroId");
-
-                    b.ToTable("AuthorRegistros", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Award", b =>
@@ -1117,6 +1052,74 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.ToTable("UserAwardeds", (string)null);
                 });
 
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserNorma", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("NormaId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("UserId", "NormaId");
+
+                    b.HasIndex("NormaId");
+
+                    b.ToTable("UserNormas", (string)null);
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserPatente", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("PatenteId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("UserId", "PatenteId");
+
+                    b.HasIndex("PatenteId");
+
+                    b.ToTable("UserPatentes", (string)null);
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserProductoComercializado", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("ProductoComercializadoId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("UserId", "ProductoComercializadoId");
+
+                    b.HasIndex("ProductoComercializadoId");
+
+                    b.ToTable("UserProductosComercializados", (string)null);
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserRegistro", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("RegistroId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("UserId", "RegistroId");
+
+                    b.HasIndex("RegistroId");
+
+                    b.ToTable("UserRegistros", (string)null);
+                });
+
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserRole", b =>
                 {
                     b.Property<string>("UserId")
@@ -1381,44 +1384,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorNorma", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Author", "Author")
-                        .WithMany("AuthorNormas")
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.Norma", "Norma")
-                        .WithMany("Creadores")
-                        .HasForeignKey("NormaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Norma");
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorPatente", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Author", "Author")
-                        .WithMany("AuthorPatentes")
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.Patente", "Patente")
-                        .WithMany("Creadores")
-                        .HasForeignKey("PatenteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Patente");
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorPresentation", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.Author", "Author")
@@ -1438,25 +1403,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Presentation");
                 });
 
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorProductoComercializado", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Author", "Author")
-                        .WithMany("AuthorProductosComercializados")
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.ProductoComercializado", "ProductoComercializado")
-                        .WithMany("Creadores")
-                        .HasForeignKey("ProductoComercializadoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("ProductoComercializado");
-                });
-
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorPublication", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.Author", "Author")
@@ -1474,25 +1420,6 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Publication");
-                });
-
-            modelBuilder.Entity("Dashboard_v2.Domain.Entities.AuthorRegistro", b =>
-                {
-                    b.HasOne("Dashboard_v2.Domain.Entities.Author", "Author")
-                        .WithMany("AuthorRegistros")
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dashboard_v2.Domain.Entities.Registro", "Registro")
-                        .WithMany("Creadores")
-                        .HasForeignKey("RegistroId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Registro");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Award", b =>
@@ -1864,6 +1791,82 @@ namespace Dashboard_v2.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserNorma", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.Norma", "Norma")
+                        .WithMany("Creadores")
+                        .HasForeignKey("NormaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.User", "User")
+                        .WithMany("NormasCreadas")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Norma");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserPatente", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.Patente", "Patente")
+                        .WithMany("Creadores")
+                        .HasForeignKey("PatenteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.User", "User")
+                        .WithMany("PatentesCreadas")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patente");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserProductoComercializado", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.ProductoComercializado", "ProductoComercializado")
+                        .WithMany("Creadores")
+                        .HasForeignKey("ProductoComercializadoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.User", "User")
+                        .WithMany("ProductosComercializadosCreados")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProductoComercializado");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserRegistro", b =>
+                {
+                    b.HasOne("Dashboard_v2.Domain.Entities.Registro", "Registro")
+                        .WithMany("Creadores")
+                        .HasForeignKey("RegistroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard_v2.Domain.Entities.User", "User")
+                        .WithMany("RegistrosCreados")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Registro");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.UserRole", b =>
                 {
                     b.HasOne("Dashboard_v2.Domain.Entities.User", "User")
@@ -2020,17 +2023,9 @@ namespace Dashboard_v2.Infrastructure.Migrations
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Author", b =>
                 {
-                    b.Navigation("AuthorNormas");
-
-                    b.Navigation("AuthorPatentes");
-
                     b.Navigation("AuthorPresentations");
 
-                    b.Navigation("AuthorProductosComercializados");
-
                     b.Navigation("AuthorPublications");
-
-                    b.Navigation("AuthorRegistros");
                 });
 
             modelBuilder.Entity("Dashboard_v2.Domain.Entities.Award", b =>
@@ -2145,11 +2140,19 @@ namespace Dashboard_v2.Infrastructure.Migrations
                 {
                     b.Navigation("AuthorProfile");
 
+                    b.Navigation("NormasCreadas");
+
                     b.Navigation("OwnedResources");
+
+                    b.Navigation("PatentesCreadas");
+
+                    b.Navigation("ProductosComercializadosCreados");
 
                     b.Navigation("ProyectosComoJefe");
 
                     b.Navigation("RedesCoordinadas");
+
+                    b.Navigation("RegistrosCreados");
 
                     b.Navigation("UserRoles");
                 });

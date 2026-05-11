@@ -56,4 +56,5 @@ public class User
     /// La navegación se materializa cuando <see cref="AreaId"/> ya fue definido.
     /// </summary>
     public Area? Area { get; set; }
+
 }

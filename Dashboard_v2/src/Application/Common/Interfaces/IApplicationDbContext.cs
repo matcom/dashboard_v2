@@ -40,6 +40,11 @@ public interface IApplicationDbContext
     DbSet<ProductoComercializado> ProductosComercializados { get; }
     DbSet<Patente> Patentes { get; }
     DbSet<StoredFile> StoredFiles { get; }
+    DbSet<AuthorRegistro> AuthorRegistros { get; }
+    DbSet<AuthorNorma> AuthorNormas { get; }
+    DbSet<AuthorProductoComercializado> AuthorProductosComercializados { get; }
+    DbSet<AuthorPatente> AuthorPatentes { get; }
+    DbSet<ProyectoPatente> ProyectoPatentes { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

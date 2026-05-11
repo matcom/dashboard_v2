@@ -45,6 +45,11 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ProductoComercializado> ProductosComercializados => Set<ProductoComercializado>();
     public DbSet<Patente> Patentes => Set<Patente>();
     public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
+    public DbSet<AuthorRegistro> AuthorRegistros => Set<AuthorRegistro>();
+    public DbSet<AuthorNorma> AuthorNormas => Set<AuthorNorma>();
+    public DbSet<AuthorProductoComercializado> AuthorProductosComercializados => Set<AuthorProductoComercializado>();
+    public DbSet<AuthorPatente> AuthorPatentes => Set<AuthorPatente>();
+    public DbSet<ProyectoPatente> ProyectoPatentes => Set<ProyectoPatente>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
