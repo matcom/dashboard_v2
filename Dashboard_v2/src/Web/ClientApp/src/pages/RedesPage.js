@@ -42,6 +42,12 @@ export default function RedesPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // Crear país inline
+  const [newCountryName, setNewCountryName] = useState('');
+  const [newCountryOpen, setNewCountryOpen] = useState(false);
+  const [newCountrySaving, setNewCountrySaving] = useState(false);
+  const [newCountryError, setNewCountryError] = useState('');
   const [eventsModal, setEventsModal] = useState(false);
   const [assigningRed, setAssigningRed] = useState(null);
   const [availableEvents, setAvailableEvents] = useState([]);
@@ -49,6 +55,10 @@ export default function RedesPage() {
   const [selectedEventIds, setSelectedEventIds] = useState(new Set());
   const [assignError, setAssignError] = useState('');
   const [assignSaving, setAssignSaving] = useState(false);
+
+  // Generación de anexos
+  const [generatingAnexo, setGeneratingAnexo] = useState(null); // null | 'universitarias' | 'nac-inter'
+  const [anexoError, setAnexoError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -64,8 +74,8 @@ export default function RedesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  function openCreate() { setEditing(null); setForm(emptyForm); setFormError(''); setModal(true); }
-  function openEdit(it) { setEditing(it); setForm({ nombre: it.nombre ?? it.Nombre, countryId: (it.countryId ?? it.CountryId ?? '')?.toString?.() ?? '', cantidadProfesores: it.cantidadProfesores ?? it.CantidadProfesores, tipo: it.tipo ?? it.Tipo ?? 0 }); setFormError(''); setModal(true); }
+  function openCreate() { setEditing(null); setForm(emptyForm); setFormError(''); setNewCountryOpen(false); setNewCountryName(''); setModal(true); }
+  function openEdit(it) { setEditing(it); setForm({ nombre: it.nombre ?? it.Nombre, countryId: (it.countryId ?? it.CountryId ?? '')?.toString?.() ?? '', cantidadProfesores: it.cantidadProfesores ?? it.CantidadProfesores, tipo: it.tipo ?? it.Tipo ?? 0 }); setFormError(''); setNewCountryOpen(false); setNewCountryName(''); setModal(true); }
 
   function openAssign(it) {
     setAssigningRed(it);
@@ -109,6 +119,37 @@ export default function RedesPage() {
     } finally { setAssignSaving(false); }
   }
 
+  async function handleGenerarAnexo(tipo) {
+    const reportName = tipo === 'universitarias'
+      ? 'anexo-redes-universitarias'
+      : 'anexo-redes-nac-inter';
+    const label = tipo === 'universitarias'
+      ? 'Anexo_Redes_Universitarias'
+      : 'Anexo_Redes_Nac_Inter';
+    setGeneratingAnexo(tipo); setAnexoError('');
+    try {
+      const response = await fetch(`/api/Documents/${reportName}`, { credentials: 'include' });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? 'Error al generar el anexo.');
+      }
+      const blob = await response.blob();
+      const isZip = (response.headers.get('Content-Type') ?? '').includes('zip');
+      const ext = isZip ? 'zip' : 'xlsx';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const now = new Date();
+      a.download = `${label}_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}.${ext}`;
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setAnexoError(e.message);
+    } finally {
+      setGeneratingAnexo(null);
+    }
+  }
+
   async function handleSave(e) {
     if (e) e.preventDefault(); setSaving(true); setFormError('');
     const body = { nombre: form.nombre, countryId: form.countryId ? parseInt(form.countryId, 10) : null, cantidadProfesores: parseInt(form.cantidadProfesores, 10), tipo: parseInt(form.tipo, 10) };
@@ -121,14 +162,56 @@ export default function RedesPage() {
 
   async function handleDelete(id) { if (!window.confirm('¿Eliminar esta red?')) return; try { await apiFetch(`/api/Redes/${id}`, { method: 'DELETE' }); await load(); } catch (e) { setError(e.message); } }
 
+  async function handleCreateCountry(e) {
+    if (e) e.preventDefault();
+    if (!newCountryName.trim()) return;
+    setNewCountrySaving(true); setNewCountryError('');
+    try {
+      const created = await apiFetch('/api/Events/countries', {
+        method: 'POST',
+        body: JSON.stringify({ name: newCountryName.trim() }),
+      });
+      setCountries(cs => [...cs, created]);
+      setForm(f => ({ ...f, countryId: String(created.id ?? created.Id) }));
+      setNewCountryName('');
+      setNewCountryOpen(false);
+    } catch (err) {
+      setNewCountryError(err.message);
+    } finally {
+      setNewCountrySaving(false);
+    }
+  }
+
   if (loading) return <div className="d-flex justify-content-center mt-5"><Spinner color="primary" /></div>;
 
   return (
     <>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="mb-0">Redes</h2>
-        <Button color="primary" onClick={openCreate}>+ Nueva red</Button>
+        <div className="d-flex gap-2">
+          <Button
+            color="outline-success"
+            size="sm"
+            onClick={() => handleGenerarAnexo('universitarias')}
+            disabled={generatingAnexo !== null}
+            title="Descargar Anexo Redes Universitarias"
+          >
+            {generatingAnexo === 'universitarias' ? <Spinner size="sm" /> : <><i className="bi bi-file-earmark-excel me-1" />Universitarias</>}
+          </Button>
+          <Button
+            color="outline-success"
+            size="sm"
+            onClick={() => handleGenerarAnexo('nac-inter')}
+            disabled={generatingAnexo !== null}
+            title="Descargar Anexo Redes Nacionales e Internacionales"
+          >
+            {generatingAnexo === 'nac-inter' ? <Spinner size="sm" /> : <><i className="bi bi-file-earmark-excel me-1" />Nac. / Inter.</>}
+          </Button>
+          <Button color="primary" onClick={openCreate}>+ Nueva red</Button>
+        </div>
       </div>
+
+      {anexoError && <Alert color="danger" toggle={() => setAnexoError('')}>{anexoError}</Alert>}
 
       {error && <Alert color="danger">{error}</Alert>}
 
@@ -161,14 +244,30 @@ export default function RedesPage() {
         </CardBody>
       </Card>
 
-      <Modal isOpen={modal} toggle={() => setModal(false)}>
+      <Modal isOpen={modal} toggle={() => { setModal(false); setNewCountryOpen(false); setNewCountryName(''); }}>
         <Form onSubmit={handleSave}>
-          <ModalHeader toggle={() => setModal(false)}>{editing ? 'Editar red' : 'Nueva red'}</ModalHeader>
+          <ModalHeader toggle={() => { setModal(false); setNewCountryOpen(false); setNewCountryName(''); }}>{editing ? 'Editar red' : 'Nueva red'}</ModalHeader>
           <ModalBody>
             {formError && <Alert color="danger">{formError}</Alert>}
             <FormGroup>
               <Label>Nombre *</Label>
               <Input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} />
+            </FormGroup>
+            <FormGroup>
+              <Label for="redTipo">Tipo *</Label>
+              <Input type="select" id="redTipo" value={form.tipo} required
+                onChange={e => {
+                  const tipo = e.target.value;
+                  setForm(f => {
+                    const cuba = countries.find(c => (c.name ?? c.Name ?? '').toLowerCase() === 'cuba');
+                    const countryId = (String(tipo) === '0' || String(tipo) === '1') && cuba
+                      ? String(cuba.id ?? cuba.Id)
+                      : f.countryId;
+                    return { ...f, tipo, countryId };
+                  });
+                }}>
+                {TIPOS_RED.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </Input>
             </FormGroup>
             <FormGroup>
               <Label for="redCountry">País *</Label>
@@ -177,23 +276,43 @@ export default function RedesPage() {
                 <option value="">— Selecciona un país —</option>
                 {countries.map(c => <option key={c.id ?? c.Id} value={c.id ?? c.Id}>{c.name ?? c.Name}</option>)}
               </Input>
+              {!newCountryOpen ? (
+                <button type="button" className="btn btn-link btn-sm p-0 mt-1"
+                  onClick={() => { setNewCountryOpen(true); setNewCountryError(''); }}>
+                  <i className="bi bi-plus-circle me-1" />¿No está el país? Crear nuevo
+                </button>
+              ) : (
+                <div className="mt-2 p-2 border rounded bg-light">
+                  <small className="fw-semibold d-block mb-1">Nuevo país</small>
+                  {newCountryError && <Alert color="danger" className="py-1 small">{newCountryError}</Alert>}
+                  <div className="d-flex gap-2">
+                    <Input
+                      bsSize="sm"
+                      placeholder="Nombre del país"
+                      value={newCountryName}
+                      onChange={e => setNewCountryName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateCountry(); } }}
+                      autoFocus
+                    />
+                    <Button size="sm" color="primary" onClick={handleCreateCountry} disabled={newCountrySaving || !newCountryName.trim()}>
+                      {newCountrySaving ? <Spinner size="sm" /> : 'Crear'}
+                    </Button>
+                    <Button size="sm" color="secondary" outline onClick={() => { setNewCountryOpen(false); setNewCountryName(''); }}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </FormGroup>
             <FormGroup>
               <Label>Cantidad de profesores</Label>
               <Input type="number" value={form.cantidadProfesores} onChange={e => setForm(f => ({ ...f, cantidadProfesores: e.target.value }))} />
             </FormGroup>
-            <FormGroup>
-              <Label for="redTipo">Tipo *</Label>
-              <Input type="select" id="redTipo" value={form.tipo} required
-                onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
-                {TIPOS_RED.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </Input>
-            </FormGroup>
           </ModalBody>
           <ModalFooter>
             <Button color="secondary" outline onClick={() => openAssign(editing)} disabled={!editing || saving} className="me-auto">Asignar eventos</Button>
             <Button color="primary" type="submit" disabled={saving}>{saving ? <Spinner size="sm" /> : 'Guardar'}</Button>
-            <Button color="secondary" onClick={() => setModal(false)}>Cancelar</Button>
+            <Button color="secondary" onClick={() => { setModal(false); setNewCountryOpen(false); setNewCountryName(''); }}>Cancelar</Button>
           </ModalFooter>
         </Form>
       </Modal>

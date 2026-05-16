@@ -26,7 +26,8 @@ public class Documents : EndpointGroupBase
             .RequireAuthorization(p => p.RequireRole(
                 nameof(RolesEnum.Superuser),
                 nameof(RolesEnum.Jefe_de_Grupo_de_investigacion),
-                nameof(RolesEnum.Vicedecano_de_investigacion)))
+                nameof(RolesEnum.Vicedecano_de_investigacion),
+                nameof(RolesEnum.Jefe_de_Redes)))
             .WithName("GetDocument")
             .Produces(200)
             .ProducesProblem(401)
@@ -57,6 +58,14 @@ public class Documents : EndpointGroupBase
         if (reportName.Equals("anexo-eventos", StringComparison.OrdinalIgnoreCase) &&
             !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)) &&
             !httpContext.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
+        {
+            return Results.Forbid();
+        }
+
+        // Jefe_de_Redes solo puede acceder a los reportes de redes.
+        if (httpContext.User.IsInRole(nameof(RolesEnum.Jefe_de_Redes)) &&
+            !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)) &&
+            !reportName.StartsWith("anexo-redes-", StringComparison.OrdinalIgnoreCase))
         {
             return Results.Forbid();
         }
