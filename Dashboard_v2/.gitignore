@@ -489,3 +489,7 @@ $RECYCLE.BIN/
 # Place Scimago/WoS CSV files here at runtime; see src/Web/data/.gitkeep for instructions.
 src/Web/data/scimago/*.csv
 src/Web/data/wos/*.xlsx
+
+# Code coverage reports (generated locally by ReportGenerator)
+coveragereport/
+coveragereport*/
