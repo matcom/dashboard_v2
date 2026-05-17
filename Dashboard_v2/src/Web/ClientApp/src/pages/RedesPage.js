@@ -8,6 +8,7 @@ import {
 } from 'reactstrap';
 import DataTable from '../components/DataTable';
 import FilterableDataTable from '../components/FilterableDataTable';
+import UserCard from '../components/UserCard';
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
@@ -34,6 +35,9 @@ const emptyForm = { nombre: '', countryId: '', cantidadProfesores: 0, tipo: 0 };
 export default function RedesPage() {
   const [items, setItems] = useState([]);
   const [countries, setCountries] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [misRedes, setMisRedes] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -48,6 +52,11 @@ export default function RedesPage() {
   const [newCountryOpen, setNewCountryOpen] = useState(false);
   const [newCountrySaving, setNewCountrySaving] = useState(false);
   const [newCountryError, setNewCountryError] = useState('');
+
+  // Coordinador de red universitaria
+  const [coordAreaId, setCoordAreaId] = useState('');
+  const [coordUserId, setCoordUserId] = useState('');
+  const [coordUserSearch, setCoordUserSearch] = useState('');
   const [eventsModal, setEventsModal] = useState(false);
   const [assigningRed, setAssigningRed] = useState(null);
   const [availableEvents, setAvailableEvents] = useState([]);
@@ -63,19 +72,51 @@ export default function RedesPage() {
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const [reds, cs] = await Promise.all([
+      const [reds, cs, areasList, misRedesList, usersList] = await Promise.all([
         apiFetch('/api/Redes').catch(() => []),
         apiFetch('/api/Events/countries').catch(() => []),
+        apiFetch('/api/Areas').catch(() => []),
+        apiFetch('/api/Redes/mis-redes').catch(() => []),
+        apiFetch('/api/Users').catch(() => []),
       ]);
       setItems(reds);
       setCountries(cs);
+      setAreas(areasList);
+      setMisRedes(misRedesList);
+      setAllUsers(Array.isArray(usersList) ? usersList : []);
     } catch (e) { setError(e.message); } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  function openCreate() { setEditing(null); setForm(emptyForm); setFormError(''); setNewCountryOpen(false); setNewCountryName(''); setModal(true); }
-  function openEdit(it) { setEditing(it); setForm({ nombre: it.nombre ?? it.Nombre, countryId: (it.countryId ?? it.CountryId ?? '')?.toString?.() ?? '', cantidadProfesores: it.cantidadProfesores ?? it.CantidadProfesores, tipo: it.tipo ?? it.Tipo ?? 0 }); setFormError(''); setNewCountryOpen(false); setNewCountryName(''); setModal(true); }
+  function resetCoord() {
+    setCoordAreaId(''); setCoordUserId(''); setCoordUserSearch('');
+  }
+
+  function openCreate() {
+    setEditing(null); setForm(emptyForm); setFormError('');
+    setNewCountryOpen(false); setNewCountryName('');
+    resetCoord();
+    setModal(true);
+  }
+
+  function openEdit(it) {
+    setEditing(it);
+    setForm({ nombre: it.nombre ?? it.Nombre, countryId: (it.countryId ?? it.CountryId ?? '')?.toString?.() ?? '', cantidadProfesores: it.cantidadProfesores ?? it.CantidadProfesores, tipo: it.tipo ?? it.Tipo ?? 0 });
+    setFormError(''); setNewCountryOpen(false); setNewCountryName('');
+    // Pre-rellenar coordinador si es universitaria
+    const redId = it.id ?? it.Id;
+    const redInfo = misRedes.find(r => r.id === redId);
+    const firstCoord = redInfo?.coordinadores?.[0];
+    if (firstCoord) {
+      setCoordAreaId(firstCoord.areaId ?? '');
+      setCoordUserId(firstCoord.coordinadorId ?? '');
+      setCoordUserSearch('');
+    } else {
+      resetCoord();
+    }
+    setModal(true);
+  }
 
   function openAssign(it) {
     setAssigningRed(it);
@@ -154,8 +195,28 @@ export default function RedesPage() {
     if (e) e.preventDefault(); setSaving(true); setFormError('');
     const body = { nombre: form.nombre, countryId: form.countryId ? parseInt(form.countryId, 10) : null, cantidadProfesores: parseInt(form.cantidadProfesores, 10), tipo: parseInt(form.tipo, 10) };
     try {
-      if (editing) await apiFetch(`/api/Redes/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) });
-      else await apiFetch('/api/Redes', { method: 'POST', body: JSON.stringify(body) });
+      let redId;
+      if (editing) {
+        await apiFetch(`/api/Redes/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) });
+        redId = editing.id;
+      } else {
+        const created = await apiFetch('/api/Redes', { method: 'POST', body: JSON.stringify(body) });
+        redId = created?.id ?? created?.Id;
+      }
+      // Asignar coordinador si es universitaria y hay usuario seleccionado
+      if (parseInt(form.tipo, 10) === 0 && coordUserId) {
+        const coordUser = allUsers.find(u => u.id === coordUserId);
+        const effectiveAreaId = coordAreaId || coordUser?.areaId;
+        if (!effectiveAreaId) {
+          setFormError('El coordinador seleccionado no tiene área asignada. Selecciona un área en el formulario.');
+          setSaving(false);
+          return;
+        }
+        await apiFetch(`/api/Redes/${redId}/coordinadores/${effectiveAreaId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ coordinadorId: coordUserId }),
+        });
+      }
       setModal(false); await load();
     } catch (e) { setFormError(e.message); } finally { setSaving(false); }
   }
@@ -181,6 +242,15 @@ export default function RedesPage() {
       setNewCountrySaving(false);
     }
   }
+
+  const selectedCoordUser = coordUserId ? allUsers.find(u => u.id === coordUserId) : null;
+  const filteredCoordUsers = !coordUserId && coordUserSearch.trim()
+    ? allUsers.filter(u =>
+        `${u.userName} ${u.userLastName1 ?? ''} ${u.userLastName2 ?? ''} ${u.email} ${u.areaNombre ?? ''} ${u.universidadNombre ?? ''}`
+          .toLowerCase()
+          .includes(coordUserSearch.toLowerCase())
+      )
+    : [];
 
   if (loading) return <div className="d-flex justify-content-center mt-5"><Spinner color="primary" /></div>;
 
@@ -308,6 +378,68 @@ export default function RedesPage() {
               <Label>Cantidad de profesores</Label>
               <Input type="number" value={form.cantidadProfesores} onChange={e => setForm(f => ({ ...f, cantidadProfesores: e.target.value }))} />
             </FormGroup>
+            {String(form.tipo) === '0' && (
+              <>
+                <FormGroup>
+                  <Label>Área coordinadora <span className="text-muted small">(se usa la del coordinador si no se selecciona)</span></Label>
+                  <Input type="select" value={coordAreaId} onChange={e => setCoordAreaId(e.target.value)}>
+                    <option value="">— Usar área del coordinador —</option>
+                    {areas.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                  </Input>
+                </FormGroup>
+                <FormGroup>
+                  <Label>Coordinador</Label>
+                  {selectedCoordUser ? (
+                    <div>
+                      <p className="text-muted small mb-1">Coordinador seleccionado — haz clic en la tarjeta para cambiarlo:</p>
+                      <UserCard
+                        user={selectedCoordUser}
+                        isSelected
+                        isOriginal={false}
+                        onClick={() => { setCoordUserId(''); setCoordUserSearch(''); }}
+                        clickTitle="Clic para cambiar coordinador"
+                      />
+                      {!coordAreaId && !selectedCoordUser.areaId && (
+                        <Alert color="warning" className="mt-2 mb-0 py-2">
+                          Este usuario no tiene área asignada en su perfil. Selecciona un área coordinadora en el campo de arriba.
+                        </Alert>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <Input
+                        placeholder="Filtrar por nombre, apellido o correo..."
+                        value={coordUserSearch}
+                        onChange={e => setCoordUserSearch(e.target.value)}
+                        className="mb-2"
+                      />
+                      {coordUserSearch.trim() && filteredCoordUsers.length === 0 && (
+                        <p className="text-muted small text-center mb-0">Sin coincidencias.</p>
+                      )}
+                      {filteredCoordUsers.length > 0 && (
+                        <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '0.5rem' }}>
+                            {filteredCoordUsers.map(u => (
+                              <UserCard
+                                key={u.id}
+                                user={u}
+                                isSelected={false}
+                                isOriginal={false}
+                                onClick={() => {
+                                  setCoordUserId(u.id);
+                                  if (!coordAreaId && u.areaId) setCoordAreaId(u.areaId);
+                                }}
+                                clickTitle="Clic para seleccionar como coordinador"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </FormGroup>
+              </>
+            )}
           </ModalBody>
           <ModalFooter>
             <Button color="secondary" outline onClick={() => openAssign(editing)} disabled={!editing || saving} className="me-auto">Asignar eventos</Button>

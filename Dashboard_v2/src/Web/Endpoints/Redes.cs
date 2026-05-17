@@ -17,7 +17,7 @@ public class Redes : EndpointGroupBase
         // Jefe_de_Redes → todas las redes con info de coordinadores.
         // Profesor       → solo las redes que coordina.
         groupBuilder.MapGet("mis-redes", GetMisRedes)
-            .RequireAuthorization(p => p.RequireRole("Jefe_de_Redes", "Profesor"))
+            .RequireAuthorization(p => p.RequireRole("Jefe_de_Redes", "Profesor", "Superuser"))
             .WithName("GetMisRedes")
             .Produces<List<RedConCoordinadoresDto>>(200);
 
