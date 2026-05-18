@@ -91,4 +91,65 @@ public class ValueObjectTests
         object b = new Point(7, 4);
         a.Equals(b).ShouldBeFalse();
     }
+
+    // ─── EqualOperator / NotEqualOperator (via exposing subclass) ────────────
+
+    [Test]
+    public void EqualOperator_BothNull_ReturnsTrue()
+    {
+        ExposingPoint.CallEqualOperator(null!, null!).ShouldBeTrue();
+    }
+
+    [Test]
+    public void EqualOperator_LeftNull_ReturnsFalse()
+    {
+        var right = new Point(1, 2);
+        ExposingPoint.CallEqualOperator(null!, right).ShouldBeFalse();
+    }
+
+    [Test]
+    public void EqualOperator_RightNull_ReturnsFalse()
+    {
+        var left = new Point(1, 2);
+        ExposingPoint.CallEqualOperator(left, null!).ShouldBeFalse();
+    }
+
+    [Test]
+    public void EqualOperator_EqualObjects_ReturnsTrue()
+    {
+        var a = new Point(3, 4);
+        var b = new Point(3, 4);
+        ExposingPoint.CallEqualOperator(a, b).ShouldBeTrue();
+    }
+
+    [Test]
+    public void NotEqualOperator_EqualObjects_ReturnsFalse()
+    {
+        var a = new Point(3, 4);
+        var b = new Point(3, 4);
+        ExposingPoint.CallNotEqualOperator(a, b).ShouldBeFalse();
+    }
+
+    [Test]
+    public void NotEqualOperator_UnequalObjects_ReturnsTrue()
+    {
+        var a = new Point(1, 2);
+        var b = new Point(9, 9);
+        ExposingPoint.CallNotEqualOperator(a, b).ShouldBeTrue();
+    }
+}
+
+// Exposes the protected static helpers for testing.
+file sealed class ExposingPoint : ValueObject
+{
+    public static bool CallEqualOperator(ValueObject left, ValueObject right)
+        => EqualOperator(left, right);
+
+    public static bool CallNotEqualOperator(ValueObject left, ValueObject right)
+        => NotEqualOperator(left, right);
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield break;
+    }
 }
