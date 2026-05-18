@@ -178,6 +178,21 @@ public class GrupoDeInvestigacionServiceTests
         (await _db.GruposDeInvestigacion.CountAsync()).ShouldBe(0);
     }
 
+    [Test]
+    public async Task DeleteAsync_JefeDeGrupo_Removes()
+    {
+        await AddAreaAsync();
+        _userMock.Setup(u => u.Id).Returns("creator-1");
+        var (_, id) = await _sut.CreateAsync(
+            new CreateGrupoDeInvestigacionRequest { Nombre = "Grupo A", AreaId = "area-1" });
+
+        _userMock.Setup(u => u.Roles).Returns(new List<string> { "Jefe_de_Grupo_de_investigacion" });
+
+        var result = await _sut.DeleteAsync(id!);
+
+        result.Succeeded.ShouldBeTrue();
+    }
+
     // ── SetMiembrosAsync ─────────────────────────────────────────────────────
 
     [Test]
@@ -212,5 +227,111 @@ public class GrupoDeInvestigacionServiceTests
             .Include(g => g.Usuarios)
             .FirstAsync(g => g.Id == id);
         grupo.Usuarios.Count.ShouldBe(1);
+    }
+
+    [Test]
+    public async Task SetMiembrosAsync_WithoutPermissions_ReturnsFailure()
+    {
+        await AddAreaAsync();
+        _userMock.Setup(u => u.Id).Returns("creator-1");
+        _userMock.Setup(u => u.Roles).Returns(new List<string>());
+        var (_, id) = await _sut.CreateAsync(
+            new CreateGrupoDeInvestigacionRequest { Nombre = "Grupo A", AreaId = "area-1" });
+
+        // Reset roles to empty after creation
+        _userMock.Setup(u => u.Roles).Returns(new List<string>());
+
+        var result = await _sut.SetMiembrosAsync(id!, new SetGrupoMiembrosRequest { UsuariosIds = [] });
+        result.Succeeded.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.Contains("permisos"));
+    }
+
+    // ── GetMineAsync ─────────────────────────────────────────────────────────
+
+    [Test]
+    public async Task GetMineAsync_Empty_ReturnsEmptyList()
+    {
+        _userMock.Setup(u => u.Id).Returns("user-x");
+        var result = await _sut.GetMineAsync();
+        result.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task GetMineAsync_ReturnsOnlyUserGroups()
+    {
+        var area = await AddAreaAsync();
+
+        // Seed users
+        var user1 = new User { Id = "user-mine", UserName = "U1", UserLastName1 = "L1", Email = "u1@x.com" };
+        var user2 = new User { Id = "user-other", UserName = "U2", UserLastName1 = "L2", Email = "u2@x.com" };
+        _db.Users.AddRange(user1, user2);
+
+        // Seed groups with Usuarios nav property pre-populated
+        var miGrupo = new GrupoDeInvestigacion
+        {
+            Nombre = "Mi Grupo",
+            AreaId = area.Id,
+            CreadorId = user1.Id,
+            Usuarios = new List<User> { user1 }
+        };
+        var otroGrupo = new GrupoDeInvestigacion
+        {
+            Nombre = "Otro Grupo",
+            AreaId = area.Id,
+            CreadorId = user2.Id,
+            Usuarios = new List<User> { user2 }
+        };
+        _db.GruposDeInvestigacion.AddRange(miGrupo, otroGrupo);
+        await _db.SaveChangesAsync();
+
+        _userMock.Setup(u => u.Id).Returns("user-mine");
+        var result = await _sut.GetMineAsync();
+
+        result.Count.ShouldBe(1);
+        result[0].Nombre.ShouldBe("Mi Grupo");
+    }
+
+    // ── UpdateAsync extra branches ────────────────────────────────────────────
+
+    [Test]
+    public async Task UpdateAsync_NonExistentArea_ReturnsFailure()
+    {
+        await AddAreaAsync();
+        _userMock.Setup(u => u.Id).Returns("creator-1");
+        _userMock.Setup(u => u.Roles).Returns(new List<string> { "Superuser" });
+        var (_, id) = await _sut.CreateAsync(
+            new CreateGrupoDeInvestigacionRequest { Nombre = "Grupo A", AreaId = "area-1" });
+
+        var result = await _sut.UpdateAsync(id!, new UpdateGrupoDeInvestigacionRequest
+        {
+            Nombre = "Actualizado",
+            AreaId = "no-existe",
+            LineasDeInvestigacionIds = new List<string>()
+        });
+
+        result.Succeeded.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.Contains("área"));
+    }
+
+    [Test]
+    public async Task UpdateAsync_JefeDeGrupo_UpdatesGrupo()
+    {
+        await AddAreaAsync();
+        await AddAreaAsync("area-2", "FIS");
+        _userMock.Setup(u => u.Id).Returns("creator-1");
+        _userMock.Setup(u => u.Roles).Returns(new List<string> { "Jefe_de_Grupo_de_investigacion" });
+        var (_, id) = await _sut.CreateAsync(
+            new CreateGrupoDeInvestigacionRequest { Nombre = "Grupo A", AreaId = "area-1" });
+
+        var result = await _sut.UpdateAsync(id!, new UpdateGrupoDeInvestigacionRequest
+        {
+            Nombre = "Grupo Actualizado",
+            AreaId = "area-2",
+            LineasDeInvestigacionIds = new List<string>()
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var grupo = await _db.GruposDeInvestigacion.FindAsync(id);
+        grupo!.Nombre.ShouldBe("Grupo Actualizado");
     }
 }

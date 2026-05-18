@@ -45,6 +45,20 @@ public class GrupoEstudiantilServiceTests
         result.ShouldBeEmpty();
     }
 
+    [Test]
+    public async Task GetAllAsync_WithData_ReturnsGrupoEstudiantilDtos()
+    {
+        await AddAreaAsync();
+        _db.GruposEstudiantiles.Add(new GrupoEstudiantil { Id = "g-1", Nombre = "Grupo Alpha", AreaId = "area-1" });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetAllAsync();
+
+        result.Count.ShouldBe(1);
+        result[0].Nombre.ShouldBe("Grupo Alpha");
+        result[0].AreaId.ShouldBe("area-1");
+    }
+
     // ── CreateAsync ──────────────────────────────────────────────────────────
 
     [Test]

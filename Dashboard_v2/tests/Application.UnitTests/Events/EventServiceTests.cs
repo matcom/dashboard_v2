@@ -430,4 +430,348 @@ public class EventServiceTests
         var result = await _sut.DeletePresentationAsync(999);
         result.Succeeded.ShouldBeFalse();
     }
+
+    [Test]
+    public async Task DeletePresentationAsync_NotAuthor_Fails()
+    {
+        await SeedBaseDataAsync();
+        var evt = new Event { Id = 50, Name = "E50", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() };
+        var author = new Author { Id = "a-other", Name = "Z", LastName = "Z", SearchKey = "z z", LastNameKey = "z" };
+        _db.Events.Add(evt);
+        _db.Authors.Add(author);
+        await _db.SaveChangesAsync();
+
+        var pres = new Presentation
+        {
+            Id = 50,
+            Name = "Pres50",
+            EventId = 50,
+            AuthorPresentations = new List<AuthorPresentation> { new() { AuthorId = "a-other" } }
+        };
+        _db.Presentations.Add(pres);
+        await _db.SaveChangesAsync();
+
+        // user-1 has no linked author so returns "No tienes un perfil de autor"
+        var result = await _sut.DeletePresentationAsync(50);
+        result.Succeeded.ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task DeletePresentationAsync_ValidOwner_Succeeds()
+    {
+        await SeedBaseDataAsync();
+        var evt = new Event { Id = 51, Name = "E51", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() };
+        var author = new Author { Id = "a-del", Name = "Del", LastName = "User", SearchKey = "user del", LastNameKey = "user", UserId = "user-1" };
+        _db.Events.Add(evt);
+        _db.Authors.Add(author);
+        await _db.SaveChangesAsync();
+
+        var pres = new Presentation
+        {
+            Id = 51,
+            Name = "Pres to Delete",
+            EventId = 51,
+            AuthorPresentations = new List<AuthorPresentation> { new() { AuthorId = "a-del" } }
+        };
+        _db.Presentations.Add(pres);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.DeletePresentationAsync(51);
+        result.Succeeded.ShouldBeTrue();
+        (await _db.Presentations.FindAsync(51)).ShouldBeNull();
+    }
+
+    // ─── GetMyEventsAsync with data ───────────────────────────────────────────
+
+    [Test]
+    public async Task GetMyEventsAsync_WithLinkedAuthor_ReturnsEvents()
+    {
+        await SeedBaseDataAsync();
+        var evt = new Event { Id = 60, Name = "Mi Congreso", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() };
+        var author = new Author { Id = "a-myevt", Name = "R", LastName = "S", SearchKey = "s r", LastNameKey = "s", UserId = "user-1" };
+        _db.Events.Add(evt);
+        _db.Authors.Add(author);
+        await _db.SaveChangesAsync();
+
+        var pres = new Presentation
+        {
+            Id = 60,
+            Name = "Mi Ponencia Congreso",
+            EventId = 60,
+            AuthorPresentations = new List<AuthorPresentation> { new() { AuthorId = "a-myevt" } }
+        };
+        _db.Presentations.Add(pres);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetMyEventsAsync();
+        result.Count.ShouldBe(1);
+        result[0].Name.ShouldBe("Mi Congreso");
+        result[0].PresentationCount.ShouldBe(1);
+    }
+
+    // ─── GetAllEventsAsync with data ──────────────────────────────────────────
+
+    [Test]
+    public async Task GetAllEventsAsync_WithData_ReturnsEventDtos()
+    {
+        await SeedBaseDataAsync();
+        _db.Events.Add(new Event { Id = 5, Name = "Congreso IA", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetAllEventsAsync();
+
+        result.Count.ShouldBe(1);
+        result[0].Name.ShouldBe("Congreso IA");
+        result[0].CountryId.ShouldBe(1);
+    }
+
+    // ─── GetAllPresentationsAsync with data ───────────────────────────────────
+
+    [Test]
+    public async Task GetAllPresentationsAsync_WithData_ReturnsPresentationDtos()
+    {
+        await SeedBaseDataAsync();
+        var evt = new Event { Id = 6, Name = "CCIA", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() };
+        var author = new Author { Id = "a-p1", Name = "Luis", LastName = "Ramos", SearchKey = "ramos luis", LastNameKey = "ramos" };
+        _db.Events.Add(evt);
+        _db.Authors.Add(author);
+        await _db.SaveChangesAsync();
+
+        var pres = new Presentation
+        {
+            Id = 20,
+            Name = "Ponencia Datos",
+            EventId = evt.Id,
+            AuthorPresentations = new List<AuthorPresentation> { new() { AuthorId = "a-p1" } }
+        };
+        _db.Presentations.Add(pres);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetAllPresentationsAsync();
+
+        result.Count.ShouldBe(1);
+        result[0].Name.ShouldBe("Ponencia Datos");
+        result[0].Authors.Count.ShouldBe(1);
+        result[0].Authors[0].Id.ShouldBe("a-p1");
+    }
+
+    // ─── GetMyPresentationsAsync with data ────────────────────────────────────
+
+    [Test]
+    public async Task GetMyPresentationsAsync_WithLinkedAuthor_ReturnsList()
+    {
+        await SeedBaseDataAsync();
+        var evt = new Event { Id = 7, Name = "Jornada", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() };
+        var author = new Author { Id = "a-my", Name = "Ana", LastName = "López", SearchKey = "lopez ana", LastNameKey = "lopez", UserId = "user-1" };
+        _db.Events.Add(evt);
+        _db.Authors.Add(author);
+        await _db.SaveChangesAsync();
+
+        var pres = new Presentation
+        {
+            Id = 30,
+            Name = "Mi Ponencia",
+            EventId = evt.Id,
+            AuthorPresentations = new List<AuthorPresentation> { new() { AuthorId = "a-my" } }
+        };
+        _db.Presentations.Add(pres);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetMyPresentationsAsync();
+
+        result.Count.ShouldBe(1);
+        result[0].Name.ShouldBe("Mi Ponencia");
+    }
+
+    // ─── CreateEventAsync – invalid Red ──────────────────────────────────────
+
+    [Test]
+    public async Task CreateEventAsync_InvalidRedId_Fails()
+    {
+        await SeedBaseDataAsync();
+
+        var request = new CreateEventRequest
+        {
+            Name = "Evento con Red",
+            CountryId = 1,
+            EventType = 1,
+            RedId = "red-inexistente",
+            Institutions = new List<string>(),
+            AreaIdsPatrocinadoras = new List<string>(),
+        };
+        var (result, _) = await _sut.CreateEventAsync(request);
+        result.Succeeded.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.Contains("Red"));
+    }
+
+    // ─── UpdateEventAsync – invalid Red ──────────────────────────────────────
+
+    [Test]
+    public async Task UpdateEventAsync_InvalidRedId_Fails()
+    {
+        await SeedBaseDataAsync();
+        _db.Events.Add(new Event { Id = 100, Name = "Orig", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() });
+        await _db.SaveChangesAsync();
+
+        var request = new UpdateEventRequest
+        {
+            Name = "Updated",
+            CountryId = 1,
+            EventType = 1,
+            RedId = "red-inexistente",
+            Institutions = new List<string>(),
+            AreaIdsPatrocinadoras = new List<string>(),
+        };
+        var result = await _sut.UpdateEventAsync(100, request);
+        result.Succeeded.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.Contains("Red"));
+    }
+
+    // ─── UpdatePresentationAsync – edge cases ────────────────────────────────
+
+    [Test]
+    public async Task UpdatePresentationAsync_PresentationNotFound_Fails()
+    {
+        await SeedBaseDataAsync();
+        // Seed an author linked to user-1 so authorId is resolved
+        var author = new Author { Id = "a-upd-nf", Name = "X", LastName = "X", SearchKey = "x", LastNameKey = "x", UserId = "user-1" };
+        _db.Authors.Add(author);
+        await _db.SaveChangesAsync();
+
+        var request = new UpdatePresentationRequest
+        {
+            Name = "Updated",
+            EventId = 1,
+            CoauthorIds = new List<string>(),
+            CoauthorUserIds = new List<string>(),
+            CoauthorNames = new List<string>()
+        };
+        var result = await _sut.UpdatePresentationAsync(9999, request);
+        result.Succeeded.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.Contains("encontrada"));
+    }
+
+    [Test]
+    public async Task UpdatePresentationAsync_NotOwner_Fails()
+    {
+        await SeedBaseDataAsync();
+        var ownerAuthor = new Author { Id = "a-owner", Name = "Owner", LastName = "Owner", SearchKey = "owner", LastNameKey = "owner", UserId = "user-1" };
+        var otherAuthor = new Author { Id = "a-other2", Name = "Other", LastName = "Other", SearchKey = "other", LastNameKey = "other" };
+        _db.Authors.Add(ownerAuthor);
+        _db.Authors.Add(otherAuthor);
+        _db.Events.Add(new Event { Id = 200, Name = "E200", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() });
+        await _db.SaveChangesAsync();
+
+        var pres = new Presentation
+        {
+            Id = 200,
+            Name = "Pres200",
+            EventId = 200,
+            AuthorPresentations = new List<AuthorPresentation> { new() { AuthorId = "a-other2" } }
+        };
+        _db.Presentations.Add(pres);
+        await _db.SaveChangesAsync();
+
+        var request = new UpdatePresentationRequest
+        {
+            Name = "Hack",
+            EventId = 200,
+            CoauthorIds = new List<string>(),
+            CoauthorUserIds = new List<string>(),
+            CoauthorNames = new List<string>()
+        };
+        var result = await _sut.UpdatePresentationAsync(200, request);
+        result.Succeeded.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.Contains("permiso"));
+    }
+
+    [Test]
+    public async Task UpdatePresentationAsync_InvalidEvent_Fails()
+    {
+        await SeedBaseDataAsync();
+        var author = new Author { Id = "a-inv-evt", Name = "A", LastName = "A", SearchKey = "a", LastNameKey = "a", UserId = "user-1" };
+        _db.Authors.Add(author);
+        _db.Events.Add(new Event { Id = 300, Name = "E300", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() });
+        await _db.SaveChangesAsync();
+
+        var pres = new Presentation
+        {
+            Id = 300,
+            Name = "Pres300",
+            EventId = 300,
+            AuthorPresentations = new List<AuthorPresentation> { new() { AuthorId = "a-inv-evt" } }
+        };
+        _db.Presentations.Add(pres);
+        await _db.SaveChangesAsync();
+
+        var request = new UpdatePresentationRequest
+        {
+            Name = "Updated",
+            EventId = 9999,    // invalid event
+            CoauthorIds = new List<string>(),
+            CoauthorUserIds = new List<string>(),
+            CoauthorNames = new List<string>()
+        };
+        var result = await _sut.UpdatePresentationAsync(300, request);
+        result.Succeeded.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.Contains("evento"));
+    }
+
+    // ─── CreatePresentationAsync – with coauthors ────────────────────────────
+
+    [Test]
+    public async Task CreatePresentationAsync_WithCoauthorById_AddsCoauthor()
+    {
+        await SeedBaseDataAsync();
+        _db.Events.Add(new Event { Id = 400, Name = "E400", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() });
+        var mainAuthor = new Author { Id = "a-main", Name = "Main", LastName = "Main", SearchKey = "main", LastNameKey = "main" };
+        var coAuthor = new Author { Id = "a-co", Name = "Co", LastName = "Author", SearchKey = "co author", LastNameKey = "author" };
+        _db.Authors.Add(mainAuthor);
+        _db.Authors.Add(coAuthor);
+        await _db.SaveChangesAsync();
+
+        _authorResolution.Setup(a => a.GetOrCreateForUserAsync("user-1", default)).ReturnsAsync(mainAuthor);
+
+        var request = new CreatePresentationRequest
+        {
+            Name = "Pres With Coauthor",
+            EventId = 400,
+            CoauthorIds = new List<string> { "a-co" },
+            CoauthorUserIds = new List<string>(),
+            CoauthorNames = new List<string>()
+        };
+        var (result, id) = await _sut.CreatePresentationAsync(request);
+        result.Succeeded.ShouldBeTrue();
+
+        var pres = await _db.Presentations.Include(p => p.AuthorPresentations).FirstAsync(p => p.Id == id);
+        pres.AuthorPresentations.Count.ShouldBe(2);
+    }
+
+    [Test]
+    public async Task CreatePresentationAsync_WithCoauthorByName_AddsCoauthor()
+    {
+        await SeedBaseDataAsync();
+        _db.Events.Add(new Event { Id = 500, Name = "E500", CountryId = 1, EventTypeId = 1, Institutions = new List<Institution>() });
+        var mainAuthor = new Author { Id = "a-main2", Name = "Main2", LastName = "Main2", SearchKey = "main2", LastNameKey = "main2" };
+        var resolvedCoauthor = new Author { Id = "a-resolved", Name = "Resolved", LastName = "Resolved", SearchKey = "resolved", LastNameKey = "resolved" };
+        _db.Authors.Add(mainAuthor);
+        await _db.SaveChangesAsync();
+
+        _authorResolution.Setup(a => a.GetOrCreateForUserAsync("user-1", default)).ReturnsAsync(mainAuthor);
+        _authorResolution.Setup(a => a.ResolveByNameAsync("García, Juan", default)).ReturnsAsync(resolvedCoauthor);
+
+        var request = new CreatePresentationRequest
+        {
+            Name = "Pres With Coauthor Name",
+            EventId = 500,
+            CoauthorIds = new List<string>(),
+            CoauthorUserIds = new List<string>(),
+            CoauthorNames = new List<string> { "García, Juan" }
+        };
+        var (result, id) = await _sut.CreatePresentationAsync(request);
+        result.Succeeded.ShouldBeTrue();
+
+        var pres = await _db.Presentations.Include(p => p.AuthorPresentations).FirstAsync(p => p.Id == id);
+        pres.AuthorPresentations.Count.ShouldBe(2);
+    }
 }

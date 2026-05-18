@@ -214,4 +214,110 @@ public class ProyectoServiceReadTests
         var result = await _sut.UpdateEmpresarialAsync("nonexistent", request);
         result.Succeeded.ShouldBeFalse();
     }
+
+    // ─── GetColabInternacionalByIdAsync with data ─────────────────────────────
+
+    [Test]
+    public async Task GetColabInternacionalByIdAsync_WithData_ReturnsDto()
+    {
+        var (result, id) = await _sut.CreateColabInternacionalAsync(new ProyectoColabInternacionalUpsertRequest
+        {
+            Titulo = "Colab Test",
+            JefeId = _jefeId,
+            ClasificacionId = _clasificId,
+            AreaId = _areaId,
+            NumeroMiembros = 3,
+            CantidadMiembrosUH = 2,
+            FechaInicio = DateOnly.FromDateTime(DateTime.Today),
+            EstadoDeEjecucion = "En ejecución",
+            CodigoProyecto = "CI-001",
+            EntidadEjecutoraPrincipal = "UH",
+            FuenteFinanciacion = "EU Horizon",
+            TerminosReferencia = "TDR 2024"
+        });
+        result.Succeeded.ShouldBeTrue();
+
+        var dto = await _sut.GetColabInternacionalByIdAsync(id!);
+        dto.ShouldNotBeNull();
+        dto!.FuenteFinanciacion.ShouldBe("EU Horizon");
+        dto.TerminosReferencia.ShouldBe("TDR 2024");
+    }
+
+    // ─── GetDesarrolloLocalByIdAsync with data ────────────────────────────────
+
+    [Test]
+    public async Task GetDesarrolloLocalByIdAsync_WithData_ReturnsDto()
+    {
+        var (result, id) = await _sut.CreateDesarrolloLocalAsync(new ProyectoDesarrolloLocalUpsertRequest
+        {
+            Titulo = "Desarrollo Local Test",
+            JefeId = _jefeId,
+            ClasificacionId = _clasificId,
+            AreaId = _areaId,
+            NumeroMiembros = 3,
+            CantidadMiembrosUH = 2,
+            FechaInicio = DateOnly.FromDateTime(DateTime.Today),
+            EstadoDeEjecucion = "En ejecución",
+            CodigoProyecto = "DL-001",
+            EntidadEjecutoraPrincipal = "UH",
+            Municipio = "Plaza de la Revolución"
+        });
+        result.Succeeded.ShouldBeTrue();
+
+        var dto = await _sut.GetDesarrolloLocalByIdAsync(id!);
+        dto.ShouldNotBeNull();
+        dto!.Municipio.ShouldBe("Plaza de la Revolución");
+    }
+
+    // ─── GetNoEmpresarialByIdAsync with data ──────────────────────────────────
+
+    [Test]
+    public async Task GetNoEmpresarialByIdAsync_WithData_ReturnsDto()
+    {
+        var (result, id) = await _sut.CreateNoEmpresarialAsync(new ProyectoNoEmpresarialUpsertRequest
+        {
+            Titulo = "No Empresarial Test",
+            JefeId = _jefeId,
+            ClasificacionId = _clasificId,
+            AreaId = _areaId,
+            NumeroMiembros = 2,
+            CantidadMiembrosUH = 1,
+            FechaInicio = DateOnly.FromDateTime(DateTime.Today),
+            EstadoDeEjecucion = "En ejecución",
+            CodigoProyecto = "NE-001",
+            EntidadEjecutoraPrincipal = "UH",
+            EntidadNoEmpresarial = "Ministerio de Ciencia"
+        });
+        result.Succeeded.ShouldBeTrue();
+
+        var dto = await _sut.GetNoEmpresarialByIdAsync(id!);
+        dto.ShouldNotBeNull();
+        dto!.EntidadNoEmpresarial.ShouldBe("Ministerio de Ciencia");
+    }
+
+    // ─── GetPNAPByIdAsync with data ───────────────────────────────────────────
+
+    [Test]
+    public async Task GetPNAPByIdAsync_WithData_ReturnsDto()
+    {
+        var (result, id) = await _sut.CreatePNAPAsync(new ProyectoPNAPUpsertRequest
+        {
+            Titulo = "PNAP Test",
+            JefeId = _jefeId,
+            ClasificacionId = _clasificId,
+            AreaId = _areaId,
+            NumeroMiembros = 4,
+            CantidadMiembrosUH = 3,
+            FechaInicio = DateOnly.FromDateTime(DateTime.Today),
+            EstadoDeEjecucion = "En ejecución",
+            CodigoProyecto = "PNAP-001",
+            EntidadEjecutoraPrincipal = "UH",
+            FinanciamientoUH = "2M CUP"
+        });
+        result.Succeeded.ShouldBeTrue();
+
+        var dto = await _sut.GetPNAPByIdAsync(id!);
+        dto.ShouldNotBeNull();
+        dto!.FinanciamientoUH.ShouldBe("2M CUP");
+    }
 }
