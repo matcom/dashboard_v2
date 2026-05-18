@@ -176,6 +176,56 @@ public class AuthorResolutionTests
         (await db.Authors.CountAsync()).ShouldBe(1);
     }
 
+    [Test]
+    public async Task ResolveByName_StaleSearchKey_SelfHealsAndReturnsAuthor()
+    {
+        // Simulates an author whose SearchKey was backfilled with SQL lower()
+        // (which keeps diacritics like ü) instead of TextNormalizer.Normalize().
+        await using var db = BuildDb(nameof(ResolveByName_StaleSearchKey_SelfHealsAndReturnsAuthor));
+
+        var author = Author.Create("Müller", "Hans");
+        author.SearchKey   = "müller, hans"; // stale: ü not stripped
+        author.LastNameKey = "müller";        // stale: ü not stripped
+        db.Authors.Add(author);
+        await db.SaveChangesAsync();
+
+        var service = new AuthorResolutionService(db);
+
+        // Lookup triggers step-3 (Name.ToLower() match) then self-heals the key.
+        var resolved = await service.ResolveByNameAsync("Müller, Hans");
+
+        resolved.Id.ShouldBe(author.Id);
+
+        var updated = await db.Authors.FindAsync(author.Id);
+        updated!.SearchKey.ShouldBe("muller, hans");  // accent stripped
+        updated.LastNameKey.ShouldBe("muller");        // accent stripped
+    }
+
+    [Test]
+    public async Task ResolveByName_InconsistentNameStaleKeys_FallsBackToLastFirstNameMatch()
+    {
+        // Author whose Name field doesn't include FirstName (inconsistent state),
+        // and whose LastNameKey/FirstNameKey are stale — triggers step-4 fallback.
+        await using var db = BuildDb(nameof(ResolveByName_InconsistentNameStaleKeys_FallsBackToLastFirstNameMatch));
+
+        var author = new Author
+        {
+            LastName     = "Garcia",
+            FirstName    = "Ana",
+            Name         = "Garcia",        // doesn't contain FirstName → Name.ToLower() ≠ "garcia, ana"
+            SearchKey    = "garcia",         // won't match "garcia, ana" (step 1 fails)
+            LastNameKey  = "garciaxyz",      // stale → step 2 fails
+            FirstNameKey = "anaxyz",         // stale → step 2 fails
+        };
+        db.Authors.Add(author);
+        await db.SaveChangesAsync();
+
+        var service = new AuthorResolutionService(db);
+        var resolved = await service.ResolveByNameAsync("Garcia, Ana");
+
+        resolved.Id.ShouldBe(author.Id);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // AuthorService.ResolveExternalAuthorsAsync
     // ─────────────────────────────────────────────────────────────────────────
