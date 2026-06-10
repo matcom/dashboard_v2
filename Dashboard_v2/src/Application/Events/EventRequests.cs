@@ -9,7 +9,7 @@ public record CreateEventRequest
     public int EventType { get; init; }
     public List<string> Institutions { get; init; } = [];
     public string? RedId { get; init; }
-    public List<string> AreaIdsPatrocinadoras { get; init; } = [];
+    public List<string> OrganizadorIds { get; init; } = [];
     /// <summary>ID del archivo de evidencia/certificado subido previamente (opcional).</summary>
     public int? EvidenceFileId { get; init; }
 }
@@ -21,7 +21,7 @@ public record UpdateEventRequest
     public int EventType { get; init; }
     public List<string> Institutions { get; init; } = [];
     public string? RedId { get; init; }
-    public List<string> AreaIdsPatrocinadoras { get; init; } = [];
+    public List<string> OrganizadorIds { get; init; } = [];
     /// <summary>ID del archivo de evidencia/certificado subido previamente (opcional). Null elimina la evidencia actual.</summary>
     public int? EvidenceFileId { get; init; }
 }
@@ -30,16 +30,12 @@ public record CreatePresentationRequest
 {
     public string Name { get; init; } = default!;
     public int EventId { get; init; }
-    public List<string> CoauthorIds { get; init; } = [];
-    public List<string> CoauthorUserIds { get; init; } = [];
-    public List<string> CoauthorNames { get; init; } = [];
+    public DateTime Fecha { get; init; }
 }
 
 public record UpdatePresentationRequest
 {
     public string Name { get; init; } = default!;
     public int EventId { get; init; }
-    public List<string> CoauthorIds { get; init; } = [];
-    public List<string> CoauthorUserIds { get; init; } = [];
-    public List<string> CoauthorNames { get; init; } = [];
+    public DateTime Fecha { get; init; }
 }

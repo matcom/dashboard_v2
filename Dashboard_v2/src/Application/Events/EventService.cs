@@ -1,10 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
-using Dashboard_v2.Application.Events;
 using Dashboard_v2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,71 +9,92 @@ public sealed class EventService : IEventService
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
-    private readonly IAuthorResolutionService _authorResolution;
 
-    public EventService(
-        IApplicationDbContext context,
-        IUser currentUser,
-        IAuthorResolutionService authorResolution)
+    public EventService(IApplicationDbContext context, IUser currentUser)
     {
         _context = context;
         _currentUser = currentUser;
-        _authorResolution = authorResolution;
     }
 
     public async Task<List<EventDto>> GetMyEventsAsync(CancellationToken ct = default)
     {
-        var authorId = await _context.Authors
-            .AsNoTracking()
-            .Where(a => a.UserId == _currentUser.Id)
-            .Select(a => a.Id)
-            .FirstOrDefaultAsync(ct);
+        var userId = _currentUser.Id;
 
-        if (authorId is null)
-            return new List<EventDto>();
-
-        return await _context.Events
+        var rawEvents = await _context.Events
             .AsNoTracking()
-            .Where(e => e.Presentations.Any(p => p.AuthorPresentations.Any(ap => ap.AuthorId == authorId)))
-            .Select(e => new EventDto
+            .Where(e => e.Participaciones.Any(p => p.UserId == userId)
+                     || e.Organizadores.Any(o => o.UserId == userId))
+            .Select(e => new
             {
-                Id = e.Id,
-                Name = e.Name,
-                CountryId = e.CountryId,
+                e.Id, e.Name, e.CountryId,
                 CountryName = e.Country.Name,
-                EventTypeId = e.EventTypeId,
+                e.EventTypeId,
                 EventTypeName = e.EventType.Name,
                 Institutions = e.Institutions.Select(i => i.Nombre).ToList(),
-                PresentationCount = e.Presentations.Count(p => p.AuthorPresentations.Any(ap => ap.AuthorId == authorId)),
-                RedId = e.RedId,
+                e.RedId,
                 RedName = e.Red != null ? e.Red.Nombre : null,
-                AreaIdsPatrocinadoras = e.AreasPatrocinadoras.Select(a => a.Id).ToList(),
-                EvidenceFileId = e.EvidenceFileId,
+                OrganizadorIds = e.Organizadores.Select(o => o.UserId).ToList(),
+                e.EvidenceFileId,
             })
             .OrderBy(e => e.Name)
             .ToListAsync(ct);
+
+        var counts = await GetPresentationCountsAsync(rawEvents.Select(e => e.Id), ct);
+
+        return rawEvents.Select(e => new EventDto
+        {
+            Id = e.Id,
+            Name = e.Name,
+            CountryId = e.CountryId,
+            CountryName = e.CountryName,
+            EventTypeId = e.EventTypeId,
+            EventTypeName = e.EventTypeName,
+            Institutions = e.Institutions,
+            PresentationCount = counts.GetValueOrDefault(e.Id, 0),
+            RedId = e.RedId,
+            RedName = e.RedName,
+            OrganizadorIds = e.OrganizadorIds,
+            EvidenceFileId = e.EvidenceFileId,
+        }).ToList();
     }
 
-    public Task<List<EventDto>> GetAllEventsAsync(CancellationToken ct = default)
-        => _context.Events
+    public async Task<List<EventDto>> GetAllEventsAsync(CancellationToken ct = default)
+    {
+        var rawEvents = await _context.Events
             .AsNoTracking()
             .OrderBy(e => e.Name)
-            .Select(e => new EventDto
+            .Select(e => new
             {
-                Id = e.Id,
-                Name = e.Name,
-                CountryId = e.CountryId,
+                e.Id, e.Name, e.CountryId,
                 CountryName = e.Country.Name,
-                EventTypeId = e.EventTypeId,
+                e.EventTypeId,
                 EventTypeName = e.EventType.Name,
                 Institutions = e.Institutions.Select(i => i.Nombre).ToList(),
-                PresentationCount = e.Presentations.Count,
-                RedId = e.RedId,
+                e.RedId,
                 RedName = e.Red != null ? e.Red.Nombre : null,
-                AreaIdsPatrocinadoras = e.AreasPatrocinadoras.Select(a => a.Id).ToList(),
-                EvidenceFileId = e.EvidenceFileId,
+                OrganizadorIds = e.Organizadores.Select(o => o.UserId).ToList(),
+                e.EvidenceFileId,
             })
             .ToListAsync(ct);
+
+        var counts = await GetPresentationCountsAsync(rawEvents.Select(e => e.Id), ct);
+
+        return rawEvents.Select(e => new EventDto
+        {
+            Id = e.Id,
+            Name = e.Name,
+            CountryId = e.CountryId,
+            CountryName = e.CountryName,
+            EventTypeId = e.EventTypeId,
+            EventTypeName = e.EventTypeName,
+            Institutions = e.Institutions,
+            PresentationCount = counts.GetValueOrDefault(e.Id, 0),
+            RedId = e.RedId,
+            RedName = e.RedName,
+            OrganizadorIds = e.OrganizadorIds,
+            EvidenceFileId = e.EvidenceFileId,
+        }).ToList();
+    }
 
     public Task<List<CountryDto>> GetCountriesAsync(CancellationToken ct = default)
         => _context.Countries
@@ -93,9 +109,7 @@ public sealed class EventService : IEventService
         if (string.IsNullOrWhiteSpace(name))
             return (Result.Failure(new[] { "El nombre del país es obligatorio." }), null);
 
-        var exists = await _context.Countries
-            .AnyAsync(c => c.Name.ToLower() == name.ToLower(), ct);
-        if (exists)
+        if (await _context.Countries.AnyAsync(c => c.Name.ToLower() == name.ToLower(), ct))
             return (Result.Failure(new[] { $"El país '{name}' ya existe en el sistema." }), null);
 
         var country = new Country { Name = name };
@@ -123,11 +137,9 @@ public sealed class EventService : IEventService
         if (!await _context.EventTypes.AnyAsync(t => t.Id == request.EventType, ct))
             return (Result.Failure(new[] { "Tipo de evento no válido." }), null);
 
-        if (!string.IsNullOrWhiteSpace(request.RedId))
-        {
-            if (!await _context.Reds.AnyAsync(r => r.Id == request.RedId, ct))
-                return (Result.Failure(new[] { "Red no válida." }), null);
-        }
+        if (!string.IsNullOrWhiteSpace(request.RedId) &&
+            !await _context.Reds.AnyAsync(r => r.Id == request.RedId, ct))
+            return (Result.Failure(new[] { "Red no válida." }), null);
 
         var institutionNames = request.Institutions
             .Where(i => !string.IsNullOrWhiteSpace(i))
@@ -137,12 +149,12 @@ public sealed class EventService : IEventService
             .ToList();
 
         var institutions = new List<Institution>();
-        foreach (var name in institutionNames)
+        foreach (var iname in institutionNames)
         {
-            var inst = await _context.Institutions.FirstOrDefaultAsync(x => x.Nombre.ToLower() == name.ToLower(), ct);
-            if (inst == null)
+            var inst = await _context.Institutions.FirstOrDefaultAsync(x => x.Nombre.ToLower() == iname.ToLower(), ct);
+            if (inst is null)
             {
-                inst = new Institution { Nombre = name };
+                inst = new Institution { Nombre = iname };
                 _context.Institutions.Add(inst);
             }
             institutions.Add(inst);
@@ -161,12 +173,10 @@ public sealed class EventService : IEventService
         _context.Events.Add(ev);
         await _context.SaveChangesAsync(ct);
 
-        // Insertar patrocinios usando la entidad de unión explícita
-        foreach (var areaId in request.AreaIdsPatrocinadoras.Distinct()
-            .Where(a => !string.IsNullOrWhiteSpace(a)))
+        foreach (var userId in request.OrganizadorIds.Distinct().Where(id => !string.IsNullOrWhiteSpace(id)))
         {
-            if (await _context.Areas.AnyAsync(a => a.Id == areaId, ct))
-                _context.EventAreasPatrocinio.Add(new EventAreaPatrocinio { EventId = ev.Id, AreaId = areaId });
+            if (await _context.Users.AnyAsync(u => u.Id == userId, ct))
+                _context.EventOrganizadores.Add(new EventOrganizador { EventId = ev.Id, UserId = userId });
         }
         await _context.SaveChangesAsync(ct);
 
@@ -188,11 +198,9 @@ public sealed class EventService : IEventService
         if (!await _context.EventTypes.AnyAsync(t => t.Id == request.EventType, ct))
             return Result.Failure(new[] { "Tipo de evento no válido." });
 
-        if (!string.IsNullOrWhiteSpace(request.RedId))
-        {
-            if (!await _context.Reds.AnyAsync(r => r.Id == request.RedId, ct))
-                return Result.Failure(new[] { "Red no válida." });
-        }
+        if (!string.IsNullOrWhiteSpace(request.RedId) &&
+            !await _context.Reds.AnyAsync(r => r.Id == request.RedId, ct))
+            return Result.Failure(new[] { "Red no válida." });
 
         ev.Name = request.Name.Trim();
         ev.CountryId = request.CountryId;
@@ -200,54 +208,35 @@ public sealed class EventService : IEventService
         ev.RedId = string.IsNullOrWhiteSpace(request.RedId) ? null : request.RedId;
         ev.EvidenceFileId = request.EvidenceFileId;
 
-        var updatedNames = request.Institutions
+        var updatedInstitutions = new List<Institution>();
+        foreach (var iname in request.Institutions
             .Where(i => !string.IsNullOrWhiteSpace(i))
             .Select(i => i.Trim())
             .GroupBy(i => i.ToLower())
-            .Select(g => g.First())
-            .ToList();
-
-        var updatedInstitutions = new List<Institution>();
-        foreach (var name in updatedNames)
+            .Select(g => g.First()))
         {
-            var inst = await _context.Institutions.FirstOrDefaultAsync(x => x.Nombre.ToLower() == name.ToLower(), ct);
-            if (inst == null)
+            var inst = await _context.Institutions.FirstOrDefaultAsync(x => x.Nombre.ToLower() == iname.ToLower(), ct);
+            if (inst is null)
             {
-                inst = new Institution { Nombre = name };
+                inst = new Institution { Nombre = iname };
                 _context.Institutions.Add(inst);
             }
             updatedInstitutions.Add(inst);
         }
 
-        // Guardar cambios escalares e instituciones nuevas (si las hay)
         await _context.SaveChangesAsync(ct);
 
-        // Actualizar instituciones directamente sobre la entidad de unión — sin tocar navegaciones
-        var existingInstitutions = await _context.EventInstitutions
-            .Where(ei => ei.EventId == id)
-            .ToListAsync(ct);
+        var existingInstitutions = await _context.EventInstitutions.Where(ei => ei.EventId == id).ToListAsync(ct);
         _context.EventInstitutions.RemoveRange(existingInstitutions);
-
         foreach (var inst in updatedInstitutions)
             _context.EventInstitutions.Add(new EventInstitution { EventId = id, InstitutionId = inst.Id });
 
-        await _context.SaveChangesAsync(ct);
-
-        // Actualizar patrocinios directamente sobre la entidad de unión — sin tocar navegaciones
-        var existingPatrocinios = await _context.EventAreasPatrocinio
-            .Where(ep => ep.EventId == id)
-            .ToListAsync(ct);
-        _context.EventAreasPatrocinio.RemoveRange(existingPatrocinios);
-
-        var newAreaIds = request.AreaIdsPatrocinadoras
-            .Distinct()
-            .Where(a => !string.IsNullOrWhiteSpace(a))
-            .ToList();
-
-        foreach (var areaId in newAreaIds)
+        var existingOrganizadores = await _context.EventOrganizadores.Where(o => o.EventId == id).ToListAsync(ct);
+        _context.EventOrganizadores.RemoveRange(existingOrganizadores);
+        foreach (var userId in request.OrganizadorIds.Distinct().Where(uid => !string.IsNullOrWhiteSpace(uid)))
         {
-            if (await _context.Areas.AnyAsync(a => a.Id == areaId, ct))
-                _context.EventAreasPatrocinio.Add(new EventAreaPatrocinio { EventId = id, AreaId = areaId });
+            if (await _context.Users.AnyAsync(u => u.Id == userId, ct))
+                _context.EventOrganizadores.Add(new EventOrganizador { EventId = id, UserId = userId });
         }
 
         await _context.SaveChangesAsync(ct);
@@ -260,62 +249,50 @@ public sealed class EventService : IEventService
         if (ev is null)
             return Result.Failure(new[] { "Evento no encontrado." });
 
-        var hasPresentations = await _context.Presentations
-            .AnyAsync(p => p.EventId == id, ct);
-
-        if (hasPresentations)
+        if (await _context.Presentations.AnyAsync(p => p.EventId == id, ct))
             return Result.Failure(new[] { "No se puede eliminar un evento que tiene presentaciones registradas." });
 
         _context.Events.Remove(ev);
         await _context.SaveChangesAsync(ct);
-
         return Result.Success();
     }
 
     public Task<List<PresentationDto>> GetMyPresentationsAsync(CancellationToken ct = default)
-    {
-        return _context.Presentations
+        => _context.Presentations
             .AsNoTracking()
-            .Where(p => p.AuthorPresentations.Any(ap => ap.Author.UserId == _currentUser.Id))
+            .Where(p => p.UserId == _currentUser.Id)
             .Select(p => new PresentationDto
             {
                 Id = p.Id,
                 Name = p.Name,
                 EventId = p.EventId,
                 EventName = p.Event.Name,
-                Authors = p.AuthorPresentations.Select(ap => new PresentationAuthorDto
+                Fecha = p.Fecha,
+                UserId = p.UserId,
+                User = new LinkedUserSummaryDto
                 {
-                    Id = ap.Author.Id,
-                    Name = ap.Author.Name,
-                    UserId = ap.Author.UserId,
-                    LinkedUser = ap.Author.User == null ? null : new LinkedUserSummaryDto
-                    {
-                        Id = ap.Author.User.Id,
-                        UserName = ap.Author.User.UserName,
-                        UserLastName1 = ap.Author.User.UserLastName1,
-                        UserLastName2 = ap.Author.User.UserLastName2,
-                        Email = ap.Author.User.Email,
-                        IsTrained = ap.Author.User.IsTrained,
-                        ScientificCategory = (int)ap.Author.User.ScientificCategory,
-                        TeachingCategory = (int)ap.Author.User.TeachingCategory,
-                        InvestigationCategory = (int)ap.Author.User.InvestigationCategory,
-                        AreaId = ap.Author.User.AreaId,
-                        AreaNombre = ap.Author.User.Area != null ? ap.Author.User.Area.Nombre : null,
-                        UniversidadId = ap.Author.User.Area != null ? ap.Author.User.Area.UniversidadId : null,
-                        UniversidadNombre = ap.Author.User.Area != null && ap.Author.User.Area.Universidad != null
-                            ? ap.Author.User.Area.Universidad.Nombre
-                            : null
-                    }
-                }).ToList(),
+                    Id = p.User.Id,
+                    UserName = p.User.UserName,
+                    UserLastName1 = p.User.UserLastName1,
+                    UserLastName2 = p.User.UserLastName2,
+                    Email = p.User.Email,
+                    IsTrained = p.User.IsTrained,
+                    ScientificCategory = (int)p.User.ScientificCategory,
+                    TeachingCategory = (int)p.User.TeachingCategory,
+                    InvestigationCategory = (int)p.User.InvestigationCategory,
+                    AreaId = p.User.AreaId,
+                    AreaNombre = p.User.Area != null ? p.User.Area.Nombre : null,
+                    UniversidadId = p.User.Area != null ? p.User.Area.UniversidadId : null,
+                    UniversidadNombre = p.User.Area != null && p.User.Area.Universidad != null
+                        ? p.User.Area.Universidad.Nombre : null,
+                },
             })
             .OrderBy(p => p.EventName)
             .ThenBy(p => p.Name)
             .ToListAsync(ct);
-    }
 
     public Task<List<PresentationDto>> GetAllPresentationsAsync(CancellationToken ct = default)
-    {
-        return _context.Presentations
+        => _context.Presentations
             .AsNoTracking()
             .Select(p => new PresentationDto
             {
@@ -323,86 +300,51 @@ public sealed class EventService : IEventService
                 Name = p.Name,
                 EventId = p.EventId,
                 EventName = p.Event.Name,
-                Authors = p.AuthorPresentations.Select(ap => new PresentationAuthorDto
+                Fecha = p.Fecha,
+                UserId = p.UserId,
+                User = new LinkedUserSummaryDto
                 {
-                    Id = ap.Author.Id,
-                    Name = ap.Author.Name,
-                    UserId = ap.Author.UserId,
-                    LinkedUser = ap.Author.User == null ? null : new LinkedUserSummaryDto
-                    {
-                        Id = ap.Author.User.Id,
-                        UserName = ap.Author.User.UserName,
-                        UserLastName1 = ap.Author.User.UserLastName1,
-                        UserLastName2 = ap.Author.User.UserLastName2,
-                        Email = ap.Author.User.Email,
-                        IsTrained = ap.Author.User.IsTrained,
-                        ScientificCategory = (int)ap.Author.User.ScientificCategory,
-                        TeachingCategory = (int)ap.Author.User.TeachingCategory,
-                        InvestigationCategory = (int)ap.Author.User.InvestigationCategory,
-                        AreaId = ap.Author.User.AreaId,
-                        AreaNombre = ap.Author.User.Area != null ? ap.Author.User.Area.Nombre : null,
-                        UniversidadId = ap.Author.User.Area != null ? ap.Author.User.Area.UniversidadId : null,
-                        UniversidadNombre = ap.Author.User.Area != null && ap.Author.User.Area.Universidad != null
-                            ? ap.Author.User.Area.Universidad.Nombre
-                            : null
-                    }
-                }).ToList(),
+                    Id = p.User.Id,
+                    UserName = p.User.UserName,
+                    UserLastName1 = p.User.UserLastName1,
+                    UserLastName2 = p.User.UserLastName2,
+                    Email = p.User.Email,
+                    IsTrained = p.User.IsTrained,
+                    ScientificCategory = (int)p.User.ScientificCategory,
+                    TeachingCategory = (int)p.User.TeachingCategory,
+                    InvestigationCategory = (int)p.User.InvestigationCategory,
+                    AreaId = p.User.AreaId,
+                    AreaNombre = p.User.Area != null ? p.User.Area.Nombre : null,
+                    UniversidadId = p.User.Area != null ? p.User.Area.UniversidadId : null,
+                    UniversidadNombre = p.User.Area != null && p.User.Area.Universidad != null
+                        ? p.User.Area.Universidad.Nombre : null,
+                },
             })
             .OrderBy(p => p.EventName)
             .ThenBy(p => p.Name)
             .ToListAsync(ct);
-    }
 
     public async Task<(Result Result, int? PresentationId)> CreatePresentationAsync(CreatePresentationRequest request, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
             return (Result.Failure(new[] { "El nombre de la presentación es obligatorio." }), null);
 
-        var eventExists = await _context.Events
-            .AnyAsync(e => e.Id == request.EventId, ct);
-        if (!eventExists)
+        if (!await _context.Events.AnyAsync(e => e.Id == request.EventId, ct))
             return (Result.Failure(new[] { "El evento seleccionado no existe." }), null);
 
-        var author = await _authorResolution.GetOrCreateForUserAsync(_currentUser.Id!, ct);
-        if (author is null)
+        if (!await _context.Users.AnyAsync(u => u.Id == _currentUser.Id, ct))
             return (Result.Failure(["Usuario no encontrado."]), null);
 
         var presentation = new Presentation
         {
             Name = request.Name.Trim(),
             EventId = request.EventId,
-            AuthorPresentations = new List<AuthorPresentation> { new AuthorPresentation { AuthorId = author.Id } },
+            UserId = _currentUser.Id!,
+            Fecha = request.Fecha,
         };
-
-        foreach (var coid in request.CoauthorIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (coid != author.Id && await _context.Authors.AnyAsync(a => a.Id == coid, ct))
-                presentation.AuthorPresentations.Add(new AuthorPresentation { AuthorId = coid });
-        }
-
-        foreach (var userId in request.CoauthorUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (userId == _currentUser.Id)
-                continue;
-
-            var coAuthor = await _authorResolution.GetOrCreateForUserAsync(userId, ct);
-            if (coAuthor == null)
-                continue;
-
-            if (presentation.AuthorPresentations.All(ap => ap.AuthorId != coAuthor.Id))
-                presentation.AuthorPresentations.Add(new AuthorPresentation { AuthorId = coAuthor.Id });
-        }
-
-        foreach (var name in request.CoauthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
-        {
-            var resolved = await _authorResolution.ResolveByNameAsync(name, ct);
-            if (presentation.AuthorPresentations.All(ap => ap.AuthorId != resolved.Id))
-                presentation.AuthorPresentations.Add(new AuthorPresentation { AuthorId = resolved.Id });
-        }
 
         _context.Presentations.Add(presentation);
         await _context.SaveChangesAsync(ct);
-
         return (Result.Success(), presentation.Id);
     }
 
@@ -411,63 +353,19 @@ public sealed class EventService : IEventService
         if (string.IsNullOrWhiteSpace(request.Name))
             return Result.Failure(new[] { "El nombre de la presentación es obligatorio." });
 
-        var authorId = await _context.Authors
-            .AsNoTracking()
-            .Where(a => a.UserId == _currentUser.Id)
-            .Select(a => a.Id)
-            .FirstOrDefaultAsync(ct);
-
-        if (authorId is null)
-            return Result.Failure(new[] { "No tienes un perfil de autor." });
-
-        var presentation = await _context.Presentations
-            .Include(p => p.AuthorPresentations)
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
-
+        var presentation = await _context.Presentations.FirstOrDefaultAsync(p => p.Id == id, ct);
         if (presentation is null)
             return Result.Failure(new[] { "Presentación no encontrada." });
 
-        if (!presentation.AuthorPresentations.Any(ap => ap.AuthorId == authorId))
+        if (presentation.UserId != _currentUser.Id)
             return Result.Failure(new[] { "No tienes permiso para modificar esta presentación." });
 
-        var eventExists = await _context.Events.AnyAsync(e => e.Id == request.EventId, ct);
-        if (!eventExists)
+        if (!await _context.Events.AnyAsync(e => e.Id == request.EventId, ct))
             return Result.Failure(new[] { "El evento seleccionado no existe." });
 
         presentation.Name = request.Name.Trim();
         presentation.EventId = request.EventId;
-
-        var toRemove = presentation.AuthorPresentations
-            .Where(ap => ap.AuthorId != authorId)
-            .ToList();
-        foreach (var link in toRemove)
-            _context.AuthorPresentations.Remove(link);
-
-        foreach (var coid in request.CoauthorIds.Where(i => !string.IsNullOrWhiteSpace(i)))
-        {
-            if (coid != authorId && await _context.Authors.AnyAsync(a => a.Id == coid, ct))
-                presentation.AuthorPresentations.Add(new AuthorPresentation { AuthorId = coid });
-        }
-
-        foreach (var userId in request.CoauthorUserIds.Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            if (userId == _currentUser.Id)
-                continue;
-
-            var coAuthor = await _authorResolution.GetOrCreateForUserAsync(userId, ct);
-            if (coAuthor == null)
-                continue;
-
-            if (presentation.AuthorPresentations.All(ap => ap.AuthorId != coAuthor.Id))
-                presentation.AuthorPresentations.Add(new AuthorPresentation { AuthorId = coAuthor.Id });
-        }
-
-        foreach (var name in request.CoauthorNames.Where(n => !string.IsNullOrWhiteSpace(n)))
-        {
-            var resolved = await _authorResolution.ResolveByNameAsync(name, ct);
-            if (presentation.AuthorPresentations.All(ap => ap.AuthorId != resolved.Id))
-                presentation.AuthorPresentations.Add(new AuthorPresentation { AuthorId = resolved.Id });
-        }
+        presentation.Fecha = request.Fecha;
 
         await _context.SaveChangesAsync(ct);
         return Result.Success();
@@ -475,28 +373,27 @@ public sealed class EventService : IEventService
 
     public async Task<Result> DeletePresentationAsync(int id, CancellationToken ct = default)
     {
-        var authorId = await _context.Authors
-            .AsNoTracking()
-            .Where(a => a.UserId == _currentUser.Id)
-            .Select(a => a.Id)
-            .FirstOrDefaultAsync(ct);
-
-        if (authorId is null)
-            return Result.Failure(new[] { "No tienes un perfil de autor." });
-
-        var presentation = await _context.Presentations
-            .Include(p => p.AuthorPresentations)
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
-
+        var presentation = await _context.Presentations.FirstOrDefaultAsync(p => p.Id == id, ct);
         if (presentation is null)
             return Result.Failure(new[] { "Presentación no encontrada." });
 
-        if (!presentation.AuthorPresentations.Any(ap => ap.AuthorId == authorId))
+        if (presentation.UserId != _currentUser.Id)
             return Result.Failure(new[] { "No tienes permiso para eliminar esta presentación." });
 
         _context.Presentations.Remove(presentation);
         await _context.SaveChangesAsync(ct);
-
         return Result.Success();
+    }
+
+    private async Task<Dictionary<int, int>> GetPresentationCountsAsync(IEnumerable<int> eventIds, CancellationToken ct)
+    {
+        var ids = eventIds.ToList();
+        if (ids.Count == 0) return new Dictionary<int, int>();
+
+        return await _context.Presentations
+            .Where(p => ids.Contains(p.EventId))
+            .GroupBy(p => p.EventId)
+            .Select(g => new { EventId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.EventId, x => x.Count, ct);
     }
 }

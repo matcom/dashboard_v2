@@ -24,7 +24,9 @@ public sealed class AnexoRedesUniversitariasReport : IZipDocumentReport
             .Include(r => r.RedesCoordinadas)
                 .ThenInclude(rc => rc.Area)
             .Include(r => r.Events)
-                .ThenInclude(e => e.AreasPatrocinadoras)
+                .ThenInclude(e => e.Organizadores)
+                    .ThenInclude(o => o.User)
+                        .ThenInclude(u => u.Area)
             .Include(r => r.Events)
                 .ThenInclude(e => e.Country)
             .OrderBy(r => r.Nombre)
@@ -70,7 +72,11 @@ public sealed class AnexoRedesUniversitariasReport : IZipDocumentReport
             {
                 Nombre = e.Name,
                 FechaLugar = e.Country?.Name ?? string.Empty,
-                AreasParticipantes = string.Join(", ", e.AreasPatrocinadoras.Select(a => a.Nombre)),
+                AreasParticipantes = string.Join(", ", e.Organizadores
+                    .Select(o => o.User?.Area?.Nombre)
+                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                    .Distinct()
+                    .OrderBy(n => n)),
             })
             .ToList();
 

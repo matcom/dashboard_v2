@@ -8559,7 +8559,7 @@ export class EventDto implements IEventDto {
     presentationCount?: number;
     redId?: string | undefined;
     redName?: string | undefined;
-    areaIdsPatrocinadoras?: string[];
+    organizadorIds?: string[];
     evidenceFileId?: number | undefined;
 
     constructor(data?: IEventDto) {
@@ -8587,10 +8587,10 @@ export class EventDto implements IEventDto {
             this.presentationCount = _data["presentationCount"];
             this.redId = _data["redId"];
             this.redName = _data["redName"];
-            if (Array.isArray(_data["areaIdsPatrocinadoras"])) {
-                this.areaIdsPatrocinadoras = [] as any;
-                for (let item of _data["areaIdsPatrocinadoras"])
-                    this.areaIdsPatrocinadoras!.push(item);
+            if (Array.isArray(_data["organizadorIds"])) {
+                this.organizadorIds = [] as any;
+                for (let item of _data["organizadorIds"])
+                    this.organizadorIds!.push(item);
             }
             this.evidenceFileId = _data["evidenceFileId"];
         }
@@ -8619,10 +8619,10 @@ export class EventDto implements IEventDto {
         data["presentationCount"] = this.presentationCount;
         data["redId"] = this.redId;
         data["redName"] = this.redName;
-        if (Array.isArray(this.areaIdsPatrocinadoras)) {
-            data["areaIdsPatrocinadoras"] = [];
-            for (let item of this.areaIdsPatrocinadoras)
-                data["areaIdsPatrocinadoras"].push(item);
+        if (Array.isArray(this.organizadorIds)) {
+            data["organizadorIds"] = [];
+            for (let item of this.organizadorIds)
+                data["organizadorIds"].push(item);
         }
         data["evidenceFileId"] = this.evidenceFileId;
         return data;
@@ -8640,7 +8640,7 @@ export interface IEventDto {
     presentationCount?: number;
     redId?: string | undefined;
     redName?: string | undefined;
-    areaIdsPatrocinadoras?: string[];
+    organizadorIds?: string[];
     evidenceFileId?: number | undefined;
 }
 
@@ -8766,7 +8766,7 @@ export class CreateEventRequest implements ICreateEventRequest {
     eventType?: number;
     institutions?: string[];
     redId?: string | undefined;
-    areaIdsPatrocinadoras?: string[];
+    organizadorIds?: string[];
     evidenceFileId?: number | undefined;
 
     constructor(data?: ICreateEventRequest) {
@@ -8789,10 +8789,10 @@ export class CreateEventRequest implements ICreateEventRequest {
                     this.institutions!.push(item);
             }
             this.redId = _data["redId"];
-            if (Array.isArray(_data["areaIdsPatrocinadoras"])) {
-                this.areaIdsPatrocinadoras = [] as any;
-                for (let item of _data["areaIdsPatrocinadoras"])
-                    this.areaIdsPatrocinadoras!.push(item);
+            if (Array.isArray(_data["organizadorIds"])) {
+                this.organizadorIds = [] as any;
+                for (let item of _data["organizadorIds"])
+                    this.organizadorIds!.push(item);
             }
             this.evidenceFileId = _data["evidenceFileId"];
         }
@@ -8816,10 +8816,10 @@ export class CreateEventRequest implements ICreateEventRequest {
                 data["institutions"].push(item);
         }
         data["redId"] = this.redId;
-        if (Array.isArray(this.areaIdsPatrocinadoras)) {
-            data["areaIdsPatrocinadoras"] = [];
-            for (let item of this.areaIdsPatrocinadoras)
-                data["areaIdsPatrocinadoras"].push(item);
+        if (Array.isArray(this.organizadorIds)) {
+            data["organizadorIds"] = [];
+            for (let item of this.organizadorIds)
+                data["organizadorIds"].push(item);
         }
         data["evidenceFileId"] = this.evidenceFileId;
         return data;
@@ -8832,7 +8832,7 @@ export interface ICreateEventRequest {
     eventType?: number;
     institutions?: string[];
     redId?: string | undefined;
-    areaIdsPatrocinadoras?: string[];
+    organizadorIds?: string[];
     evidenceFileId?: number | undefined;
 }
 
@@ -8842,7 +8842,7 @@ export class UpdateEventRequest implements IUpdateEventRequest {
     eventType?: number;
     institutions?: string[];
     redId?: string | undefined;
-    areaIdsPatrocinadoras?: string[];
+    organizadorIds?: string[];
     evidenceFileId?: number | undefined;
 
     constructor(data?: IUpdateEventRequest) {
@@ -8865,10 +8865,10 @@ export class UpdateEventRequest implements IUpdateEventRequest {
                     this.institutions!.push(item);
             }
             this.redId = _data["redId"];
-            if (Array.isArray(_data["areaIdsPatrocinadoras"])) {
-                this.areaIdsPatrocinadoras = [] as any;
-                for (let item of _data["areaIdsPatrocinadoras"])
-                    this.areaIdsPatrocinadoras!.push(item);
+            if (Array.isArray(_data["organizadorIds"])) {
+                this.organizadorIds = [] as any;
+                for (let item of _data["organizadorIds"])
+                    this.organizadorIds!.push(item);
             }
             this.evidenceFileId = _data["evidenceFileId"];
         }
@@ -8892,10 +8892,10 @@ export class UpdateEventRequest implements IUpdateEventRequest {
                 data["institutions"].push(item);
         }
         data["redId"] = this.redId;
-        if (Array.isArray(this.areaIdsPatrocinadoras)) {
-            data["areaIdsPatrocinadoras"] = [];
-            for (let item of this.areaIdsPatrocinadoras)
-                data["areaIdsPatrocinadoras"].push(item);
+        if (Array.isArray(this.organizadorIds)) {
+            data["organizadorIds"] = [];
+            for (let item of this.organizadorIds)
+                data["organizadorIds"].push(item);
         }
         data["evidenceFileId"] = this.evidenceFileId;
         return data;
@@ -8908,7 +8908,7 @@ export interface IUpdateEventRequest {
     eventType?: number;
     institutions?: string[];
     redId?: string | undefined;
-    areaIdsPatrocinadoras?: string[];
+    organizadorIds?: string[];
     evidenceFileId?: number | undefined;
 }
 
@@ -10161,7 +10161,9 @@ export class PresentationDto implements IPresentationDto {
     name?: string;
     eventId?: number;
     eventName?: string;
-    authors?: PresentationAuthorDto[];
+    fecha?: Date;
+    userId?: string;
+    user?: LinkedUserSummaryDto | undefined;
 
     constructor(data?: IPresentationDto) {
         if (data) {
@@ -10178,11 +10180,9 @@ export class PresentationDto implements IPresentationDto {
             this.name = _data["name"];
             this.eventId = _data["eventId"];
             this.eventName = _data["eventName"];
-            if (Array.isArray(_data["authors"])) {
-                this.authors = [] as any;
-                for (let item of _data["authors"])
-                    this.authors!.push(PresentationAuthorDto.fromJS(item));
-            }
+            this.fecha = _data["fecha"] ? new Date(_data["fecha"].toString()) : undefined as any;
+            this.userId = _data["userId"];
+            this.user = _data["user"] ? LinkedUserSummaryDto.fromJS(_data["user"]) : undefined as any;
         }
     }
 
@@ -10199,11 +10199,9 @@ export class PresentationDto implements IPresentationDto {
         data["name"] = this.name;
         data["eventId"] = this.eventId;
         data["eventName"] = this.eventName;
-        if (Array.isArray(this.authors)) {
-            data["authors"] = [];
-            for (let item of this.authors)
-                data["authors"].push(item ? item.toJSON() : undefined as any);
-        }
+        data["fecha"] = this.fecha ? this.fecha.toISOString() : undefined as any;
+        data["userId"] = this.userId;
+        data["user"] = this.user ? this.user.toJSON() : undefined as any;
         return data;
     }
 }
@@ -10213,63 +10211,15 @@ export interface IPresentationDto {
     name?: string;
     eventId?: number;
     eventName?: string;
-    authors?: PresentationAuthorDto[];
-}
-
-export class PresentationAuthorDto implements IPresentationAuthorDto {
-    id?: string;
-    name?: string;
-    userId?: string | undefined;
-    linkedUser?: LinkedUserSummaryDto | undefined;
-
-    constructor(data?: IPresentationAuthorDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.name = _data["name"];
-            this.userId = _data["userId"];
-            this.linkedUser = _data["linkedUser"] ? LinkedUserSummaryDto.fromJS(_data["linkedUser"]) : undefined as any;
-        }
-    }
-
-    static fromJS(data: any): PresentationAuthorDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new PresentationAuthorDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["name"] = this.name;
-        data["userId"] = this.userId;
-        data["linkedUser"] = this.linkedUser ? this.linkedUser.toJSON() : undefined as any;
-        return data;
-    }
-}
-
-export interface IPresentationAuthorDto {
-    id?: string;
-    name?: string;
-    userId?: string | undefined;
-    linkedUser?: LinkedUserSummaryDto | undefined;
+    fecha?: Date;
+    userId?: string;
+    user?: LinkedUserSummaryDto | undefined;
 }
 
 export class CreatePresentationRequest implements ICreatePresentationRequest {
     name?: string;
     eventId?: number;
-    coauthorIds?: string[];
-    coauthorUserIds?: string[];
-    coauthorNames?: string[];
+    fecha?: Date;
 
     constructor(data?: ICreatePresentationRequest) {
         if (data) {
@@ -10284,21 +10234,7 @@ export class CreatePresentationRequest implements ICreatePresentationRequest {
         if (_data) {
             this.name = _data["name"];
             this.eventId = _data["eventId"];
-            if (Array.isArray(_data["coauthorIds"])) {
-                this.coauthorIds = [] as any;
-                for (let item of _data["coauthorIds"])
-                    this.coauthorIds!.push(item);
-            }
-            if (Array.isArray(_data["coauthorUserIds"])) {
-                this.coauthorUserIds = [] as any;
-                for (let item of _data["coauthorUserIds"])
-                    this.coauthorUserIds!.push(item);
-            }
-            if (Array.isArray(_data["coauthorNames"])) {
-                this.coauthorNames = [] as any;
-                for (let item of _data["coauthorNames"])
-                    this.coauthorNames!.push(item);
-            }
+            this.fecha = _data["fecha"] ? new Date(_data["fecha"].toString()) : undefined as any;
         }
     }
 
@@ -10313,21 +10249,7 @@ export class CreatePresentationRequest implements ICreatePresentationRequest {
         data = typeof data === 'object' ? data : {};
         data["name"] = this.name;
         data["eventId"] = this.eventId;
-        if (Array.isArray(this.coauthorIds)) {
-            data["coauthorIds"] = [];
-            for (let item of this.coauthorIds)
-                data["coauthorIds"].push(item);
-        }
-        if (Array.isArray(this.coauthorUserIds)) {
-            data["coauthorUserIds"] = [];
-            for (let item of this.coauthorUserIds)
-                data["coauthorUserIds"].push(item);
-        }
-        if (Array.isArray(this.coauthorNames)) {
-            data["coauthorNames"] = [];
-            for (let item of this.coauthorNames)
-                data["coauthorNames"].push(item);
-        }
+        data["fecha"] = this.fecha ? this.fecha.toISOString() : undefined as any;
         return data;
     }
 }
@@ -10335,17 +10257,13 @@ export class CreatePresentationRequest implements ICreatePresentationRequest {
 export interface ICreatePresentationRequest {
     name?: string;
     eventId?: number;
-    coauthorIds?: string[];
-    coauthorUserIds?: string[];
-    coauthorNames?: string[];
+    fecha?: Date;
 }
 
 export class UpdatePresentationRequest implements IUpdatePresentationRequest {
     name?: string;
     eventId?: number;
-    coauthorIds?: string[];
-    coauthorUserIds?: string[];
-    coauthorNames?: string[];
+    fecha?: Date;
 
     constructor(data?: IUpdatePresentationRequest) {
         if (data) {
@@ -10360,21 +10278,7 @@ export class UpdatePresentationRequest implements IUpdatePresentationRequest {
         if (_data) {
             this.name = _data["name"];
             this.eventId = _data["eventId"];
-            if (Array.isArray(_data["coauthorIds"])) {
-                this.coauthorIds = [] as any;
-                for (let item of _data["coauthorIds"])
-                    this.coauthorIds!.push(item);
-            }
-            if (Array.isArray(_data["coauthorUserIds"])) {
-                this.coauthorUserIds = [] as any;
-                for (let item of _data["coauthorUserIds"])
-                    this.coauthorUserIds!.push(item);
-            }
-            if (Array.isArray(_data["coauthorNames"])) {
-                this.coauthorNames = [] as any;
-                for (let item of _data["coauthorNames"])
-                    this.coauthorNames!.push(item);
-            }
+            this.fecha = _data["fecha"] ? new Date(_data["fecha"].toString()) : undefined as any;
         }
     }
 
@@ -10389,21 +10293,7 @@ export class UpdatePresentationRequest implements IUpdatePresentationRequest {
         data = typeof data === 'object' ? data : {};
         data["name"] = this.name;
         data["eventId"] = this.eventId;
-        if (Array.isArray(this.coauthorIds)) {
-            data["coauthorIds"] = [];
-            for (let item of this.coauthorIds)
-                data["coauthorIds"].push(item);
-        }
-        if (Array.isArray(this.coauthorUserIds)) {
-            data["coauthorUserIds"] = [];
-            for (let item of this.coauthorUserIds)
-                data["coauthorUserIds"].push(item);
-        }
-        if (Array.isArray(this.coauthorNames)) {
-            data["coauthorNames"] = [];
-            for (let item of this.coauthorNames)
-                data["coauthorNames"].push(item);
-        }
+        data["fecha"] = this.fecha ? this.fecha.toISOString() : undefined as any;
         return data;
     }
 }
@@ -10411,9 +10301,7 @@ export class UpdatePresentationRequest implements IUpdatePresentationRequest {
 export interface IUpdatePresentationRequest {
     name?: string;
     eventId?: number;
-    coauthorIds?: string[];
-    coauthorUserIds?: string[];
-    coauthorNames?: string[];
+    fecha?: Date;
 }
 
 export class ProductoDto implements IProductoDto {

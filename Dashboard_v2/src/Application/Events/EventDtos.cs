@@ -18,7 +18,7 @@ public record EventDto
     public int PresentationCount { get; init; }
     public string? RedId { get; init; }
     public string? RedName { get; init; }
-    public List<string> AreaIdsPatrocinadoras { get; init; } = [];
+    public List<string> OrganizadorIds { get; init; } = [];
     /// <summary>ID del archivo de evidencia/certificado adjunto. Null si no tiene.</summary>
     public int? EvidenceFileId { get; init; }
 }
@@ -29,17 +29,7 @@ public record PresentationDto
     public string Name { get; init; } = default!;
     public int EventId { get; init; }
     public string EventName { get; init; } = default!;
-    public List<PresentationAuthorDto> Authors { get; init; } = [];
-}
-
-/// <summary>
-/// Autor de una presentación. Si el autor está vinculado a un usuario del sistema,
-/// la propiedad <see cref="LinkedUser"/> expone la información necesaria para renderizar su tarjeta.
-/// </summary>
-public sealed record PresentationAuthorDto
-{
-    public string Id { get; init; } = default!;
-    public string Name { get; init; } = default!;
-    public string? UserId { get; init; }
-    public LinkedUserSummaryDto? LinkedUser { get; init; }
+    public DateTime Fecha { get; init; }
+    public string UserId { get; init; } = default!;
+    public LinkedUserSummaryDto? User { get; init; }
 }

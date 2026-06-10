@@ -6370,7 +6370,7 @@
             "type": "string",
             "nullable": true
           },
-          "areaIdsPatrocinadoras": {
+          "organizadorIds": {
             "type": "array",
             "items": {
               "type": "string"
@@ -6443,7 +6443,7 @@
             "type": "string",
             "nullable": true
           },
-          "areaIdsPatrocinadoras": {
+          "organizadorIds": {
             "type": "array",
             "items": {
               "type": "string"
@@ -6481,7 +6481,7 @@
             "type": "string",
             "nullable": true
           },
-          "areaIdsPatrocinadoras": {
+          "organizadorIds": {
             "type": "array",
             "items": {
               "type": "string"
@@ -7003,29 +7003,14 @@
           "eventName": {
             "type": "string"
           },
-          "authors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PresentationAuthorDto"
-            }
-          }
-        }
-      },
-      "PresentationAuthorDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
           },
           "userId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
-          "linkedUser": {
+          "user": {
             "nullable": true,
             "oneOf": [
               {
@@ -7046,23 +7031,9 @@
             "type": "integer",
             "format": "int32"
           },
-          "coauthorIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "coauthorUserIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "coauthorNames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -7077,23 +7048,9 @@
             "type": "integer",
             "format": "int32"
           },
-          "coauthorIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "coauthorUserIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "coauthorNames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },

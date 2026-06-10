@@ -49,27 +49,6 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .HasForeignKey(e => e.RedId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Patrocinio: Área (0,*) ↔ Evento (0,*) — entidad de unión explícita
-        builder.HasMany(e => e.AreasPatrocinadoras)
-            .WithMany(a => a.EventosPatrocinados)
-            .UsingEntity<EventAreaPatrocinio>(
-                j => j
-                    .HasOne(ep => ep.Area)
-                    .WithMany()
-                    .HasForeignKey(ep => ep.AreaId)
-                    .OnDelete(DeleteBehavior.Cascade),
-                j => j
-                    .HasOne(ep => ep.Event)
-                    .WithMany()
-                    .HasForeignKey(ep => ep.EventId)
-                    .OnDelete(DeleteBehavior.Cascade),
-                j =>
-                {
-                    j.ToTable("EventAreasPatrocinio");
-                    j.HasKey(ep => new { ep.EventId, ep.AreaId });
-                    j.Property(ep => ep.AreaId).HasMaxLength(450);
-                });
-
         builder.HasOne(e => e.EvidenceFile)
             .WithMany()
             .HasForeignKey(e => e.EvidenceFileId)

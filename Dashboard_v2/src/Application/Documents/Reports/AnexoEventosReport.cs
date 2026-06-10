@@ -12,7 +12,7 @@ namespace Dashboard_v2.Application.Documents.Reports;
 /// Bloques rellenados automaticamente:
 /// - Eventos internacionales.
 /// - Eventos nacionales.
-/// - Eventos coauspiciados por el area del usuario que genera el reporte.
+/// - Eventos coauspiciados: aquellos en que al menos un organizador pertenece al area del usuario actual.
 /// - Conteo base de ponencias por categorias explicitamente modeladas.
 /// - Datos detallados de todas las ponencias.
 ///
@@ -35,26 +35,12 @@ public sealed class AnexoEventosReport : IDocumentReport
         _currentUser = currentUser;
     }
 
-    /// <summary>
-    /// Identificador publico del reporte consumido por el endpoint generico.
-    /// </summary>
     public string ReportName => "anexo-eventos";
 
-    /// <summary>
-    /// Nombre base de la plantilla embebida sin extension.
-    /// </summary>
     public string TemplateName => "AnexoEventosCientificos";
 
-    /// <summary>
-    /// Reune y clasifica los eventos y presentaciones necesarias para el anexo.
-    /// Las claves del diccionario coinciden con los rangos nombrados y variables
-    /// escalares declaradas en la plantilla.
-    /// </summary>
-    /// <param name="ct">Token de cancelacion.</param>
-    /// <returns>Variables para ClosedXML.Report.</returns>
     public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)
     {
-        // Obtener el área del usuario que genera el reporte
         var userAreaId = await _context.Users
             .AsNoTracking()
             .Where(u => u.Id == _currentUser.Id)
@@ -65,13 +51,18 @@ public sealed class AnexoEventosReport : IDocumentReport
             .AsNoTracking()
             .Include(e => e.Country)
             .Include(e => e.Institutions)
-            .Include(e => e.Presentations)
-                .ThenInclude(p => p.AuthorPresentations)
-                    .ThenInclude(ap => ap.Author)
             .OrderBy(e => e.Name)
             .ToListAsync(ct);
 
-        // Eventos coauspiciados = patrocinados por el área del usuario actual
+        var presentations = await _context.Presentations
+            .AsNoTracking()
+            .Include(p => p.Event).ThenInclude(e => e.Country)
+            .Include(p => p.User)
+            .OrderBy(p => p.Event.Name)
+            .ThenBy(p => p.Name)
+            .ToListAsync(ct);
+
+        // Eventos coauspiciados = al menos un organizador pertenece al area del usuario actual
         List<Event> eventosCoauspiciados = [];
         if (!string.IsNullOrWhiteSpace(userAreaId))
         {
@@ -79,25 +70,19 @@ public sealed class AnexoEventosReport : IDocumentReport
                 .AsNoTracking()
                 .Include(e => e.Country)
                 .Include(e => e.Institutions)
-                .Where(e => e.AreasPatrocinadoras.Any(a => a.Id == userAreaId))
+                .Where(e => e.Organizadores.Any(o => o.User.AreaId == userAreaId))
                 .OrderBy(e => e.Name)
                 .ToListAsync(ct);
         }
 
-        var presentations = events
-            .SelectMany(e => e.Presentations.Select(p => new { Event = e, Presentation = p }))
-            .OrderBy(item => item.Event.Name)
-            .ThenBy(item => item.Presentation.Name)
-            .ToList();
+        var ponenciasInternacionalesExtranjero = presentations.Count(p =>
+            p.Event.EventTypeId == InternacionalEventTypeId && !IsHeldInCuba(p.Event));
 
-        var ponenciasInternacionalesExtranjero = presentations.Count(item =>
-            item.Event.EventTypeId == InternacionalEventTypeId && !IsHeldInCuba(item.Event));
+        var ponenciasInternacionalesCuba = presentations.Count(p =>
+            p.Event.EventTypeId == InternacionalEventTypeId && IsHeldInCuba(p.Event));
 
-        var ponenciasInternacionalesCuba = presentations.Count(item =>
-            item.Event.EventTypeId == InternacionalEventTypeId && IsHeldInCuba(item.Event));
-
-        var ponenciasNacionalesCuba = presentations.Count(item =>
-            item.Event.EventTypeId == NacionalEventTypeId);
+        var ponenciasNacionalesCuba = presentations.Count(p =>
+            p.Event.EventTypeId == NacionalEventTypeId);
 
         const int ponenciasActividadesUh = 0;
 
@@ -120,8 +105,6 @@ public sealed class AnexoEventosReport : IDocumentReport
                     InstitucionQueLoOrganizo = BuildInstitutionsSummary(e),
                 })
                 .ToList(),
-            // Estos apartados existen en el anexo oficial, pero el dominio actual
-            // no modela si una actividad cientifica fue organizada internamente en la UH.
             ["EventosCoauspiciados"] = eventosCoauspiciados
                 .Select(e => new EventoCoauspiciadoRowDto
                 {
@@ -133,12 +116,12 @@ public sealed class AnexoEventosReport : IDocumentReport
                 .ToList(),
             ["ActividadesCientificasUH"] = Array.Empty<ActividadCientificaUhRowDto>(),
             ["DatosPonencias"] = presentations
-                .Select(item => new DatosPonenciaRowDto
+                .Select(p => new DatosPonenciaRowDto
                 {
-                    NombrePonencia = item.Presentation.Name,
-                    NombreAutores = BuildAuthorsSummary(item.Presentation),
-                    NombreEventoOActividadCientifica = item.Event.Name,
-                    PaisDeCelebracion = item.Event.Country.Name,
+                    NombrePonencia = p.Name,
+                    NombreAutores = BuildParticipanteSummary(p),
+                    NombreEventoOActividadCientifica = p.Event.Name,
+                    PaisDeCelebracion = p.Event.Country.Name,
                 })
                 .ToList(),
             ["PonenciasInternacionalesExtranjero"] = ponenciasInternacionalesExtranjero,
@@ -152,161 +135,61 @@ public sealed class AnexoEventosReport : IDocumentReport
         };
     }
 
-    /// <summary>
-    /// Determina si un evento se celebro en Cuba usando el pais asociado.
-    /// </summary>
-    /// <param name="eventEntity">Evento a evaluar.</param>
-    /// <returns><see langword="true"/> si el pais es Cuba; en otro caso, <see langword="false"/>.</returns>
     private static bool IsHeldInCuba(Event eventEntity)
-    {
-        return string.Equals(eventEntity.Country.Name?.Trim(), "Cuba", StringComparison.OrdinalIgnoreCase);
-    }
+        => string.Equals(eventEntity.Country.Name?.Trim(), "Cuba", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>
-    /// Devuelve el texto a colocar en una columna condicional del anexo.
-    /// Si el evento cumple la condicion de destino, se escribe el valor; si no,
-    /// la celda queda vacia.
-    /// </summary>
     private static string SelectColumnValue(Event eventEntity, bool heldInCuba, string value)
-    {
-        return IsHeldInCuba(eventEntity) == heldInCuba ? value : string.Empty;
-    }
+        => IsHeldInCuba(eventEntity) == heldInCuba ? value : string.Empty;
 
-    /// <summary>
-    /// Obtiene el pais del evento con un valor estable para exportacion.
-    /// </summary>
     private static string GetCountryName(Event eventEntity)
-    {
-        return eventEntity.Country.Name?.Trim() ?? string.Empty;
-    }
+        => eventEntity.Country.Name?.Trim() ?? string.Empty;
 
-    /// <summary>
-    /// Construye el texto de instituciones organizadoras externas del evento.
-    /// </summary>
-    /// <param name="eventEntity">Evento cuyas instituciones se formatearan.</param>
-    /// <returns>Cadena unica y estable con las instituciones separadas por coma.</returns>
     private static string BuildInstitutionsSummary(Event eventEntity)
-    {
-        return string.Join(", ", eventEntity.Institutions
+        => string.Join(", ", eventEntity.Institutions
             .Where(i => !string.IsNullOrWhiteSpace(i.Nombre))
             .Select(i => i.Nombre.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(i => i));
-    }
 
-    /// <summary>
-    /// Construye la relacion de autoria de una ponencia.
-    /// Como el modelo no conserva orden de autores, se usa orden alfabetico para
-    /// generar una salida estable y reproducible.
-    /// </summary>
-    /// <param name="presentation">Ponencia a proyectar.</param>
-    /// <returns>Nombres de autores separados por coma.</returns>
-    private static string BuildAuthorsSummary(Presentation presentation)
+    private static string BuildParticipanteSummary(Presentation presentation)
     {
-        return string.Join(", ", presentation.AuthorPresentations
-            .Where(ap => ap.Author is not null)
-            .Select(ap => ap.Author.Name)
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .OrderBy(name => name));
+        var u = presentation.User;
+        if (u is null) return string.Empty;
+        var ln2 = string.IsNullOrWhiteSpace(u.UserLastName2) ? "" : $" {u.UserLastName2}";
+        return $"{u.UserLastName1}{ln2}, {u.UserName}".Trim();
     }
 }
 
-/// <summary>
-/// Fila para la tabla de eventos internacionales.
-/// </summary>
 public sealed record EventoInternacionalRowDto
 {
-    /// <summary>
-    /// Nombre del evento internacional.
-    /// </summary>
     public string NombreEventoInternacional { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Pais del evento cuando se celebro fuera de Cuba.
-    /// </summary>
     public string PaisSiFueEnElExtranjero { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Pais del evento cuando se celebro en Cuba.
-    /// </summary>
     public string EnCuba { get; init; } = string.Empty;
 }
 
-/// <summary>
-/// Fila para la tabla de eventos nacionales.
-/// </summary>
 public sealed record EventoNacionalRowDto
 {
-    /// <summary>
-    /// Nombre del evento nacional.
-    /// </summary>
     public string NombreEventoNacional { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Instituciones organizadoras reportadas en el sistema.
-    /// </summary>
     public string InstitucionQueLoOrganizo { get; init; } = string.Empty;
 }
 
-/// <summary>
-/// Fila para la tabla de eventos coauspiciados por el area.
-/// </summary>
 public sealed record EventoCoauspiciadoRowDto
 {
-    /// <summary>
-    /// Nombre del evento coauspiciado.
-    /// </summary>
     public string EventoCoauspiciado { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Institucion externa responsable del evento.
-    /// </summary>
     public string InstitucionExternaResponsable { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Marca de alcance internacional inferida a partir del pais.
-    /// </summary>
     public string Internacional { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Marca de alcance nacional inferida a partir del pais.
-    /// </summary>
     public string Nacional { get; init; } = string.Empty;
 }
 
-/// <summary>
-/// Fila para la tabla de actividades cientificas celebradas en la UH.
-/// </summary>
 public sealed record ActividadCientificaUhRowDto
 {
-    /// <summary>
-    /// Nombre de la actividad cientifica.
-    /// </summary>
     public string ActividadCientifica { get; init; } = string.Empty;
 }
 
-/// <summary>
-/// Fila detallada de una ponencia presentada.
-/// </summary>
 public sealed record DatosPonenciaRowDto
 {
-    /// <summary>
-    /// Nombre de la ponencia.
-    /// </summary>
     public string NombrePonencia { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Relacion de autores asociada a la ponencia.
-    /// </summary>
     public string NombreAutores { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Nombre del evento o actividad donde se presento la ponencia.
-    /// </summary>
     public string NombreEventoOActividadCientifica { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Pais de celebracion del evento.
-    /// </summary>
     public string PaisDeCelebracion { get; init; } = string.Empty;
 }

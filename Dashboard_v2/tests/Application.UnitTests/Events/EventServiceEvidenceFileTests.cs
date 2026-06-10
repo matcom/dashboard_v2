@@ -27,8 +27,7 @@ public class EventServiceEvidenceFileTests
     {
         var currentUser = new Mock<IUser>();
         currentUser.Setup(u => u.Id).Returns(userId);
-        var authorResolution = new Mock<IAuthorResolutionService>();
-        return new EventService(db, currentUser.Object, authorResolution.Object);
+        return new EventService(db, currentUser.Object);
     }
 
     private static async Task SeedCatalogAsync(ApplicationDbContext db)
@@ -67,7 +66,7 @@ public class EventServiceEvidenceFileTests
             CountryId = 1,
             EventType = 1,
             Institutions = [],
-            AreaIdsPatrocinadoras = [],
+            OrganizadorIds = [],
             EvidenceFileId = storedFile.Id,
         };
 
@@ -98,7 +97,7 @@ public class EventServiceEvidenceFileTests
             CountryId = 1,
             EventType = 1,
             Institutions = [],
-            AreaIdsPatrocinadoras = [],
+            OrganizadorIds = [],
             EvidenceFileId = null,
         };
 
@@ -138,7 +137,7 @@ public class EventServiceEvidenceFileTests
             CountryId = 1,
             EventType = 1,
             Institutions = [],
-            AreaIdsPatrocinadoras = [],
+            OrganizadorIds = [],
             EvidenceFileId = storedFile.Id,
         };
 
@@ -180,7 +179,7 @@ public class EventServiceEvidenceFileTests
             CountryId = 1,
             EventType = 1,
             Institutions = [],
-            AreaIdsPatrocinadoras = [],
+            OrganizadorIds = [],
             EvidenceFileId = null,
         };
 

@@ -18,9 +18,9 @@ public interface IApplicationDbContext
     DbSet<Event> Events { get; }
     DbSet<EventType> EventTypes { get; }
     DbSet<EventInstitution> EventInstitutions { get; }
-    DbSet<EventAreaPatrocinio> EventAreasPatrocinio { get; }
+    DbSet<EventOrganizador> EventOrganizadores { get; }
+    DbSet<ParticipacionEnEvento> ParticipacionesEnEventos { get; }
     DbSet<Presentation> Presentations { get; }
-    DbSet<AuthorPresentation> AuthorPresentations { get; }
     DbSet<IndexedPublication> IndexedPublications { get; }
     DbSet<JournalPublication> JournalPublications { get; }
     DbSet<JournalGroup1Publication> JournalGroup1Publications { get; }

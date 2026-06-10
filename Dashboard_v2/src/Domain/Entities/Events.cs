@@ -22,10 +22,11 @@ public class Event
     public string? RedId { get; set; }
     public Red? Red { get; set; }
 
-    public ICollection<Presentation> Presentations { get; set; } = new List<Presentation>();
+    /// <summary>Usuarios que organizan este evento (0..*).</summary>
+    public ICollection<EventOrganizador> Organizadores { get; set; } = new List<EventOrganizador>();
 
-    // Áreas que patrocinan/auspician este Evento (0,*)
-    public ICollection<Area> AreasPatrocinadoras { get; set; } = new List<Area>();
+    /// <summary>Participaciones de usuarios en este evento (incluye ponencias).</summary>
+    public ICollection<ParticipacionEnEvento> Participaciones { get; set; } = new List<ParticipacionEnEvento>();
 
     /// <summary>Archivo de evidencia/certificado adjunto (opcional).</summary>
     public int? EvidenceFileId { get; set; }

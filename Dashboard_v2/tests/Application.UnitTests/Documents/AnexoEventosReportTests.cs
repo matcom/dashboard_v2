@@ -165,8 +165,8 @@ public class AnexoEventosReportTests
     // ── eventos coauspiciados ────────────────────────────────────────────────
 
     /// <summary>
-    /// Solo deben aparecer en EventosCoauspiciados los eventos que tienen como área
-    /// patrocinadora el área del usuario solicitante.
+    /// Solo deben aparecer en EventosCoauspiciados los eventos que tienen como organizador
+    /// a un usuario del área del solicitante.
     /// </summary>
     [Test]
     public async Task GatherVariablesAsync_EventosCoauspiciados_ReturnsOnlyEventsPatrocinatedByUserArea()
@@ -176,21 +176,24 @@ public class AnexoEventosReportTests
         var cuba = new Country { Id = 1, Name = "Cuba" };
         var areaA = new Area { Id = "area-a", Nombre = "Área A" };
         var areaB = new Area { Id = "area-b", Nombre = "Área B" };
-        var user = new User { Id = "user-a", UserName = "u", UserLastName1 = "U", Email = "u@test.cu", AreaId = areaA.Id };
+        // userA pertenece a areaA → el evento evSi será coauspiciado por areaA
+        var userA = new User { Id = "user-a", UserName = "ua", UserLastName1 = "A", Email = "ua@test.cu", AreaId = areaA.Id };
+        // userB pertenece a areaB → el evento evNo NO es coauspiciado por areaA
+        var userB = new User { Id = "user-b", UserName = "ub", UserLastName1 = "B", Email = "ub@test.cu", AreaId = areaB.Id };
         var evSi = new Event { Name = "Evento Coauspiciado", CountryId = cuba.Id, EventTypeId = Nacional };
         var evNo = new Event { Name = "Evento Sin Auspicio", CountryId = cuba.Id, EventTypeId = Nacional };
 
         db.Countries.Add(cuba);
         db.Areas.AddRange(areaA, areaB);
-        db.Users.Add(user);
+        db.Users.AddRange(userA, userB);
         db.Events.AddRange(evSi, evNo);
         await db.SaveChangesAsync();
 
-        db.EventAreasPatrocinio.Add(new EventAreaPatrocinio { EventId = evSi.Id, AreaId = areaA.Id });
-        db.EventAreasPatrocinio.Add(new EventAreaPatrocinio { EventId = evNo.Id, AreaId = areaB.Id });
+        db.EventOrganizadores.Add(new EventOrganizador { EventId = evSi.Id, UserId = userA.Id });
+        db.EventOrganizadores.Add(new EventOrganizador { EventId = evNo.Id, UserId = userB.Id });
         await db.SaveChangesAsync();
 
-        var report = BuildReport(db, user.Id);
+        var report = BuildReport(db, userA.Id);
         var variables = await report.GatherVariablesAsync(null, CancellationToken.None);
 
         var coauspiciados = (List<EventoCoauspiciadoRowDto>)variables["EventosCoauspiciados"];
@@ -200,7 +203,7 @@ public class AnexoEventosReportTests
 
     /// <summary>
     /// Si el usuario solicitante no tiene área asignada, EventosCoauspiciados debe
-    /// estar vacío aunque existan eventos con áreas patrocinadoras.
+    /// estar vacío aunque existan eventos con organizadores.
     /// </summary>
     [Test]
     public async Task GatherVariablesAsync_EventosCoauspiciados_IsEmptyWhenUserHasNoArea()
@@ -209,19 +212,22 @@ public class AnexoEventosReportTests
 
         var cuba = new Country { Id = 1, Name = "Cuba" };
         var area = new Area { Id = "area-a", Nombre = "Área A" };
-        var user = new User { Id = "user-no-area", UserName = "u", UserLastName1 = "U", Email = "u@test.cu", AreaId = null };
+        // El usuario solicitante no tiene área
+        var userNoArea = new User { Id = "user-no-area", UserName = "u", UserLastName1 = "U", Email = "u@test.cu", AreaId = null };
+        // Otro usuario CON área organiza el evento
+        var userWithArea = new User { Id = "user-with-area", UserName = "v", UserLastName1 = "V", Email = "v@test.cu", AreaId = area.Id };
         var ev = new Event { Name = "Evento", CountryId = cuba.Id, EventTypeId = Nacional };
 
         db.Countries.Add(cuba);
         db.Areas.Add(area);
-        db.Users.Add(user);
+        db.Users.AddRange(userNoArea, userWithArea);
         db.Events.Add(ev);
         await db.SaveChangesAsync();
 
-        db.EventAreasPatrocinio.Add(new EventAreaPatrocinio { EventId = ev.Id, AreaId = area.Id });
+        db.EventOrganizadores.Add(new EventOrganizador { EventId = ev.Id, UserId = userWithArea.Id });
         await db.SaveChangesAsync();
 
-        var report = BuildReport(db, user.Id);
+        var report = BuildReport(db, userNoArea.Id);
         var variables = await report.GatherVariablesAsync(null, CancellationToken.None);
 
         ((List<EventoCoauspiciadoRowDto>)variables["EventosCoauspiciados"]).ShouldBeEmpty();
@@ -249,9 +255,9 @@ public class AnexoEventosReportTests
         db.Events.AddRange(intlEv, natlEv);
         await db.SaveChangesAsync();
 
-        db.EventAreasPatrocinio.AddRange(
-            new EventAreaPatrocinio { EventId = intlEv.Id, AreaId = area.Id },
-            new EventAreaPatrocinio { EventId = natlEv.Id, AreaId = area.Id });
+        db.EventOrganizadores.AddRange(
+            new EventOrganizador { EventId = intlEv.Id, UserId = user.Id },
+            new EventOrganizador { EventId = natlEv.Id, UserId = user.Id });
         await db.SaveChangesAsync();
 
         var report = BuildReport(db, user.Id);
@@ -295,13 +301,14 @@ public class AnexoEventosReportTests
         db.Events.AddRange(intlAbroad, intlCuba, natl);
         await db.SaveChangesAsync();
 
+        var fecha = DateTime.UtcNow;
         db.Presentations.AddRange(
-            new Presentation { Name = "P1", EventId = intlAbroad.Id },
-            new Presentation { Name = "P2", EventId = intlAbroad.Id },
-            new Presentation { Name = "P3", EventId = intlCuba.Id },
-            new Presentation { Name = "P4", EventId = natl.Id },
-            new Presentation { Name = "P5", EventId = natl.Id },
-            new Presentation { Name = "P6", EventId = natl.Id });
+            new Presentation { Name = "P1", EventId = intlAbroad.Id, UserId = user.Id, Fecha = fecha },
+            new Presentation { Name = "P2", EventId = intlAbroad.Id, UserId = user.Id, Fecha = fecha },
+            new Presentation { Name = "P3", EventId = intlCuba.Id, UserId = user.Id, Fecha = fecha },
+            new Presentation { Name = "P4", EventId = natl.Id, UserId = user.Id, Fecha = fecha },
+            new Presentation { Name = "P5", EventId = natl.Id, UserId = user.Id, Fecha = fecha },
+            new Presentation { Name = "P6", EventId = natl.Id, UserId = user.Id, Fecha = fecha });
         await db.SaveChangesAsync();
 
         var report = BuildReport(db, user.Id);
@@ -317,7 +324,7 @@ public class AnexoEventosReportTests
 
     /// <summary>
     /// DatosPonencias debe incluir el nombre de la ponencia, el evento, el país de
-    /// celebración y los autores de cada ponencia.
+    /// celebración y el nombre del ponente derivado de los campos del usuario.
     /// </summary>
     [Test]
     public async Task GatherVariablesAsync_DatosPonencias_ContainsAllPresentationsWithCorrectData()
@@ -325,24 +332,26 @@ public class AnexoEventosReportTests
         await using var db = BuildDb(nameof(GatherVariablesAsync_DatosPonencias_ContainsAllPresentationsWithCorrectData));
 
         var cuba = new Country { Id = 1, Name = "Cuba" };
-        var user = new User { Id = "u", UserName = "u", UserLastName1 = "U", Email = "u@test.cu" };
-        var author = new Author { Id = "auth-a", LastName = "López", Name = "López, Ana", SearchKey = "lopez ana", LastNameKey = "lopez" };
+        var currentUser = new User { Id = "u", UserName = "u", UserLastName1 = "U", Email = "u@test.cu" };
+        // El ponente: apellido "López", nombre "Ana" → BuildParticipanteSummary → "López, Ana"
+        var presenter = new User { Id = "presenter", UserName = "Ana", UserLastName1 = "López", Email = "ana@test.cu" };
         var ev = new Event { Name = "Mi Evento", CountryId = cuba.Id, EventTypeId = Nacional };
 
         db.Countries.Add(cuba);
-        db.Users.Add(user);
-        db.Authors.Add(author);
+        db.Users.AddRange(currentUser, presenter);
         db.Events.Add(ev);
         await db.SaveChangesAsync();
 
-        var pres = new Presentation { Name = "Mi Ponencia", EventId = ev.Id };
-        db.Presentations.Add(pres);
+        db.Presentations.Add(new Presentation
+        {
+            Name = "Mi Ponencia",
+            EventId = ev.Id,
+            UserId = presenter.Id,
+            Fecha = DateTime.UtcNow,
+        });
         await db.SaveChangesAsync();
 
-        db.AuthorPresentations.Add(new AuthorPresentation { AuthorId = author.Id, PresentationId = pres.Id });
-        await db.SaveChangesAsync();
-
-        var report = BuildReport(db, user.Id);
+        var report = BuildReport(db, currentUser.Id);
         var variables = await report.GatherVariablesAsync(null, CancellationToken.None);
 
         var datos = (List<DatosPonenciaRowDto>)variables["DatosPonencias"];
@@ -372,10 +381,11 @@ public class AnexoEventosReportTests
         db.Events.AddRange(ev1, ev2);
         await db.SaveChangesAsync();
 
+        var fecha = DateTime.UtcNow;
         db.Presentations.AddRange(
-            new Presentation { Name = "Ponencia A", EventId = ev1.Id },
-            new Presentation { Name = "Ponencia B", EventId = ev2.Id },
-            new Presentation { Name = "Ponencia C", EventId = ev2.Id });
+            new Presentation { Name = "Ponencia A", EventId = ev1.Id, UserId = user.Id, Fecha = fecha },
+            new Presentation { Name = "Ponencia B", EventId = ev2.Id, UserId = user.Id, Fecha = fecha },
+            new Presentation { Name = "Ponencia C", EventId = ev2.Id, UserId = user.Id, Fecha = fecha });
         await db.SaveChangesAsync();
 
         var report = BuildReport(db, user.Id);

@@ -22,9 +22,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventType> EventTypes => Set<EventType>();
     public DbSet<EventInstitution> EventInstitutions => Set<EventInstitution>();
-    public DbSet<EventAreaPatrocinio> EventAreasPatrocinio => Set<EventAreaPatrocinio>();
+    public DbSet<EventOrganizador> EventOrganizadores => Set<EventOrganizador>();
+    public DbSet<ParticipacionEnEvento> ParticipacionesEnEventos => Set<ParticipacionEnEvento>();
     public DbSet<Presentation> Presentations => Set<Presentation>();
-    public DbSet<AuthorPresentation> AuthorPresentations => Set<AuthorPresentation>();
     public DbSet<IndexedPublication> IndexedPublications => Set<IndexedPublication>();
     public DbSet<JournalPublication> JournalPublications => Set<JournalPublication>();
     public DbSet<JournalGroup1Publication> JournalGroup1Publications => Set<JournalGroup1Publication>();

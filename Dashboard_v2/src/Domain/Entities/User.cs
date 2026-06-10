@@ -44,6 +44,12 @@ public class User
     /// <summary>Proyectos de los que este usuario es jefe. Solo aplicable a usuarios con rol Jefe_de_Proyecto.</summary>
     public ICollection<Proyecto> ProyectosComoJefe { get; set; } = new List<Proyecto>();
 
+    /// <summary>Eventos que este usuario organiza.</summary>
+    public ICollection<EventOrganizador> EventosOrganizados { get; set; } = new List<EventOrganizador>();
+
+    /// <summary>Participaciones de este usuario en eventos (incluye ponencias).</summary>
+    public ICollection<ParticipacionEnEvento> ParticipacionesEnEventos { get; set; } = new List<ParticipacionEnEvento>();
+
     /// <summary>
     /// Identificador del área institucional del usuario.
     /// Puede permanecer nulo temporalmente mientras el usuario completa su primer inicio de sesión
