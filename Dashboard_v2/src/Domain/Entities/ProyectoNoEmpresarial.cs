@@ -4,5 +4,7 @@ namespace Dashboard_v2.Domain.Entities;
 public class ProyectoNoEmpresarial : ProyectoEnEjecucion
 {
     public override string TipoIdentificador => "PNE";
-    public string EntidadNoEmpresarial { get; set; } = default!;
+
+    /// <summary>M:N: entidades no empresariales vinculadas al proyecto.</summary>
+    public ICollection<Institution> Entidades { get; set; } = new List<Institution>();
 }

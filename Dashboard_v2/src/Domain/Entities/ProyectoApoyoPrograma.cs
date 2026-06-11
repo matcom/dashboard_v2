@@ -4,6 +4,9 @@ namespace Dashboard_v2.Domain.Entities;
 public class ProyectoApoyoPrograma : ProyectoEnEjecucion
 {
     public override string TipoIdentificador => "PAP";
-    public string NombrePrograma { get; set; } = default!;
+
+    /// <summary>M:N: programas a los que apoya el proyecto.</summary>
+    public ICollection<Programa> Programas { get; set; } = new List<Programa>();
+
     public TipoPAP TipoPAP { get; set; }
 }

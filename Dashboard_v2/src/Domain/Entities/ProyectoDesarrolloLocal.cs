@@ -9,5 +9,8 @@ namespace Dashboard_v2.Domain.Entities;
 public class ProyectoDesarrolloLocal : ProyectoEnEjecucion
 {
     public override string TipoIdentificador => "PDL";
-    public string Municipio { get; set; } = default!;
+
+    /// <summary>FK al municipio donde se ejecuta el proyecto (relación 1:1).</summary>
+    public int MunicipioId { get; set; }
+    public Municipio Municipio { get; set; } = null!;
 }

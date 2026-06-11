@@ -10557,8 +10557,8 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
     areaNombre?: string;
     tipo?: string;
     codigoProyecto?: string | undefined;
-    estadoDeEjecucion?: string | undefined;
-    situacion?: string | undefined;
+    estadosDeEjecucion?: string[];
+    situaciones?: string[];
     publicacionesDerivadas?: string[];
 
     constructor(data?: IProyectoResumenDto) {
@@ -10584,8 +10584,16 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
             this.areaNombre = _data["areaNombre"];
             this.tipo = _data["tipo"];
             this.codigoProyecto = _data["codigoProyecto"];
-            this.estadoDeEjecucion = _data["estadoDeEjecucion"];
-            this.situacion = _data["situacion"];
+            if (Array.isArray(_data["estadosDeEjecucion"])) {
+                this.estadosDeEjecucion = [] as any;
+                for (let item of _data["estadosDeEjecucion"])
+                    this.estadosDeEjecucion!.push(item);
+            }
+            if (Array.isArray(_data["situaciones"])) {
+                this.situaciones = [] as any;
+                for (let item of _data["situaciones"])
+                    this.situaciones!.push(item);
+            }
             if (Array.isArray(_data["publicacionesDerivadas"])) {
                 this.publicacionesDerivadas = [] as any;
                 for (let item of _data["publicacionesDerivadas"])
@@ -10615,8 +10623,16 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
         data["areaNombre"] = this.areaNombre;
         data["tipo"] = this.tipo;
         data["codigoProyecto"] = this.codigoProyecto;
-        data["estadoDeEjecucion"] = this.estadoDeEjecucion;
-        data["situacion"] = this.situacion;
+        if (Array.isArray(this.estadosDeEjecucion)) {
+            data["estadosDeEjecucion"] = [];
+            for (let item of this.estadosDeEjecucion)
+                data["estadosDeEjecucion"].push(item);
+        }
+        if (Array.isArray(this.situaciones)) {
+            data["situaciones"] = [];
+            for (let item of this.situaciones)
+                data["situaciones"].push(item);
+        }
         if (Array.isArray(this.publicacionesDerivadas)) {
             data["publicacionesDerivadas"] = [];
             for (let item of this.publicacionesDerivadas)
@@ -10639,8 +10655,8 @@ export interface IProyectoResumenDto {
     areaNombre?: string;
     tipo?: string;
     codigoProyecto?: string | undefined;
-    estadoDeEjecucion?: string | undefined;
-    situacion?: string | undefined;
+    estadosDeEjecucion?: string[];
+    situaciones?: string[];
     publicacionesDerivadas?: string[];
 }
 
@@ -10783,7 +10799,7 @@ export interface IProyectoBaseDto {
 }
 
 export class ProyectoEnRevisionDto extends ProyectoBaseDto implements IProyectoEnRevisionDto {
-    situacion?: string;
+    situaciones?: NomencladorDto[];
     tipo?: string;
 
     constructor(data?: IProyectoEnRevisionDto) {
@@ -10793,7 +10809,11 @@ export class ProyectoEnRevisionDto extends ProyectoBaseDto implements IProyectoE
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.situacion = _data["situacion"];
+            if (Array.isArray(_data["situaciones"])) {
+                this.situaciones = [] as any;
+                for (let item of _data["situaciones"])
+                    this.situaciones!.push(NomencladorDto.fromJS(item));
+            }
             this.tipo = _data["tipo"];
         }
     }
@@ -10807,7 +10827,11 @@ export class ProyectoEnRevisionDto extends ProyectoBaseDto implements IProyectoE
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["situacion"] = this.situacion;
+        if (Array.isArray(this.situaciones)) {
+            data["situaciones"] = [];
+            for (let item of this.situaciones)
+                data["situaciones"].push(item ? item.toJSON() : undefined as any);
+        }
         data["tipo"] = this.tipo;
         super.toJSON(data);
         return data;
@@ -10815,8 +10839,48 @@ export class ProyectoEnRevisionDto extends ProyectoBaseDto implements IProyectoE
 }
 
 export interface IProyectoEnRevisionDto extends IProyectoBaseDto {
-    situacion?: string;
+    situaciones?: NomencladorDto[];
     tipo?: string;
+}
+
+export class NomencladorDto implements INomencladorDto {
+    id?: number;
+    nombre?: string;
+
+    constructor(data?: INomencladorDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.nombre = _data["nombre"];
+        }
+    }
+
+    static fromJS(data: any): NomencladorDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new NomencladorDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["nombre"] = this.nombre;
+        return data;
+    }
+}
+
+export interface INomencladorDto {
+    id?: number;
+    nombre?: string;
 }
 
 export abstract class ProyectoUpsertRequestBase implements IProyectoUpsertRequestBase {
@@ -10886,7 +10950,7 @@ export interface IProyectoUpsertRequestBase {
 }
 
 export class ProyectoEnRevisionUpsertRequest extends ProyectoUpsertRequestBase implements IProyectoEnRevisionUpsertRequest {
-    situacion?: string;
+    situacionesIds?: number[];
     tipo?: string;
 
     constructor(data?: IProyectoEnRevisionUpsertRequest) {
@@ -10896,7 +10960,11 @@ export class ProyectoEnRevisionUpsertRequest extends ProyectoUpsertRequestBase i
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.situacion = _data["situacion"];
+            if (Array.isArray(_data["situacionesIds"])) {
+                this.situacionesIds = [] as any;
+                for (let item of _data["situacionesIds"])
+                    this.situacionesIds!.push(item);
+            }
             this.tipo = _data["tipo"];
         }
     }
@@ -10910,7 +10978,11 @@ export class ProyectoEnRevisionUpsertRequest extends ProyectoUpsertRequestBase i
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["situacion"] = this.situacion;
+        if (Array.isArray(this.situacionesIds)) {
+            data["situacionesIds"] = [];
+            for (let item of this.situacionesIds)
+                data["situacionesIds"].push(item);
+        }
         data["tipo"] = this.tipo;
         super.toJSON(data);
         return data;
@@ -10918,20 +10990,20 @@ export class ProyectoEnRevisionUpsertRequest extends ProyectoUpsertRequestBase i
 }
 
 export interface IProyectoEnRevisionUpsertRequest extends IProyectoUpsertRequestBase {
-    situacion?: string;
+    situacionesIds?: number[];
     tipo?: string;
 }
 
 export abstract class ProyectoEnEjecucionBaseDto extends ProyectoBaseDto implements IProyectoEnEjecucionBaseDto {
     fechaInicio?: Date;
     fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
     codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
     tributaDesarrolloLocal?: boolean;
+    estadosDeEjecucion?: NomencladorDto[];
+    entidadesEjecutorasPrincipales?: InstitutionRefDto[];
+    entidadesEjecutorasParticipantes?: InstitutionRefDto[];
+    sectoresEstrategicos?: NomencladorDto[];
+    ejesEstrategicos?: NomencladorDto[];
 
     constructor(data?: IProyectoEnEjecucionBaseDto) {
         super(data);
@@ -10942,13 +11014,33 @@ export abstract class ProyectoEnEjecucionBaseDto extends ProyectoBaseDto impleme
         if (_data) {
             this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
             this.fechaCierre = _data["fechaCierre"] ? new Date(_data["fechaCierre"].toString()) : undefined as any;
-            this.estadoDeEjecucion = _data["estadoDeEjecucion"];
             this.codigoProyecto = _data["codigoProyecto"];
-            this.entidadEjecutoraPrincipal = _data["entidadEjecutoraPrincipal"];
-            this.entidadEjecutoraParticipante = _data["entidadEjecutoraParticipante"];
-            this.contribucionSectoresEstrategicos = _data["contribucionSectoresEstrategicos"];
-            this.contribucionEjesEstrategicos = _data["contribucionEjesEstrategicos"];
             this.tributaDesarrolloLocal = _data["tributaDesarrolloLocal"];
+            if (Array.isArray(_data["estadosDeEjecucion"])) {
+                this.estadosDeEjecucion = [] as any;
+                for (let item of _data["estadosDeEjecucion"])
+                    this.estadosDeEjecucion!.push(NomencladorDto.fromJS(item));
+            }
+            if (Array.isArray(_data["entidadesEjecutorasPrincipales"])) {
+                this.entidadesEjecutorasPrincipales = [] as any;
+                for (let item of _data["entidadesEjecutorasPrincipales"])
+                    this.entidadesEjecutorasPrincipales!.push(InstitutionRefDto.fromJS(item));
+            }
+            if (Array.isArray(_data["entidadesEjecutorasParticipantes"])) {
+                this.entidadesEjecutorasParticipantes = [] as any;
+                for (let item of _data["entidadesEjecutorasParticipantes"])
+                    this.entidadesEjecutorasParticipantes!.push(InstitutionRefDto.fromJS(item));
+            }
+            if (Array.isArray(_data["sectoresEstrategicos"])) {
+                this.sectoresEstrategicos = [] as any;
+                for (let item of _data["sectoresEstrategicos"])
+                    this.sectoresEstrategicos!.push(NomencladorDto.fromJS(item));
+            }
+            if (Array.isArray(_data["ejesEstrategicos"])) {
+                this.ejesEstrategicos = [] as any;
+                for (let item of _data["ejesEstrategicos"])
+                    this.ejesEstrategicos!.push(NomencladorDto.fromJS(item));
+            }
         }
     }
 
@@ -10961,13 +11053,33 @@ export abstract class ProyectoEnEjecucionBaseDto extends ProyectoBaseDto impleme
         data = typeof data === 'object' ? data : {};
         data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
         data["fechaCierre"] = this.fechaCierre ? formatDate(this.fechaCierre) : undefined as any;
-        data["estadoDeEjecucion"] = this.estadoDeEjecucion;
         data["codigoProyecto"] = this.codigoProyecto;
-        data["entidadEjecutoraPrincipal"] = this.entidadEjecutoraPrincipal;
-        data["entidadEjecutoraParticipante"] = this.entidadEjecutoraParticipante;
-        data["contribucionSectoresEstrategicos"] = this.contribucionSectoresEstrategicos;
-        data["contribucionEjesEstrategicos"] = this.contribucionEjesEstrategicos;
         data["tributaDesarrolloLocal"] = this.tributaDesarrolloLocal;
+        if (Array.isArray(this.estadosDeEjecucion)) {
+            data["estadosDeEjecucion"] = [];
+            for (let item of this.estadosDeEjecucion)
+                data["estadosDeEjecucion"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.entidadesEjecutorasPrincipales)) {
+            data["entidadesEjecutorasPrincipales"] = [];
+            for (let item of this.entidadesEjecutorasPrincipales)
+                data["entidadesEjecutorasPrincipales"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.entidadesEjecutorasParticipantes)) {
+            data["entidadesEjecutorasParticipantes"] = [];
+            for (let item of this.entidadesEjecutorasParticipantes)
+                data["entidadesEjecutorasParticipantes"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.sectoresEstrategicos)) {
+            data["sectoresEstrategicos"] = [];
+            for (let item of this.sectoresEstrategicos)
+                data["sectoresEstrategicos"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.ejesEstrategicos)) {
+            data["ejesEstrategicos"] = [];
+            for (let item of this.ejesEstrategicos)
+                data["ejesEstrategicos"].push(item ? item.toJSON() : undefined as any);
+        }
         super.toJSON(data);
         return data;
     }
@@ -10976,17 +11088,17 @@ export abstract class ProyectoEnEjecucionBaseDto extends ProyectoBaseDto impleme
 export interface IProyectoEnEjecucionBaseDto extends IProyectoBaseDto {
     fechaInicio?: Date;
     fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
     codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
     tributaDesarrolloLocal?: boolean;
+    estadosDeEjecucion?: NomencladorDto[];
+    entidadesEjecutorasPrincipales?: InstitutionRefDto[];
+    entidadesEjecutorasParticipantes?: InstitutionRefDto[];
+    sectoresEstrategicos?: NomencladorDto[];
+    ejesEstrategicos?: NomencladorDto[];
 }
 
 export class ProyectoEmpresarialDto extends ProyectoEnEjecucionBaseDto implements IProyectoEmpresarialDto {
-    empresa?: string;
+    empresas?: InstitutionRefDto[];
 
     constructor(data?: IProyectoEmpresarialDto) {
         super(data);
@@ -10995,7 +11107,11 @@ export class ProyectoEmpresarialDto extends ProyectoEnEjecucionBaseDto implement
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.empresa = _data["empresa"];
+            if (Array.isArray(_data["empresas"])) {
+                this.empresas = [] as any;
+                for (let item of _data["empresas"])
+                    this.empresas!.push(InstitutionRefDto.fromJS(item));
+            }
         }
     }
 
@@ -11008,26 +11124,70 @@ export class ProyectoEmpresarialDto extends ProyectoEnEjecucionBaseDto implement
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["empresa"] = this.empresa;
+        if (Array.isArray(this.empresas)) {
+            data["empresas"] = [];
+            for (let item of this.empresas)
+                data["empresas"].push(item ? item.toJSON() : undefined as any);
+        }
         super.toJSON(data);
         return data;
     }
 }
 
 export interface IProyectoEmpresarialDto extends IProyectoEnEjecucionBaseDto {
-    empresa?: string;
+    empresas?: InstitutionRefDto[];
+}
+
+export class InstitutionRefDto implements IInstitutionRefDto {
+    id?: string;
+    nombre?: string;
+
+    constructor(data?: IInstitutionRefDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.nombre = _data["nombre"];
+        }
+    }
+
+    static fromJS(data: any): InstitutionRefDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new InstitutionRefDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["nombre"] = this.nombre;
+        return data;
+    }
+}
+
+export interface IInstitutionRefDto {
+    id?: string;
+    nombre?: string;
 }
 
 export abstract class ProyectoEnEjecucionUpsertRequestBase extends ProyectoUpsertRequestBase implements IProyectoEnEjecucionUpsertRequestBase {
     fechaInicio?: Date;
     fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
     codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
     tributaDesarrolloLocal?: boolean;
+    estadosDeEjecucionIds?: number[];
+    entidadesEjecutorasPrincipalesIds?: string[];
+    entidadesEjecutorasParticipantesIds?: string[];
+    sectoresEstrategicosIds?: number[];
+    ejesEstrategicosIds?: number[];
 
     constructor(data?: IProyectoEnEjecucionUpsertRequestBase) {
         super(data);
@@ -11038,13 +11198,33 @@ export abstract class ProyectoEnEjecucionUpsertRequestBase extends ProyectoUpser
         if (_data) {
             this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
             this.fechaCierre = _data["fechaCierre"] ? new Date(_data["fechaCierre"].toString()) : undefined as any;
-            this.estadoDeEjecucion = _data["estadoDeEjecucion"];
             this.codigoProyecto = _data["codigoProyecto"];
-            this.entidadEjecutoraPrincipal = _data["entidadEjecutoraPrincipal"];
-            this.entidadEjecutoraParticipante = _data["entidadEjecutoraParticipante"];
-            this.contribucionSectoresEstrategicos = _data["contribucionSectoresEstrategicos"];
-            this.contribucionEjesEstrategicos = _data["contribucionEjesEstrategicos"];
             this.tributaDesarrolloLocal = _data["tributaDesarrolloLocal"];
+            if (Array.isArray(_data["estadosDeEjecucionIds"])) {
+                this.estadosDeEjecucionIds = [] as any;
+                for (let item of _data["estadosDeEjecucionIds"])
+                    this.estadosDeEjecucionIds!.push(item);
+            }
+            if (Array.isArray(_data["entidadesEjecutorasPrincipalesIds"])) {
+                this.entidadesEjecutorasPrincipalesIds = [] as any;
+                for (let item of _data["entidadesEjecutorasPrincipalesIds"])
+                    this.entidadesEjecutorasPrincipalesIds!.push(item);
+            }
+            if (Array.isArray(_data["entidadesEjecutorasParticipantesIds"])) {
+                this.entidadesEjecutorasParticipantesIds = [] as any;
+                for (let item of _data["entidadesEjecutorasParticipantesIds"])
+                    this.entidadesEjecutorasParticipantesIds!.push(item);
+            }
+            if (Array.isArray(_data["sectoresEstrategicosIds"])) {
+                this.sectoresEstrategicosIds = [] as any;
+                for (let item of _data["sectoresEstrategicosIds"])
+                    this.sectoresEstrategicosIds!.push(item);
+            }
+            if (Array.isArray(_data["ejesEstrategicosIds"])) {
+                this.ejesEstrategicosIds = [] as any;
+                for (let item of _data["ejesEstrategicosIds"])
+                    this.ejesEstrategicosIds!.push(item);
+            }
         }
     }
 
@@ -11057,13 +11237,33 @@ export abstract class ProyectoEnEjecucionUpsertRequestBase extends ProyectoUpser
         data = typeof data === 'object' ? data : {};
         data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
         data["fechaCierre"] = this.fechaCierre ? formatDate(this.fechaCierre) : undefined as any;
-        data["estadoDeEjecucion"] = this.estadoDeEjecucion;
         data["codigoProyecto"] = this.codigoProyecto;
-        data["entidadEjecutoraPrincipal"] = this.entidadEjecutoraPrincipal;
-        data["entidadEjecutoraParticipante"] = this.entidadEjecutoraParticipante;
-        data["contribucionSectoresEstrategicos"] = this.contribucionSectoresEstrategicos;
-        data["contribucionEjesEstrategicos"] = this.contribucionEjesEstrategicos;
         data["tributaDesarrolloLocal"] = this.tributaDesarrolloLocal;
+        if (Array.isArray(this.estadosDeEjecucionIds)) {
+            data["estadosDeEjecucionIds"] = [];
+            for (let item of this.estadosDeEjecucionIds)
+                data["estadosDeEjecucionIds"].push(item);
+        }
+        if (Array.isArray(this.entidadesEjecutorasPrincipalesIds)) {
+            data["entidadesEjecutorasPrincipalesIds"] = [];
+            for (let item of this.entidadesEjecutorasPrincipalesIds)
+                data["entidadesEjecutorasPrincipalesIds"].push(item);
+        }
+        if (Array.isArray(this.entidadesEjecutorasParticipantesIds)) {
+            data["entidadesEjecutorasParticipantesIds"] = [];
+            for (let item of this.entidadesEjecutorasParticipantesIds)
+                data["entidadesEjecutorasParticipantesIds"].push(item);
+        }
+        if (Array.isArray(this.sectoresEstrategicosIds)) {
+            data["sectoresEstrategicosIds"] = [];
+            for (let item of this.sectoresEstrategicosIds)
+                data["sectoresEstrategicosIds"].push(item);
+        }
+        if (Array.isArray(this.ejesEstrategicosIds)) {
+            data["ejesEstrategicosIds"] = [];
+            for (let item of this.ejesEstrategicosIds)
+                data["ejesEstrategicosIds"].push(item);
+        }
         super.toJSON(data);
         return data;
     }
@@ -11072,17 +11272,17 @@ export abstract class ProyectoEnEjecucionUpsertRequestBase extends ProyectoUpser
 export interface IProyectoEnEjecucionUpsertRequestBase extends IProyectoUpsertRequestBase {
     fechaInicio?: Date;
     fechaCierre?: Date | undefined;
-    estadoDeEjecucion?: string;
     codigoProyecto?: string;
-    entidadEjecutoraPrincipal?: string;
-    entidadEjecutoraParticipante?: string | undefined;
-    contribucionSectoresEstrategicos?: string | undefined;
-    contribucionEjesEstrategicos?: string | undefined;
     tributaDesarrolloLocal?: boolean;
+    estadosDeEjecucionIds?: number[];
+    entidadesEjecutorasPrincipalesIds?: string[];
+    entidadesEjecutorasParticipantesIds?: string[];
+    sectoresEstrategicosIds?: number[];
+    ejesEstrategicosIds?: number[];
 }
 
 export class ProyectoEmpresarialUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoEmpresarialUpsertRequest {
-    empresa?: string;
+    empresasIds?: string[];
 
     constructor(data?: IProyectoEmpresarialUpsertRequest) {
         super(data);
@@ -11091,7 +11291,11 @@ export class ProyectoEmpresarialUpsertRequest extends ProyectoEnEjecucionUpsertR
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.empresa = _data["empresa"];
+            if (Array.isArray(_data["empresasIds"])) {
+                this.empresasIds = [] as any;
+                for (let item of _data["empresasIds"])
+                    this.empresasIds!.push(item);
+            }
         }
     }
 
@@ -11104,18 +11308,22 @@ export class ProyectoEmpresarialUpsertRequest extends ProyectoEnEjecucionUpsertR
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["empresa"] = this.empresa;
+        if (Array.isArray(this.empresasIds)) {
+            data["empresasIds"] = [];
+            for (let item of this.empresasIds)
+                data["empresasIds"].push(item);
+        }
         super.toJSON(data);
         return data;
     }
 }
 
 export interface IProyectoEmpresarialUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
-    empresa?: string;
+    empresasIds?: string[];
 }
 
 export class ProyectoApoyoProgramaDto extends ProyectoEnEjecucionBaseDto implements IProyectoApoyoProgramaDto {
-    nombrePrograma?: string;
+    programas?: NomencladorDto[];
     tipoPAP?: TipoPAP;
 
     constructor(data?: IProyectoApoyoProgramaDto) {
@@ -11125,7 +11333,11 @@ export class ProyectoApoyoProgramaDto extends ProyectoEnEjecucionBaseDto impleme
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.nombrePrograma = _data["nombrePrograma"];
+            if (Array.isArray(_data["programas"])) {
+                this.programas = [] as any;
+                for (let item of _data["programas"])
+                    this.programas!.push(NomencladorDto.fromJS(item));
+            }
             this.tipoPAP = _data["tipoPAP"];
         }
     }
@@ -11139,7 +11351,11 @@ export class ProyectoApoyoProgramaDto extends ProyectoEnEjecucionBaseDto impleme
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["nombrePrograma"] = this.nombrePrograma;
+        if (Array.isArray(this.programas)) {
+            data["programas"] = [];
+            for (let item of this.programas)
+                data["programas"].push(item ? item.toJSON() : undefined as any);
+        }
         data["tipoPAP"] = this.tipoPAP;
         super.toJSON(data);
         return data;
@@ -11147,7 +11363,7 @@ export class ProyectoApoyoProgramaDto extends ProyectoEnEjecucionBaseDto impleme
 }
 
 export interface IProyectoApoyoProgramaDto extends IProyectoEnEjecucionBaseDto {
-    nombrePrograma?: string;
+    programas?: NomencladorDto[];
     tipoPAP?: TipoPAP;
 }
 
@@ -11158,7 +11374,7 @@ export enum TipoPAP {
 }
 
 export class ProyectoApoyoProgramaUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoApoyoProgramaUpsertRequest {
-    nombrePrograma?: string;
+    programasIds?: number[];
     tipoPAP?: TipoPAP;
 
     constructor(data?: IProyectoApoyoProgramaUpsertRequest) {
@@ -11168,7 +11384,11 @@ export class ProyectoApoyoProgramaUpsertRequest extends ProyectoEnEjecucionUpser
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.nombrePrograma = _data["nombrePrograma"];
+            if (Array.isArray(_data["programasIds"])) {
+                this.programasIds = [] as any;
+                for (let item of _data["programasIds"])
+                    this.programasIds!.push(item);
+            }
             this.tipoPAP = _data["tipoPAP"];
         }
     }
@@ -11182,7 +11402,11 @@ export class ProyectoApoyoProgramaUpsertRequest extends ProyectoEnEjecucionUpser
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["nombrePrograma"] = this.nombrePrograma;
+        if (Array.isArray(this.programasIds)) {
+            data["programasIds"] = [];
+            for (let item of this.programasIds)
+                data["programasIds"].push(item);
+        }
         data["tipoPAP"] = this.tipoPAP;
         super.toJSON(data);
         return data;
@@ -11190,12 +11414,14 @@ export class ProyectoApoyoProgramaUpsertRequest extends ProyectoEnEjecucionUpser
 }
 
 export interface IProyectoApoyoProgramaUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
-    nombrePrograma?: string;
+    programasIds?: number[];
     tipoPAP?: TipoPAP;
 }
 
 export class ProyectoDesarrolloLocalDto extends ProyectoEnEjecucionBaseDto implements IProyectoDesarrolloLocalDto {
-    municipio?: string;
+    municipioId?: number;
+    municipioNombre?: string;
+    provinciaNombre?: string | undefined;
 
     constructor(data?: IProyectoDesarrolloLocalDto) {
         super(data);
@@ -11204,7 +11430,9 @@ export class ProyectoDesarrolloLocalDto extends ProyectoEnEjecucionBaseDto imple
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.municipio = _data["municipio"];
+            this.municipioId = _data["municipioId"];
+            this.municipioNombre = _data["municipioNombre"];
+            this.provinciaNombre = _data["provinciaNombre"];
         }
     }
 
@@ -11217,18 +11445,22 @@ export class ProyectoDesarrolloLocalDto extends ProyectoEnEjecucionBaseDto imple
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["municipio"] = this.municipio;
+        data["municipioId"] = this.municipioId;
+        data["municipioNombre"] = this.municipioNombre;
+        data["provinciaNombre"] = this.provinciaNombre;
         super.toJSON(data);
         return data;
     }
 }
 
 export interface IProyectoDesarrolloLocalDto extends IProyectoEnEjecucionBaseDto {
-    municipio?: string;
+    municipioId?: number;
+    municipioNombre?: string;
+    provinciaNombre?: string | undefined;
 }
 
 export class ProyectoDesarrolloLocalUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoDesarrolloLocalUpsertRequest {
-    municipio?: string;
+    municipioId?: number;
 
     constructor(data?: IProyectoDesarrolloLocalUpsertRequest) {
         super(data);
@@ -11237,7 +11469,7 @@ export class ProyectoDesarrolloLocalUpsertRequest extends ProyectoEnEjecucionUps
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.municipio = _data["municipio"];
+            this.municipioId = _data["municipioId"];
         }
     }
 
@@ -11250,18 +11482,18 @@ export class ProyectoDesarrolloLocalUpsertRequest extends ProyectoEnEjecucionUps
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["municipio"] = this.municipio;
+        data["municipioId"] = this.municipioId;
         super.toJSON(data);
         return data;
     }
 }
 
 export interface IProyectoDesarrolloLocalUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
-    municipio?: string;
+    municipioId?: number;
 }
 
 export class ProyectoNoEmpresarialDto extends ProyectoEnEjecucionBaseDto implements IProyectoNoEmpresarialDto {
-    entidadNoEmpresarial?: string;
+    entidades?: InstitutionRefDto[];
 
     constructor(data?: IProyectoNoEmpresarialDto) {
         super(data);
@@ -11270,7 +11502,11 @@ export class ProyectoNoEmpresarialDto extends ProyectoEnEjecucionBaseDto impleme
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.entidadNoEmpresarial = _data["entidadNoEmpresarial"];
+            if (Array.isArray(_data["entidades"])) {
+                this.entidades = [] as any;
+                for (let item of _data["entidades"])
+                    this.entidades!.push(InstitutionRefDto.fromJS(item));
+            }
         }
     }
 
@@ -11283,18 +11519,22 @@ export class ProyectoNoEmpresarialDto extends ProyectoEnEjecucionBaseDto impleme
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["entidadNoEmpresarial"] = this.entidadNoEmpresarial;
+        if (Array.isArray(this.entidades)) {
+            data["entidades"] = [];
+            for (let item of this.entidades)
+                data["entidades"].push(item ? item.toJSON() : undefined as any);
+        }
         super.toJSON(data);
         return data;
     }
 }
 
 export interface IProyectoNoEmpresarialDto extends IProyectoEnEjecucionBaseDto {
-    entidadNoEmpresarial?: string;
+    entidades?: InstitutionRefDto[];
 }
 
 export class ProyectoNoEmpresarialUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoNoEmpresarialUpsertRequest {
-    entidadNoEmpresarial?: string;
+    entidadesIds?: string[];
 
     constructor(data?: IProyectoNoEmpresarialUpsertRequest) {
         super(data);
@@ -11303,7 +11543,11 @@ export class ProyectoNoEmpresarialUpsertRequest extends ProyectoEnEjecucionUpser
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.entidadNoEmpresarial = _data["entidadNoEmpresarial"];
+            if (Array.isArray(_data["entidadesIds"])) {
+                this.entidadesIds = [] as any;
+                for (let item of _data["entidadesIds"])
+                    this.entidadesIds!.push(item);
+            }
         }
     }
 
@@ -11316,18 +11560,22 @@ export class ProyectoNoEmpresarialUpsertRequest extends ProyectoEnEjecucionUpser
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["entidadNoEmpresarial"] = this.entidadNoEmpresarial;
+        if (Array.isArray(this.entidadesIds)) {
+            data["entidadesIds"] = [];
+            for (let item of this.entidadesIds)
+                data["entidadesIds"].push(item);
+        }
         super.toJSON(data);
         return data;
     }
 }
 
 export interface IProyectoNoEmpresarialUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
-    entidadNoEmpresarial?: string;
+    entidadesIds?: string[];
 }
 
 export class ProyectoColabInternacionalDto extends ProyectoEnEjecucionBaseDto implements IProyectoColabInternacionalDto {
-    fuenteFinanciacion?: string;
+    fuentesFinanciacion?: NomencladorDto[];
     terminosReferencia?: string;
 
     constructor(data?: IProyectoColabInternacionalDto) {
@@ -11337,7 +11585,11 @@ export class ProyectoColabInternacionalDto extends ProyectoEnEjecucionBaseDto im
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.fuenteFinanciacion = _data["fuenteFinanciacion"];
+            if (Array.isArray(_data["fuentesFinanciacion"])) {
+                this.fuentesFinanciacion = [] as any;
+                for (let item of _data["fuentesFinanciacion"])
+                    this.fuentesFinanciacion!.push(NomencladorDto.fromJS(item));
+            }
             this.terminosReferencia = _data["terminosReferencia"];
         }
     }
@@ -11351,7 +11603,11 @@ export class ProyectoColabInternacionalDto extends ProyectoEnEjecucionBaseDto im
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["fuenteFinanciacion"] = this.fuenteFinanciacion;
+        if (Array.isArray(this.fuentesFinanciacion)) {
+            data["fuentesFinanciacion"] = [];
+            for (let item of this.fuentesFinanciacion)
+                data["fuentesFinanciacion"].push(item ? item.toJSON() : undefined as any);
+        }
         data["terminosReferencia"] = this.terminosReferencia;
         super.toJSON(data);
         return data;
@@ -11359,12 +11615,12 @@ export class ProyectoColabInternacionalDto extends ProyectoEnEjecucionBaseDto im
 }
 
 export interface IProyectoColabInternacionalDto extends IProyectoEnEjecucionBaseDto {
-    fuenteFinanciacion?: string;
+    fuentesFinanciacion?: NomencladorDto[];
     terminosReferencia?: string;
 }
 
 export class ProyectoColabInternacionalUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoColabInternacionalUpsertRequest {
-    fuenteFinanciacion?: string;
+    fuentesFinanciacionIds?: number[];
     terminosReferencia?: string;
 
     constructor(data?: IProyectoColabInternacionalUpsertRequest) {
@@ -11374,7 +11630,11 @@ export class ProyectoColabInternacionalUpsertRequest extends ProyectoEnEjecucion
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.fuenteFinanciacion = _data["fuenteFinanciacion"];
+            if (Array.isArray(_data["fuentesFinanciacionIds"])) {
+                this.fuentesFinanciacionIds = [] as any;
+                for (let item of _data["fuentesFinanciacionIds"])
+                    this.fuentesFinanciacionIds!.push(item);
+            }
             this.terminosReferencia = _data["terminosReferencia"];
         }
     }
@@ -11388,7 +11648,11 @@ export class ProyectoColabInternacionalUpsertRequest extends ProyectoEnEjecucion
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["fuenteFinanciacion"] = this.fuenteFinanciacion;
+        if (Array.isArray(this.fuentesFinanciacionIds)) {
+            data["fuentesFinanciacionIds"] = [];
+            for (let item of this.fuentesFinanciacionIds)
+                data["fuentesFinanciacionIds"].push(item);
+        }
         data["terminosReferencia"] = this.terminosReferencia;
         super.toJSON(data);
         return data;
@@ -11396,12 +11660,12 @@ export class ProyectoColabInternacionalUpsertRequest extends ProyectoEnEjecucion
 }
 
 export interface IProyectoColabInternacionalUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
-    fuenteFinanciacion?: string;
+    fuentesFinanciacionIds?: number[];
     terminosReferencia?: string;
 }
 
 export class ProyectoPNAPDto extends ProyectoEnEjecucionBaseDto implements IProyectoPNAPDto {
-    financiamientoUH?: string;
+    fuentesFinanciacion?: NomencladorDto[];
 
     constructor(data?: IProyectoPNAPDto) {
         super(data);
@@ -11410,7 +11674,11 @@ export class ProyectoPNAPDto extends ProyectoEnEjecucionBaseDto implements IProy
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.financiamientoUH = _data["financiamientoUH"];
+            if (Array.isArray(_data["fuentesFinanciacion"])) {
+                this.fuentesFinanciacion = [] as any;
+                for (let item of _data["fuentesFinanciacion"])
+                    this.fuentesFinanciacion!.push(NomencladorDto.fromJS(item));
+            }
         }
     }
 
@@ -11423,18 +11691,22 @@ export class ProyectoPNAPDto extends ProyectoEnEjecucionBaseDto implements IProy
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["financiamientoUH"] = this.financiamientoUH;
+        if (Array.isArray(this.fuentesFinanciacion)) {
+            data["fuentesFinanciacion"] = [];
+            for (let item of this.fuentesFinanciacion)
+                data["fuentesFinanciacion"].push(item ? item.toJSON() : undefined as any);
+        }
         super.toJSON(data);
         return data;
     }
 }
 
 export interface IProyectoPNAPDto extends IProyectoEnEjecucionBaseDto {
-    financiamientoUH?: string;
+    fuentesFinanciacion?: NomencladorDto[];
 }
 
 export class ProyectoPNAPUpsertRequest extends ProyectoEnEjecucionUpsertRequestBase implements IProyectoPNAPUpsertRequest {
-    financiamientoUH?: string;
+    fuentesFinanciacionIds?: number[];
 
     constructor(data?: IProyectoPNAPUpsertRequest) {
         super(data);
@@ -11443,7 +11715,11 @@ export class ProyectoPNAPUpsertRequest extends ProyectoEnEjecucionUpsertRequestB
     override init(_data?: any) {
         super.init(_data);
         if (_data) {
-            this.financiamientoUH = _data["financiamientoUH"];
+            if (Array.isArray(_data["fuentesFinanciacionIds"])) {
+                this.fuentesFinanciacionIds = [] as any;
+                for (let item of _data["fuentesFinanciacionIds"])
+                    this.fuentesFinanciacionIds!.push(item);
+            }
         }
     }
 
@@ -11456,14 +11732,18 @@ export class ProyectoPNAPUpsertRequest extends ProyectoEnEjecucionUpsertRequestB
 
     override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["financiamientoUH"] = this.financiamientoUH;
+        if (Array.isArray(this.fuentesFinanciacionIds)) {
+            data["fuentesFinanciacionIds"] = [];
+            for (let item of this.fuentesFinanciacionIds)
+                data["fuentesFinanciacionIds"].push(item);
+        }
         super.toJSON(data);
         return data;
     }
 }
 
 export interface IProyectoPNAPUpsertRequest extends IProyectoEnEjecucionUpsertRequestBase {
-    financiamientoUH?: string;
+    fuentesFinanciacionIds?: number[];
 }
 
 export class PublicationTypeDto implements IPublicationTypeDto {

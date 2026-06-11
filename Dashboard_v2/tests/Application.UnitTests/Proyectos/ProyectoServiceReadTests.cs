@@ -1,6 +1,7 @@
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Proyectos;
 using Dashboard_v2.Domain.Entities;
+using Dashboard_v2.Domain.Enums;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -11,8 +12,7 @@ using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 namespace Dashboard_v2.Application.UnitTests.Proyectos;
 
 /// <summary>
-/// Tests for read-only ProyectoService methods: GetAllAsync, GetCatalogoAsync, GetTiposEjecucionAsync,
-/// GetPublicacionesDelProyectoAsync, GetPublicacionesDisponiblesAsync, GetXByIdAsync.
+/// Tests for read-only ProyectoService methods.
 /// </summary>
 [TestFixture]
 public class ProyectoServiceReadTests
@@ -63,7 +63,7 @@ public class ProyectoServiceReadTests
     [TearDown]
     public void TearDown() => _db.Dispose();
 
-    // ─── GetAllAsync ──────────────────────────────────────────────────────────
+    // ── GetAllAsync ───────────────────────────────────────────────────────────
 
     [Test]
     public async Task GetAllAsync_Empty_ReturnsEmpty()
@@ -72,7 +72,7 @@ public class ProyectoServiceReadTests
         result.ShouldBeEmpty();
     }
 
-    // ─── GetCatalogoAsync ─────────────────────────────────────────────────────
+    // ── GetCatalogoAsync ──────────────────────────────────────────────────────
 
     [Test]
     public async Task GetCatalogoAsync_Empty_ReturnsEmpty()
@@ -81,7 +81,7 @@ public class ProyectoServiceReadTests
         result.ShouldBeEmpty();
     }
 
-    // ─── GetTiposEjecucionAsync ───────────────────────────────────────────────
+    // ── GetTiposEjecucionAsync ────────────────────────────────────────────────
 
     [Test]
     public async Task GetTiposEjecucionAsync_ReturnsNonEmpty()
@@ -90,7 +90,7 @@ public class ProyectoServiceReadTests
         result.ShouldNotBeEmpty();
     }
 
-    // ─── GetPublicacionesDelProyectoAsync ─────────────────────────────────────
+    // ── GetPublicacionesDelProyectoAsync ──────────────────────────────────────
 
     [Test]
     public async Task GetPublicacionesDelProyectoAsync_NoPublications_ReturnsEmpty()
@@ -99,7 +99,7 @@ public class ProyectoServiceReadTests
         result.ShouldBeEmpty();
     }
 
-    // ─── GetPublicacionesDisponiblesAsync ─────────────────────────────────────
+    // ── GetPublicacionesDisponiblesAsync ──────────────────────────────────────
 
     [Test]
     public async Task GetPublicacionesDisponiblesAsync_Empty_ReturnsEmpty()
@@ -108,70 +108,37 @@ public class ProyectoServiceReadTests
         result.ShouldBeEmpty();
     }
 
-    // ─── GetEnRevisionByIdAsync ───────────────────────────────────────────────
+    // ── GetXByIdAsync – not found ─────────────────────────────────────────────
 
     [Test]
     public async Task GetEnRevisionByIdAsync_NotFound_ReturnsNull()
-    {
-        var result = await _sut.GetEnRevisionByIdAsync("nonexistent");
-        result.ShouldBeNull();
-    }
-
-    // ─── GetEmpresarialByIdAsync ──────────────────────────────────────────────
+        => (await _sut.GetEnRevisionByIdAsync("nonexistent")).ShouldBeNull();
 
     [Test]
     public async Task GetEmpresarialByIdAsync_NotFound_ReturnsNull()
-    {
-        var result = await _sut.GetEmpresarialByIdAsync("nonexistent");
-        result.ShouldBeNull();
-    }
-
-    // ─── GetApoyoProgramaByIdAsync ────────────────────────────────────────────
+        => (await _sut.GetEmpresarialByIdAsync("nonexistent")).ShouldBeNull();
 
     [Test]
     public async Task GetApoyoProgramaByIdAsync_NotFound_ReturnsNull()
-    {
-        var result = await _sut.GetApoyoProgramaByIdAsync("nonexistent");
-        result.ShouldBeNull();
-    }
-
-    // ─── GetDesarrolloLocalByIdAsync ──────────────────────────────────────────
+        => (await _sut.GetApoyoProgramaByIdAsync("nonexistent")).ShouldBeNull();
 
     [Test]
     public async Task GetDesarrolloLocalByIdAsync_NotFound_ReturnsNull()
-    {
-        var result = await _sut.GetDesarrolloLocalByIdAsync("nonexistent");
-        result.ShouldBeNull();
-    }
-
-    // ─── GetNoEmpresarialByIdAsync ────────────────────────────────────────────
+        => (await _sut.GetDesarrolloLocalByIdAsync("nonexistent")).ShouldBeNull();
 
     [Test]
     public async Task GetNoEmpresarialByIdAsync_NotFound_ReturnsNull()
-    {
-        var result = await _sut.GetNoEmpresarialByIdAsync("nonexistent");
-        result.ShouldBeNull();
-    }
-
-    // ─── GetColabInternacionalByIdAsync ───────────────────────────────────────
+        => (await _sut.GetNoEmpresarialByIdAsync("nonexistent")).ShouldBeNull();
 
     [Test]
     public async Task GetColabInternacionalByIdAsync_NotFound_ReturnsNull()
-    {
-        var result = await _sut.GetColabInternacionalByIdAsync("nonexistent");
-        result.ShouldBeNull();
-    }
-
-    // ─── GetPNAPByIdAsync ─────────────────────────────────────────────────────
+        => (await _sut.GetColabInternacionalByIdAsync("nonexistent")).ShouldBeNull();
 
     [Test]
     public async Task GetPNAPByIdAsync_NotFound_ReturnsNull()
-    {
-        var result = await _sut.GetPNAPByIdAsync("nonexistent");
-        result.ShouldBeNull();
-    }
+        => (await _sut.GetPNAPByIdAsync("nonexistent")).ShouldBeNull();
 
-    // ─── UpdateEnRevisionAsync NonExisting ────────────────────────────────────
+    // ── UpdateXAsync – not found ──────────────────────────────────────────────
 
     [Test]
     public async Task UpdateEnRevisionAsync_NotFound_ReturnsFailure()
@@ -184,15 +151,12 @@ public class ProyectoServiceReadTests
             AreaId = _areaId,
             NumeroMiembros = 1,
             CantidadMiembrosUH = 1,
-            Situacion = "En Ejecución",
             Tipo = "PE"
         };
         var result = await _sut.UpdateEnRevisionAsync("nonexistent", request);
         result.Succeeded.ShouldBeFalse();
         result.Errors.ShouldContain(e => e.Contains("no encontrado"));
     }
-
-    // ─── UpdateEmpresarialAsync NonExisting ───────────────────────────────────
 
     [Test]
     public async Task UpdateEmpresarialAsync_NotFound_ReturnsFailure()
@@ -206,20 +170,21 @@ public class ProyectoServiceReadTests
             NumeroMiembros = 1,
             CantidadMiembrosUH = 1,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En Ejecución",
-            CodigoProyecto = "PE-001",
-            EntidadEjecutoraPrincipal = "UH",
-            Empresa = "EmpresaX"
+            CodigoProyecto = "PE-001"
         };
         var result = await _sut.UpdateEmpresarialAsync("nonexistent", request);
         result.Succeeded.ShouldBeFalse();
     }
 
-    // ─── GetColabInternacionalByIdAsync with data ─────────────────────────────
+    // ── GetColabInternacionalByIdAsync with data ──────────────────────────────
 
     [Test]
     public async Task GetColabInternacionalByIdAsync_WithData_ReturnsDto()
     {
+        var fuente = new FuenteFinanciacion { Nombre = "EU Horizon" };
+        _db.FuentesFinanciacion.Add(fuente);
+        await _db.SaveChangesAsync();
+
         var (result, id) = await _sut.CreateColabInternacionalAsync(new ProyectoColabInternacionalUpsertRequest
         {
             Titulo = "Colab Test",
@@ -229,25 +194,30 @@ public class ProyectoServiceReadTests
             NumeroMiembros = 3,
             CantidadMiembrosUH = 2,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "CI-001",
-            EntidadEjecutoraPrincipal = "UH",
-            FuenteFinanciacion = "EU Horizon",
+            FuentesFinanciacionIds = [fuente.Id],
             TerminosReferencia = "TDR 2024"
         });
         result.Succeeded.ShouldBeTrue();
 
         var dto = await _sut.GetColabInternacionalByIdAsync(id!);
         dto.ShouldNotBeNull();
-        dto!.FuenteFinanciacion.ShouldBe("EU Horizon");
+        dto!.FuentesFinanciacion.ShouldContain(f => f.Nombre == "EU Horizon");
         dto.TerminosReferencia.ShouldBe("TDR 2024");
     }
 
-    // ─── GetDesarrolloLocalByIdAsync with data ────────────────────────────────
+    // ── GetDesarrolloLocalByIdAsync with data ─────────────────────────────────
 
     [Test]
     public async Task GetDesarrolloLocalByIdAsync_WithData_ReturnsDto()
     {
+        var provincia = new Provincia { Nombre = "La Habana" };
+        _db.Provincias.Add(provincia);
+        await _db.SaveChangesAsync();
+        var municipio = new Municipio { Nombre = "Plaza de la Revolución", ProvinciaId = provincia.Id };
+        _db.Municipios.Add(municipio);
+        await _db.SaveChangesAsync();
+
         var (result, id) = await _sut.CreateDesarrolloLocalAsync(new ProyectoDesarrolloLocalUpsertRequest
         {
             Titulo = "Desarrollo Local Test",
@@ -257,23 +227,27 @@ public class ProyectoServiceReadTests
             NumeroMiembros = 3,
             CantidadMiembrosUH = 2,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "DL-001",
-            EntidadEjecutoraPrincipal = "UH",
-            Municipio = "Plaza de la Revolución"
+            MunicipioId = municipio.Id
         });
         result.Succeeded.ShouldBeTrue();
 
         var dto = await _sut.GetDesarrolloLocalByIdAsync(id!);
         dto.ShouldNotBeNull();
-        dto!.Municipio.ShouldBe("Plaza de la Revolución");
+        dto!.MunicipioId.ShouldBe(municipio.Id);
+        dto.MunicipioNombre.ShouldBe("Plaza de la Revolución");
+        dto.ProvinciaNombre.ShouldBe("La Habana");
     }
 
-    // ─── GetNoEmpresarialByIdAsync with data ──────────────────────────────────
+    // ── GetNoEmpresarialByIdAsync with data ───────────────────────────────────
 
     [Test]
     public async Task GetNoEmpresarialByIdAsync_WithData_ReturnsDto()
     {
+        var entidad = new Institution { Nombre = "Ministerio de Ciencia" };
+        _db.Institutions.Add(entidad);
+        await _db.SaveChangesAsync();
+
         var (result, id) = await _sut.CreateNoEmpresarialAsync(new ProyectoNoEmpresarialUpsertRequest
         {
             Titulo = "No Empresarial Test",
@@ -283,23 +257,25 @@ public class ProyectoServiceReadTests
             NumeroMiembros = 2,
             CantidadMiembrosUH = 1,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "NE-001",
-            EntidadEjecutoraPrincipal = "UH",
-            EntidadNoEmpresarial = "Ministerio de Ciencia"
+            EntidadesIds = [entidad.Id]
         });
         result.Succeeded.ShouldBeTrue();
 
         var dto = await _sut.GetNoEmpresarialByIdAsync(id!);
         dto.ShouldNotBeNull();
-        dto!.EntidadNoEmpresarial.ShouldBe("Ministerio de Ciencia");
+        dto!.Entidades.ShouldContain(e => e.Nombre == "Ministerio de Ciencia");
     }
 
-    // ─── GetPNAPByIdAsync with data ───────────────────────────────────────────
+    // ── GetPNAPByIdAsync with data ────────────────────────────────────────────
 
     [Test]
     public async Task GetPNAPByIdAsync_WithData_ReturnsDto()
     {
+        var fuente = new FuenteFinanciacion { Nombre = "Presupuesto UH" };
+        _db.FuentesFinanciacion.Add(fuente);
+        await _db.SaveChangesAsync();
+
         var (result, id) = await _sut.CreatePNAPAsync(new ProyectoPNAPUpsertRequest
         {
             Titulo = "PNAP Test",
@@ -309,15 +285,13 @@ public class ProyectoServiceReadTests
             NumeroMiembros = 4,
             CantidadMiembrosUH = 3,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "PNAP-001",
-            EntidadEjecutoraPrincipal = "UH",
-            FinanciamientoUH = "2M CUP"
+            FuentesFinanciacionIds = [fuente.Id]
         });
         result.Succeeded.ShouldBeTrue();
 
         var dto = await _sut.GetPNAPByIdAsync(id!);
         dto.ShouldNotBeNull();
-        dto!.FinanciamientoUH.ShouldBe("2M CUP");
+        dto!.FuentesFinanciacion.ShouldContain(f => f.Nombre == "Presupuesto UH");
     }
 }

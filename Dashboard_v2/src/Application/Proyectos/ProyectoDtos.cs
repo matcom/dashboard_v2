@@ -2,14 +2,18 @@ using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Application.Proyectos;
 
+/// <summary>DTO mínimo para un nomenclador con Id entero.</summary>
+public record NomencladorDto(int Id, string Nombre);
+
+/// <summary>DTO mínimo para una referencia a institución (Id = Guid como string).</summary>
+public record InstitutionRefDto(string Id, string Nombre);
+
 /// <summary>Resumen para el listado general (todos los tipos mezclados, solo campos de display).</summary>
 public record ProyectoResumenDto
 {
     public string Id { get; init; } = default!;
     public string Titulo { get; init; } = default!;
-    /// <summary>ID del usuario jefe (FK).</summary>
     public string JefeId { get; init; } = default!;
-    /// <summary>Nombre completo del jefe, derivado del usuario.</summary>
     public string Jefe { get; init; } = default!;
     public string CorreoJefe { get; init; } = default!;
     public int NumeroMiembros { get; init; }
@@ -17,13 +21,11 @@ public record ProyectoResumenDto
     public string ClasificacionNombre { get; init; } = default!;
     public string AreaId { get; init; } = default!;
     public string AreaNombre { get; init; } = default!;
-    /// <summary>Slug de URL del tipo: "en-revision", "empresariales", etc. Usado por el frontend para construir rutas.</summary>
+    /// <summary>Slug de URL del tipo: "en-revision", "empresariales", etc.</summary>
     public string Tipo { get; init; } = default!;
-    // Campos extra útiles para el resumen
     public string? CodigoProyecto { get; init; }
-    public string? EstadoDeEjecucion { get; init; }
-    public string? Situacion { get; init; }
-    /// <summary>DOI/URLs de las publicaciones derivadas del proyecto.</summary>
+    public List<string> EstadosDeEjecucion { get; init; } = [];
+    public List<string> Situaciones { get; init; } = [];
     public List<string> PublicacionesDerivadas { get; init; } = [];
 }
 
@@ -32,9 +34,7 @@ public abstract record ProyectoBaseDto
 {
     public string Id { get; init; } = default!;
     public string Titulo { get; init; } = default!;
-    /// <summary>ID del usuario jefe (FK a Users).</summary>
     public string JefeId { get; init; } = default!;
-    /// <summary>Nombre completo del jefe, construido a partir de UserName + apellidos.</summary>
     public string Jefe { get; init; } = default!;
     public string CorreoJefe { get; init; } = default!;
     public int NumeroMiembros { get; init; }
@@ -46,64 +46,63 @@ public abstract record ProyectoBaseDto
     public string ClasificacionNombre { get; init; } = default!;
     public string AreaId { get; init; } = default!;
     public string AreaNombre { get; init; } = default!;
-    /// <summary>DOI/URLs de las publicaciones derivadas del proyecto.</summary>
     public List<string> PublicacionesDerivadas { get; init; } = [];
 }
+
 public abstract record ProyectoEnEjecucionBaseDto : ProyectoBaseDto
 {
     public DateOnly FechaInicio { get; init; }
     public DateOnly? FechaCierre { get; init; }
-    public string EstadoDeEjecucion { get; init; } = default!;
     public string CodigoProyecto { get; init; } = default!;
-    public string EntidadEjecutoraPrincipal { get; init; } = default!;
-    public string? EntidadEjecutoraParticipante { get; init; }
-    public string? ContribucionSectoresEstrategicos { get; init; }
-    public string? ContribucionEjesEstrategicos { get; init; }
-    /// <summary>Para ProyectoDesarrolloLocal siempre es <c>true</c>.</summary>
     public bool TributaDesarrolloLocal { get; init; }
+    public List<NomencladorDto> EstadosDeEjecucion { get; init; } = [];
+    public List<InstitutionRefDto> EntidadesEjecutorasPrincipales { get; init; } = [];
+    public List<InstitutionRefDto> EntidadesEjecutorasParticipantes { get; init; } = [];
+    public List<NomencladorDto> SectoresEstrategicos { get; init; } = [];
+    public List<NomencladorDto> EjesEstrategicos { get; init; } = [];
 }
 
 public record ProyectoEnRevisionDto : ProyectoBaseDto
 {
-    public string Situacion { get; init; } = default!;
+    public List<NomencladorDto> Situaciones { get; init; } = [];
     public string Tipo { get; init; } = default!;
 }
 
 public record ProyectoEmpresarialDto : ProyectoEnEjecucionBaseDto
 {
-    public string Empresa { get; init; } = default!;
+    public List<InstitutionRefDto> Empresas { get; init; } = [];
 }
 
 public record ProyectoApoyoProgramaDto : ProyectoEnEjecucionBaseDto
 {
-    public string NombrePrograma { get; init; } = default!;
+    public List<NomencladorDto> Programas { get; init; } = [];
     public TipoPAP TipoPAP { get; init; }
 }
 
 public record ProyectoDesarrolloLocalDto : ProyectoEnEjecucionBaseDto
 {
-    public string Municipio { get; init; } = default!;
+    public int MunicipioId { get; init; }
+    public string MunicipioNombre { get; init; } = default!;
+    public string? ProvinciaNombre { get; init; }
 }
 
 public record ProyectoNoEmpresarialDto : ProyectoEnEjecucionBaseDto
 {
-    public string EntidadNoEmpresarial { get; init; } = default!;
+    public List<InstitutionRefDto> Entidades { get; init; } = [];
 }
 
 public record ProyectoColabInternacionalDto : ProyectoEnEjecucionBaseDto
 {
-    public string FuenteFinanciacion { get; init; } = default!;
+    public List<NomencladorDto> FuentesFinanciacion { get; init; } = [];
     public string TerminosReferencia { get; init; } = default!;
 }
 
 public record ProyectoPNAPDto : ProyectoEnEjecucionBaseDto
 {
-    public string FinanciamientoUH { get; init; } = default!;
+    public List<NomencladorDto> FuentesFinanciacion { get; init; } = [];
 }
 
-/// <summary>
-/// Resumen mínimo de publicación usado por los endpoints de vinculación entre proyectos y publicaciones.
-/// </summary>
+/// <summary>Resumen mínimo de publicación usado por los endpoints de vinculación.</summary>
 public record ProyectoPublicacionDto
 {
     public string Id { get; init; } = default!;
@@ -111,7 +110,5 @@ public record ProyectoPublicacionDto
     public string? UrlDoi { get; init; }
 }
 
-/// <summary>
-/// Par mínimo Id/Título para el selector de proyectos en el formulario de publicaciones.
-/// </summary>
+/// <summary>Par mínimo Id/Título para el selector de proyectos en formularios de publicaciones.</summary>
 public record ProyectoCatalogoDto(string Id, string Titulo);

@@ -4,5 +4,7 @@ namespace Dashboard_v2.Domain.Entities;
 public class ProyectoEmpresarial : ProyectoEnEjecucion
 {
     public override string TipoIdentificador => "PE";
-    public string Empresa { get; set; } = default!;
+
+    /// <summary>M:N: empresas vinculadas al proyecto.</summary>
+    public ICollection<Institution> Empresas { get; set; } = new List<Institution>();
 }

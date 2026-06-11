@@ -50,6 +50,14 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AuthorProductoComercializado> AuthorProductosComercializados => Set<AuthorProductoComercializado>();
     public DbSet<AuthorPatente> AuthorPatentes => Set<AuthorPatente>();
     public DbSet<ProyectoPatente> ProyectoPatentes => Set<ProyectoPatente>();
+    public DbSet<Provincia> Provincias => Set<Provincia>();
+    public DbSet<Municipio> Municipios => Set<Municipio>();
+    public DbSet<SectorEstrategico> SectoresEstrategicos => Set<SectorEstrategico>();
+    public DbSet<EjeEstrategico> EjesEstrategicos => Set<EjeEstrategico>();
+    public DbSet<FuenteFinanciacion> FuentesFinanciacion => Set<FuenteFinanciacion>();
+    public DbSet<EstadoProyecto> EstadosProyecto => Set<EstadoProyecto>();
+    public DbSet<SituacionProyecto> SituacionesProyecto => Set<SituacionProyecto>();
+    public DbSet<Programa> Programas => Set<Programa>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

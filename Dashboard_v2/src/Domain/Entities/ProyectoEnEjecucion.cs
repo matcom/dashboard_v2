@@ -8,12 +8,7 @@ public abstract class ProyectoEnEjecucion : Proyecto
 {
     public DateOnly FechaInicio { get; set; }
     public DateOnly? FechaCierre { get; set; }
-    public string EstadoDeEjecucion { get; set; } = default!;
     public string CodigoProyecto { get; set; } = default!;
-    public string EntidadEjecutoraPrincipal { get; set; } = default!;
-    public string? EntidadEjecutoraParticipante { get; set; }
-    public string? ContribucionSectoresEstrategicos { get; set; }
-    public string? ContribucionEjesEstrategicos { get; set; }
 
     /// <summary>
     /// Identificador estable del tipo de proyecto en ejecución (p.ej. "PE", "PDL").
@@ -23,9 +18,18 @@ public abstract class ProyectoEnEjecucion : Proyecto
 
     /// <summary>
     /// Indica si el proyecto tributa al desarrollo local.
-    /// Para <see cref="ProyectoDesarrolloLocal"/> (PDL) este valor es siempre <c>true</c>:
-    /// por definición todo PDL tributa al desarrollo local y no es elegible por el usuario.
-    /// Para los demás tipos en ejecución el valor es configurable.
+    /// Para <see cref="ProyectoDesarrolloLocal"/> (PDL) este valor es siempre <c>true</c>.
     /// </summary>
     public bool TributaDesarrolloLocal { get; set; }
+
+    // M:N: estado(s) de ejecución del proyecto
+    public ICollection<EstadoProyecto> EstadosDeEjecucion { get; set; } = new List<EstadoProyecto>();
+
+    // M:N: entidades ejecutoras (principales y participantes, separadas semánticamente)
+    public ICollection<Institution> EntidadesEjecutorasPrincipales { get; set; } = new List<Institution>();
+    public ICollection<Institution> EntidadesEjecutorasParticipantes { get; set; } = new List<Institution>();
+
+    // M:N: sectores y ejes estratégicos a los que contribuye
+    public ICollection<SectorEstrategico> SectoresEstrategicos { get; set; } = new List<SectorEstrategico>();
+    public ICollection<EjeEstrategico> EjesEstrategicos { get; set; } = new List<EjeEstrategico>();
 }

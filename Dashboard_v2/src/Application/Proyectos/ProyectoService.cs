@@ -45,7 +45,7 @@ public sealed class ProyectoService : IProyectoService
                 AreaId = p.AreaId,
                 AreaNombre = p.Area.Nombre,
                 Tipo = "en-revision",
-                Situacion = p.Situacion,
+                Situaciones = p.Situaciones.Select(s => s.Nombre).ToList(),
                 PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList()
             })
             .ToListAsync(ct);
@@ -70,9 +70,7 @@ public sealed class ProyectoService : IProyectoService
 
     public Task<IReadOnlyList<string>> GetTiposEjecucionAsync(CancellationToken ct = default)
     {
-        IReadOnlyList<string> tipos = TiposProyectoEjecucion.Validos
-            .Order()
-            .ToList();
+        IReadOnlyList<string> tipos = TiposProyectoEjecucion.Validos.Order().ToList();
         return Task.FromResult(tipos);
     }
 
@@ -91,12 +89,7 @@ public sealed class ProyectoService : IProyectoService
             .AsNoTracking()
             .Where(p => p.ProyectoId == proyectoId)
             .OrderBy(p => p.Title)
-            .Select(p => new ProyectoPublicacionDto
-            {
-                Id = p.Id,
-                Title = p.Title,
-                UrlDoi = p.UrlDoi
-            })
+            .Select(p => new ProyectoPublicacionDto { Id = p.Id, Title = p.Title, UrlDoi = p.UrlDoi })
             .ToListAsync(ct);
     }
 
@@ -106,12 +99,7 @@ public sealed class ProyectoService : IProyectoService
             .AsNoTracking()
             .Where(p => p.ProyectoId == null)
             .OrderBy(p => p.Title)
-            .Select(p => new ProyectoPublicacionDto
-            {
-                Id = p.Id,
-                Title = p.Title,
-                UrlDoi = p.UrlDoi
-            })
+            .Select(p => new ProyectoPublicacionDto { Id = p.Id, Title = p.Title, UrlDoi = p.UrlDoi })
             .ToListAsync(ct);
     }
 
@@ -119,14 +107,10 @@ public sealed class ProyectoService : IProyectoService
     {
         var publication = await _context.Publications.FirstOrDefaultAsync(p => p.Id == publicationId, ct);
         if (publication is null)
-        {
             return Result.Failure(["Publicación no encontrada."]);
-        }
 
         if (publication.ProyectoId is not null && publication.ProyectoId != proyectoId)
-        {
             return Result.Failure(["Esta publicación ya está vinculada a otro proyecto."]);
-        }
 
         publication.ProyectoId = proyectoId;
         await _context.SaveChangesAsync(ct);
@@ -139,9 +123,7 @@ public sealed class ProyectoService : IProyectoService
             .FirstOrDefaultAsync(p => p.Id == publicationId && p.ProyectoId == proyectoId, ct);
 
         if (publication is null)
-        {
             return Result.Failure(["Publicación no encontrada."]);
-        }
 
         publication.ProyectoId = null;
         await _context.SaveChangesAsync(ct);
@@ -152,135 +134,223 @@ public sealed class ProyectoService : IProyectoService
     {
         var proyecto = await _context.Proyectos.FindAsync([id], ct);
         if (proyecto is null)
-        {
             return Result.Failure(["Proyecto no encontrado."]);
-        }
 
         var ownerFilter = ProyectoHelper.GetOwnerFilter(_currentUser);
         if (ownerFilter is not null && proyecto.JefeId != ownerFilter)
-        {
             return Result.Failure(["No tiene permiso para eliminar este proyecto."]);
-        }
 
         _context.Proyectos.Remove(proyecto);
         await _context.SaveChangesAsync(ct);
         return Result.Success();
     }
 
+    // ── EnRevision ────────────────────────────────────────────────────────────
+
     public Task<ProyectoEnRevisionDto?> GetEnRevisionByIdAsync(string id, CancellationToken ct = default)
-        => GetProyectoAsync<ProyectoEnRevision, ProyectoEnRevisionDto>(id, MapEnRevisionDto, ct);
+        => GetProyectoAsync<ProyectoEnRevision, ProyectoEnRevisionDto>(
+            id, MapEnRevisionDto, ct,
+            q => q.Include(p => p.Situaciones));
 
     public Task<(Result Result, string? Id)> CreateEnRevisionAsync(ProyectoEnRevisionUpsertRequest request, CancellationToken ct = default)
-        => CreateAsync<ProyectoEnRevision, ProyectoEnRevisionUpsertRequest>(request, (proyecto, body) =>
+        => CreateAsync<ProyectoEnRevision, ProyectoEnRevisionUpsertRequest>(request, async (proyecto, body) =>
         {
-            proyecto.Situacion = body.Situacion?.Trim() ?? string.Empty;
             proyecto.Tipo = body.Tipo?.Trim() ?? string.Empty;
+            proyecto.Situaciones = await _context.SituacionesProyecto
+                .Where(s => body.SituacionesIds.Contains(s.Id))
+                .ToListAsync(ct);
         }, ct);
 
     public Task<Result> UpdateEnRevisionAsync(string id, ProyectoEnRevisionUpsertRequest request, CancellationToken ct = default)
-        => UpdateAsync<ProyectoEnRevision, ProyectoEnRevisionUpsertRequest>(id, request, (proyecto, body) =>
+        => UpdateAsync<ProyectoEnRevision, ProyectoEnRevisionUpsertRequest>(id, request, async (proyecto, body) =>
         {
-            proyecto.Situacion = body.Situacion?.Trim() ?? string.Empty;
             proyecto.Tipo = body.Tipo?.Trim() ?? string.Empty;
-        }, ct);
+            proyecto.Situaciones = await _context.SituacionesProyecto
+                .Where(s => body.SituacionesIds.Contains(s.Id))
+                .ToListAsync(ct);
+        }, ct, q => q.Include(p => p.Situaciones));
+
+    // ── Empresarial ───────────────────────────────────────────────────────────
 
     public Task<ProyectoEmpresarialDto?> GetEmpresarialByIdAsync(string id, CancellationToken ct = default)
-        => GetProyectoAsync<ProyectoEmpresarial, ProyectoEmpresarialDto>(id, MapEmpresarialDto, ct);
+        => GetProyectoAsync<ProyectoEmpresarial, ProyectoEmpresarialDto>(
+            id, MapEmpresarialDto, ct,
+            q => q
+                .Include(p => p.EstadosDeEjecucion)
+                .Include(p => p.EntidadesEjecutorasPrincipales)
+                .Include(p => p.EntidadesEjecutorasParticipantes)
+                .Include(p => p.SectoresEstrategicos)
+                .Include(p => p.EjesEstrategicos)
+                .Include(p => p.Empresas));
 
     public Task<(Result Result, string? Id)> CreateEmpresarialAsync(ProyectoEmpresarialUpsertRequest request, CancellationToken ct = default)
-        => CreateEjecucionAsync<ProyectoEmpresarial, ProyectoEmpresarialUpsertRequest>(request, (proyecto, body) =>
+        => CreateEjecucionAsync<ProyectoEmpresarial, ProyectoEmpresarialUpsertRequest>(request, async (proyecto, body) =>
         {
-            proyecto.Empresa = body.Empresa?.Trim() ?? string.Empty;
+            proyecto.Empresas = await _context.Institutions
+                .Where(i => body.EmpresasIds.Contains(i.Id))
+                .ToListAsync(ct);
         }, ct);
 
     public Task<Result> UpdateEmpresarialAsync(string id, ProyectoEmpresarialUpsertRequest request, CancellationToken ct = default)
-        => UpdateEjecucionAsync<ProyectoEmpresarial, ProyectoEmpresarialUpsertRequest>(id, request, (proyecto, body) =>
+        => UpdateEjecucionAsync<ProyectoEmpresarial, ProyectoEmpresarialUpsertRequest>(id, request, async (proyecto, body) =>
         {
-            proyecto.Empresa = body.Empresa?.Trim() ?? string.Empty;
-        }, ct);
+            proyecto.Empresas = await _context.Institutions
+                .Where(i => body.EmpresasIds.Contains(i.Id))
+                .ToListAsync(ct);
+        }, ct, additionalIncludes: q => q.Include(p => p.Empresas));
+
+    // ── ApoyoPrograma ─────────────────────────────────────────────────────────
 
     public Task<ProyectoApoyoProgramaDto?> GetApoyoProgramaByIdAsync(string id, CancellationToken ct = default)
-        => GetProyectoAsync<ProyectoApoyoPrograma, ProyectoApoyoProgramaDto>(id, MapApoyoProgramaDto, ct);
+        => GetProyectoAsync<ProyectoApoyoPrograma, ProyectoApoyoProgramaDto>(
+            id, MapApoyoProgramaDto, ct,
+            q => q
+                .Include(p => p.EstadosDeEjecucion)
+                .Include(p => p.EntidadesEjecutorasPrincipales)
+                .Include(p => p.EntidadesEjecutorasParticipantes)
+                .Include(p => p.SectoresEstrategicos)
+                .Include(p => p.EjesEstrategicos)
+                .Include(p => p.Programas));
 
     public Task<(Result Result, string? Id)> CreateApoyoProgramaAsync(ProyectoApoyoProgramaUpsertRequest request, CancellationToken ct = default)
-        => CreateEjecucionAsync<ProyectoApoyoPrograma, ProyectoApoyoProgramaUpsertRequest>(request, (proyecto, body) =>
+        => CreateEjecucionAsync<ProyectoApoyoPrograma, ProyectoApoyoProgramaUpsertRequest>(request, async (proyecto, body) =>
         {
-            proyecto.NombrePrograma = body.NombrePrograma?.Trim() ?? string.Empty;
             proyecto.TipoPAP = body.TipoPAP;
+            proyecto.Programas = await _context.Programas
+                .Where(p => body.ProgramasIds.Contains(p.Id))
+                .ToListAsync(ct);
         }, ct);
 
     public Task<Result> UpdateApoyoProgramaAsync(string id, ProyectoApoyoProgramaUpsertRequest request, CancellationToken ct = default)
-        => UpdateEjecucionAsync<ProyectoApoyoPrograma, ProyectoApoyoProgramaUpsertRequest>(id, request, (proyecto, body) =>
+        => UpdateEjecucionAsync<ProyectoApoyoPrograma, ProyectoApoyoProgramaUpsertRequest>(id, request, async (proyecto, body) =>
         {
-            proyecto.NombrePrograma = body.NombrePrograma?.Trim() ?? string.Empty;
             proyecto.TipoPAP = body.TipoPAP;
-        }, ct);
+            proyecto.Programas = await _context.Programas
+                .Where(p => body.ProgramasIds.Contains(p.Id))
+                .ToListAsync(ct);
+        }, ct, additionalIncludes: q => q.Include(p => p.Programas));
+
+    // ── DesarrolloLocal ───────────────────────────────────────────────────────
 
     public Task<ProyectoDesarrolloLocalDto?> GetDesarrolloLocalByIdAsync(string id, CancellationToken ct = default)
-        => GetProyectoAsync<ProyectoDesarrolloLocal, ProyectoDesarrolloLocalDto>(id, MapDesarrolloLocalDto, ct);
+        => GetProyectoAsync<ProyectoDesarrolloLocal, ProyectoDesarrolloLocalDto>(
+            id, MapDesarrolloLocalDto, ct,
+            q => q
+                .Include(p => p.EstadosDeEjecucion)
+                .Include(p => p.EntidadesEjecutorasPrincipales)
+                .Include(p => p.EntidadesEjecutorasParticipantes)
+                .Include(p => p.SectoresEstrategicos)
+                .Include(p => p.EjesEstrategicos)
+                .Include(p => p.Municipio).ThenInclude(m => m.Provincia));
 
     public Task<(Result Result, string? Id)> CreateDesarrolloLocalAsync(ProyectoDesarrolloLocalUpsertRequest request, CancellationToken ct = default)
         => CreateEjecucionAsync<ProyectoDesarrolloLocal, ProyectoDesarrolloLocalUpsertRequest>(request, (proyecto, body) =>
         {
-            proyecto.Municipio = body.Municipio?.Trim() ?? string.Empty;
+            proyecto.MunicipioId = body.MunicipioId;
+            return Task.CompletedTask;
         }, ct, forceTributaDesarrolloLocal: true);
 
     public Task<Result> UpdateDesarrolloLocalAsync(string id, ProyectoDesarrolloLocalUpsertRequest request, CancellationToken ct = default)
         => UpdateEjecucionAsync<ProyectoDesarrolloLocal, ProyectoDesarrolloLocalUpsertRequest>(id, request, (proyecto, body) =>
         {
-            proyecto.Municipio = body.Municipio?.Trim() ?? string.Empty;
+            proyecto.MunicipioId = body.MunicipioId;
+            return Task.CompletedTask;
         }, ct, forceTributaDesarrolloLocal: true);
 
+    // ── NoEmpresarial ─────────────────────────────────────────────────────────
+
     public Task<ProyectoNoEmpresarialDto?> GetNoEmpresarialByIdAsync(string id, CancellationToken ct = default)
-        => GetProyectoAsync<ProyectoNoEmpresarial, ProyectoNoEmpresarialDto>(id, MapNoEmpresarialDto, ct);
+        => GetProyectoAsync<ProyectoNoEmpresarial, ProyectoNoEmpresarialDto>(
+            id, MapNoEmpresarialDto, ct,
+            q => q
+                .Include(p => p.EstadosDeEjecucion)
+                .Include(p => p.EntidadesEjecutorasPrincipales)
+                .Include(p => p.EntidadesEjecutorasParticipantes)
+                .Include(p => p.SectoresEstrategicos)
+                .Include(p => p.EjesEstrategicos)
+                .Include(p => p.Entidades));
 
     public Task<(Result Result, string? Id)> CreateNoEmpresarialAsync(ProyectoNoEmpresarialUpsertRequest request, CancellationToken ct = default)
-        => CreateEjecucionAsync<ProyectoNoEmpresarial, ProyectoNoEmpresarialUpsertRequest>(request, (proyecto, body) =>
+        => CreateEjecucionAsync<ProyectoNoEmpresarial, ProyectoNoEmpresarialUpsertRequest>(request, async (proyecto, body) =>
         {
-            proyecto.EntidadNoEmpresarial = body.EntidadNoEmpresarial?.Trim() ?? string.Empty;
+            proyecto.Entidades = await _context.Institutions
+                .Where(i => body.EntidadesIds.Contains(i.Id))
+                .ToListAsync(ct);
         }, ct);
 
     public Task<Result> UpdateNoEmpresarialAsync(string id, ProyectoNoEmpresarialUpsertRequest request, CancellationToken ct = default)
-        => UpdateEjecucionAsync<ProyectoNoEmpresarial, ProyectoNoEmpresarialUpsertRequest>(id, request, (proyecto, body) =>
+        => UpdateEjecucionAsync<ProyectoNoEmpresarial, ProyectoNoEmpresarialUpsertRequest>(id, request, async (proyecto, body) =>
         {
-            proyecto.EntidadNoEmpresarial = body.EntidadNoEmpresarial?.Trim() ?? string.Empty;
-        }, ct);
+            proyecto.Entidades = await _context.Institutions
+                .Where(i => body.EntidadesIds.Contains(i.Id))
+                .ToListAsync(ct);
+        }, ct, additionalIncludes: q => q.Include(p => p.Entidades));
+
+    // ── ColabInternacional ────────────────────────────────────────────────────
 
     public Task<ProyectoColabInternacionalDto?> GetColabInternacionalByIdAsync(string id, CancellationToken ct = default)
-        => GetProyectoAsync<ProyectoColabInternacional, ProyectoColabInternacionalDto>(id, MapColabInternacionalDto, ct);
+        => GetProyectoAsync<ProyectoColabInternacional, ProyectoColabInternacionalDto>(
+            id, MapColabInternacionalDto, ct,
+            q => q
+                .Include(p => p.EstadosDeEjecucion)
+                .Include(p => p.EntidadesEjecutorasPrincipales)
+                .Include(p => p.EntidadesEjecutorasParticipantes)
+                .Include(p => p.SectoresEstrategicos)
+                .Include(p => p.EjesEstrategicos)
+                .Include(p => p.FuentesFinanciacion));
 
     public Task<(Result Result, string? Id)> CreateColabInternacionalAsync(ProyectoColabInternacionalUpsertRequest request, CancellationToken ct = default)
-        => CreateEjecucionAsync<ProyectoColabInternacional, ProyectoColabInternacionalUpsertRequest>(request, (proyecto, body) =>
+        => CreateEjecucionAsync<ProyectoColabInternacional, ProyectoColabInternacionalUpsertRequest>(request, async (proyecto, body) =>
         {
-            proyecto.FuenteFinanciacion = body.FuenteFinanciacion?.Trim() ?? string.Empty;
             proyecto.TerminosReferencia = body.TerminosReferencia?.Trim() ?? string.Empty;
+            proyecto.FuentesFinanciacion = await _context.FuentesFinanciacion
+                .Where(f => body.FuentesFinanciacionIds.Contains(f.Id))
+                .ToListAsync(ct);
         }, ct);
 
     public Task<Result> UpdateColabInternacionalAsync(string id, ProyectoColabInternacionalUpsertRequest request, CancellationToken ct = default)
-        => UpdateEjecucionAsync<ProyectoColabInternacional, ProyectoColabInternacionalUpsertRequest>(id, request, (proyecto, body) =>
+        => UpdateEjecucionAsync<ProyectoColabInternacional, ProyectoColabInternacionalUpsertRequest>(id, request, async (proyecto, body) =>
         {
-            proyecto.FuenteFinanciacion = body.FuenteFinanciacion?.Trim() ?? string.Empty;
             proyecto.TerminosReferencia = body.TerminosReferencia?.Trim() ?? string.Empty;
-        }, ct);
+            proyecto.FuentesFinanciacion = await _context.FuentesFinanciacion
+                .Where(f => body.FuentesFinanciacionIds.Contains(f.Id))
+                .ToListAsync(ct);
+        }, ct, additionalIncludes: q => q.Include(p => p.FuentesFinanciacion));
+
+    // ── PNAP ──────────────────────────────────────────────────────────────────
 
     public Task<ProyectoPNAPDto?> GetPNAPByIdAsync(string id, CancellationToken ct = default)
-        => GetProyectoAsync<ProyectoPNAP, ProyectoPNAPDto>(id, MapPnapDto, ct);
+        => GetProyectoAsync<ProyectoPNAP, ProyectoPNAPDto>(
+            id, MapPnapDto, ct,
+            q => q
+                .Include(p => p.EstadosDeEjecucion)
+                .Include(p => p.EntidadesEjecutorasPrincipales)
+                .Include(p => p.EntidadesEjecutorasParticipantes)
+                .Include(p => p.SectoresEstrategicos)
+                .Include(p => p.EjesEstrategicos)
+                .Include(p => p.FuentesFinanciacion));
 
     public Task<(Result Result, string? Id)> CreatePNAPAsync(ProyectoPNAPUpsertRequest request, CancellationToken ct = default)
-        => CreateEjecucionAsync<ProyectoPNAP, ProyectoPNAPUpsertRequest>(request, (proyecto, body) =>
+        => CreateEjecucionAsync<ProyectoPNAP, ProyectoPNAPUpsertRequest>(request, async (proyecto, body) =>
         {
-            proyecto.FinanciamientoUH = body.FinanciamientoUH?.Trim() ?? string.Empty;
+            proyecto.FuentesFinanciacion = await _context.FuentesFinanciacion
+                .Where(f => body.FuentesFinanciacionIds.Contains(f.Id))
+                .ToListAsync(ct);
         }, ct);
 
     public Task<Result> UpdatePNAPAsync(string id, ProyectoPNAPUpsertRequest request, CancellationToken ct = default)
-        => UpdateEjecucionAsync<ProyectoPNAP, ProyectoPNAPUpsertRequest>(id, request, (proyecto, body) =>
+        => UpdateEjecucionAsync<ProyectoPNAP, ProyectoPNAPUpsertRequest>(id, request, async (proyecto, body) =>
         {
-            proyecto.FinanciamientoUH = body.FinanciamientoUH?.Trim() ?? string.Empty;
-        }, ct);
+            proyecto.FuentesFinanciacion = await _context.FuentesFinanciacion
+                .Where(f => body.FuentesFinanciacionIds.Contains(f.Id))
+                .ToListAsync(ct);
+        }, ct, additionalIncludes: q => q.Include(p => p.FuentesFinanciacion));
+
+    // ── Generic CRUD helpers ──────────────────────────────────────────────────
 
     private async Task<(Result Result, string? Id)> CreateAsync<TProyecto, TRequest>(
         TRequest request,
-        Action<TProyecto, TRequest> applySpecific,
+        Func<TProyecto, TRequest, Task> applySpecificAsync,
         CancellationToken ct)
         where TProyecto : Proyecto, new()
         where TRequest : IProyectoUpsertRequest
@@ -289,19 +359,15 @@ public sealed class ProyectoService : IProyectoService
 
         var (jefeValidation, jefeId) = await ResolveAndValidateJefeAsync(request.JefeId, ct);
         if (jefeValidation is not null)
-        {
             return (jefeValidation, null);
-        }
 
         var (areaError, areaId) = await ResolveAreaIdAsync(request.AreaId, ct);
         if (areaError is not null)
-        {
             return (areaError, null);
-        }
 
         var proyecto = new TProyecto();
         ApplyBase(proyecto, request, jefeId, areaId);
-        applySpecific(proyecto, request);
+        await applySpecificAsync(proyecto, request);
 
         _context.Proyectos.Add(proyecto);
         await _context.SaveChangesAsync(ct);
@@ -309,59 +375,55 @@ public sealed class ProyectoService : IProyectoService
         return (Result.Success(), proyecto.Id);
     }
 
-    private async Task<(Result Result, string? Id)> CreateEjecucionAsync<TProyecto, TRequest>(
+    private Task<(Result Result, string? Id)> CreateEjecucionAsync<TProyecto, TRequest>(
         TRequest request,
-        Action<TProyecto, TRequest> applySpecific,
+        Func<TProyecto, TRequest, Task> applySpecificAsync,
         CancellationToken ct,
         bool forceTributaDesarrolloLocal = false)
         where TProyecto : ProyectoEnEjecucion, new()
         where TRequest : IProyectoEnEjecucionUpsertRequest
     {
-        return await CreateAsync<TProyecto, TRequest>(request, (proyecto, body) =>
+        return CreateAsync<TProyecto, TRequest>(request, async (proyecto, body) =>
         {
-            ApplyEjecucion(proyecto, body, forceTributaDesarrolloLocal);
-            applySpecific(proyecto, body);
+            await ApplyEjecucionAsync(proyecto, body, forceTributaDesarrolloLocal, ct);
+            await applySpecificAsync(proyecto, body);
         }, ct);
     }
 
     private async Task<Result> UpdateAsync<TProyecto, TRequest>(
         string id,
         TRequest request,
-        Action<TProyecto, TRequest> applySpecific,
-        CancellationToken ct)
+        Func<TProyecto, TRequest, Task> applySpecificAsync,
+        CancellationToken ct,
+        Func<IQueryable<TProyecto>, IQueryable<TProyecto>>? includeBuilder = null)
         where TProyecto : Proyecto
         where TRequest : IProyectoUpsertRequest
     {
         await _validationService.ValidateAndThrowAsync(request, ct);
 
-        var proyecto = await _context.Proyectos.OfType<TProyecto>()
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
+        IQueryable<TProyecto> query = _context.Proyectos.OfType<TProyecto>();
+        if (includeBuilder is not null)
+            query = includeBuilder(query);
+
+        var proyecto = await query.FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (proyecto is null)
-        {
             return Result.Failure(["Proyecto no encontrado."]);
-        }
 
         var ownerFilter = ProyectoHelper.GetOwnerFilter(_currentUser);
         if (ownerFilter is not null && proyecto.JefeId != ownerFilter)
-        {
             return Result.Failure(["No tiene permiso para modificar este proyecto."]);
-        }
 
         var (jefeValidation, jefeId) = await ResolveAndValidateJefeAsync(request.JefeId, ct);
         if (jefeValidation is not null)
-        {
             return jefeValidation;
-        }
 
         var (areaError, areaId) = await ResolveAreaIdAsync(request.AreaId, ct);
         if (areaError is not null)
-        {
             return areaError;
-        }
 
         ApplyBase(proyecto, request, jefeId, areaId);
-        applySpecific(proyecto, request);
+        await applySpecificAsync(proyecto, request);
 
         await _context.SaveChangesAsync(ct);
         return Result.Success();
@@ -370,33 +432,53 @@ public sealed class ProyectoService : IProyectoService
     private Task<Result> UpdateEjecucionAsync<TProyecto, TRequest>(
         string id,
         TRequest request,
-        Action<TProyecto, TRequest> applySpecific,
+        Func<TProyecto, TRequest, Task> applySpecificAsync,
         CancellationToken ct,
-        bool forceTributaDesarrolloLocal = false)
+        bool forceTributaDesarrolloLocal = false,
+        Func<IQueryable<TProyecto>, IQueryable<TProyecto>>? additionalIncludes = null)
         where TProyecto : ProyectoEnEjecucion
         where TRequest : IProyectoEnEjecucionUpsertRequest
     {
-        return UpdateAsync<TProyecto, TRequest>(id, request, (proyecto, body) =>
+        // Always include the M:N collections owned by ProyectoEnEjecucion so EF Core
+        // can detect deletions when the collections are reassigned during update.
+        Func<IQueryable<TProyecto>, IQueryable<TProyecto>> fullIncludes = q =>
         {
-            ApplyEjecucion(proyecto, body, forceTributaDesarrolloLocal);
-            applySpecific(proyecto, body);
-        }, ct);
+            IQueryable<TProyecto> withBase = q
+                .Include(p => p.EstadosDeEjecucion)
+                .Include(p => p.EntidadesEjecutorasPrincipales)
+                .Include(p => p.EntidadesEjecutorasParticipantes)
+                .Include(p => p.SectoresEstrategicos)
+                .Include(p => p.EjesEstrategicos);
+            return additionalIncludes is null ? withBase : additionalIncludes(withBase);
+        };
+
+        return UpdateAsync<TProyecto, TRequest>(id, request, async (proyecto, body) =>
+        {
+            await ApplyEjecucionAsync(proyecto, body, forceTributaDesarrolloLocal, ct);
+            await applySpecificAsync(proyecto, body);
+        }, ct, fullIncludes);
     }
 
     private async Task<TDto?> GetProyectoAsync<TProyecto, TDto>(
         string id,
         Func<TProyecto, TDto> mapper,
-        CancellationToken ct)
+        CancellationToken ct,
+        Func<IQueryable<TProyecto>, IQueryable<TProyecto>>? includeBuilder = null)
         where TProyecto : Proyecto
         where TDto : class
     {
         var ownerFilter = ProyectoHelper.GetOwnerFilter(_currentUser);
 
-        var proyecto = await _context.Proyectos.OfType<TProyecto>()
+        IQueryable<TProyecto> query = _context.Proyectos.OfType<TProyecto>()
             .Include(x => x.Clasificacion)
             .Include(x => x.Area)
             .Include(x => x.JefeUsuario)
-            .Include(x => x.PublicacionesDerivadas)
+            .Include(x => x.PublicacionesDerivadas);
+
+        if (includeBuilder is not null)
+            query = includeBuilder(query);
+
+        var proyecto = await query
             .FirstOrDefaultAsync(x => x.Id == id && (ownerFilter == null || x.JefeId == ownerFilter), ct);
 
         return proyecto is null ? null : mapper(proyecto);
@@ -425,11 +507,45 @@ public sealed class ProyectoService : IProyectoService
                 AreaNombre = p.Area.Nombre,
                 Tipo = tipo,
                 CodigoProyecto = p.CodigoProyecto,
-                EstadoDeEjecucion = p.EstadoDeEjecucion,
+                EstadosDeEjecucion = p.EstadosDeEjecucion.Select(e => e.Nombre).ToList(),
                 PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList()
             })
             .ToListAsync(ct);
     }
+
+    // ── Async M:N application ─────────────────────────────────────────────────
+
+    private async Task ApplyEjecucionAsync(
+        ProyectoEnEjecucion pe,
+        IProyectoEnEjecucionUpsertRequest request,
+        bool forceTributaDesarrolloLocal,
+        CancellationToken ct)
+    {
+        ProyectoHelper.SetEjecucion(pe, request.FechaInicio, request.FechaCierre,
+            request.CodigoProyecto, forceTributaDesarrolloLocal || request.TributaDesarrolloLocal);
+
+        pe.EstadosDeEjecucion = await _context.EstadosProyecto
+            .Where(e => request.EstadosDeEjecucionIds.Contains(e.Id))
+            .ToListAsync(ct);
+
+        pe.EntidadesEjecutorasPrincipales = await _context.Institutions
+            .Where(i => request.EntidadesEjecutorasPrincipalesIds.Contains(i.Id))
+            .ToListAsync(ct);
+
+        pe.EntidadesEjecutorasParticipantes = await _context.Institutions
+            .Where(i => request.EntidadesEjecutorasParticipantesIds.Contains(i.Id))
+            .ToListAsync(ct);
+
+        pe.SectoresEstrategicos = await _context.SectoresEstrategicos
+            .Where(s => request.SectoresEstrategicosIds.Contains(s.Id))
+            .ToListAsync(ct);
+
+        pe.EjesEstrategicos = await _context.EjesEstrategicos
+            .Where(e => request.EjesEstrategicosIds.Contains(e.Id))
+            .ToListAsync(ct);
+    }
+
+    // ── Resolution helpers ────────────────────────────────────────────────────
 
     private async Task<(Result? ValidationResult, string JefeId)> ResolveAndValidateJefeAsync(string requestedJefeId, CancellationToken ct)
     {
@@ -441,280 +557,251 @@ public sealed class ProyectoService : IProyectoService
     private static void ApplyBase(Proyecto proyecto, IProyectoUpsertRequest request, string jefeId, string areaId)
     {
         ProyectoHelper.SetBase(
-            proyecto,
-            request.Titulo,
-            jefeId,
-            request.NumeroMiembros,
-            request.CantidadMiembrosUH,
-            request.CantidadEstudiantes,
-            request.CantidadEstudiantesContratados,
-            request.TributaFormacionDoctoral,
-            request.ClasificacionId,
-            areaId);
+            proyecto, request.Titulo, jefeId, request.NumeroMiembros,
+            request.CantidadMiembrosUH, request.CantidadEstudiantes,
+            request.CantidadEstudiantesContratados, request.TributaFormacionDoctoral,
+            request.ClasificacionId, areaId);
     }
 
-    /// <summary>
-    /// Resuelve el AreaId efectivo para la operación:
-    /// - Si el usuario activo es Jefe_de_Proyecto, se ignora el AreaId del request y se usa
-    ///   el que tenga asignado el propio usuario en la base de datos (seguridad: un jefe
-    ///   nunca puede asignar sus proyectos a un área que no es la suya).
-    /// - Si el usuario es Superuser u otro rol con permiso, se usa el AreaId del request.
-    /// </summary>
-    private async Task<(Result? Error, string AreaId)> ResolveAreaIdAsync(
-        string requestAreaId, CancellationToken ct)
+    private async Task<(Result? Error, string AreaId)> ResolveAreaIdAsync(string requestAreaId, CancellationToken ct)
     {
         var isJefe = _currentUser.Roles?.Contains(nameof(RolesEnum.Jefe_de_Proyecto)) == true;
         if (!isJefe)
-        {
             return (null, requestAreaId);
-        }
 
-        // Jefe_de_Proyecto: use their own assigned area, ignoring the request value.
         var userAreaId = await _context.Users
             .Where(u => u.Id == _currentUser.Id)
             .Select(u => u.AreaId)
             .FirstOrDefaultAsync(ct);
 
         if (string.IsNullOrWhiteSpace(userAreaId))
-        {
             return (Result.Failure(["El usuario no tiene un área asignada. Contacte a un administrador."]), string.Empty);
-        }
 
         return (null, userAreaId);
     }
 
-    private static void ApplyEjecucion(ProyectoEnEjecucion proyecto, IProyectoEnEjecucionUpsertRequest request, bool forceTributaDesarrolloLocal)
+    // ── Mappers ───────────────────────────────────────────────────────────────
+
+    private static ProyectoEnRevisionDto MapEnRevisionDto(ProyectoEnRevision proyecto) => new()
     {
-        ProyectoHelper.SetEjecucion(
-            proyecto,
-            request.FechaInicio,
-            request.FechaCierre,
-            request.EstadoDeEjecucion,
-            request.CodigoProyecto,
-            request.EntidadEjecutoraPrincipal,
-            request.EntidadEjecutoraParticipante,
-            request.ContribucionSectoresEstrategicos,
-            request.ContribucionEjesEstrategicos,
-            forceTributaDesarrolloLocal || request.TributaDesarrolloLocal);
+        Id = proyecto.Id,
+        Titulo = proyecto.Titulo,
+        JefeId = proyecto.JefeId,
+        Jefe = GetNombreCompleto(proyecto.JefeUsuario),
+        CorreoJefe = proyecto.JefeUsuario.Email,
+        NumeroMiembros = proyecto.NumeroMiembros,
+        CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
+        CantidadEstudiantes = proyecto.CantidadEstudiantes,
+        CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
+        TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
+        ClasificacionId = proyecto.ClasificacionId,
+        ClasificacionNombre = proyecto.Clasificacion.Nombre,
+        AreaId = proyecto.AreaId,
+        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        Situaciones = proyecto.Situaciones.Select(s => new NomencladorDto(s.Id, s.Nombre)).ToList(),
+        Tipo = proyecto.Tipo,
+        PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
+    };
+
+    private static ProyectoEmpresarialDto MapEmpresarialDto(ProyectoEmpresarial proyecto) => new()
+    {
+        Id = proyecto.Id,
+        Titulo = proyecto.Titulo,
+        JefeId = proyecto.JefeId,
+        Jefe = GetNombreCompleto(proyecto.JefeUsuario),
+        CorreoJefe = proyecto.JefeUsuario.Email,
+        NumeroMiembros = proyecto.NumeroMiembros,
+        CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
+        CantidadEstudiantes = proyecto.CantidadEstudiantes,
+        CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
+        TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
+        ClasificacionId = proyecto.ClasificacionId,
+        ClasificacionNombre = proyecto.Clasificacion.Nombre,
+        AreaId = proyecto.AreaId,
+        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        FechaInicio = proyecto.FechaInicio,
+        FechaCierre = proyecto.FechaCierre,
+        CodigoProyecto = proyecto.CodigoProyecto,
+        TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
+        EstadosDeEjecucion = MapNomencladores(proyecto.EstadosDeEjecucion),
+        EntidadesEjecutorasPrincipales = MapInstitutions(proyecto.EntidadesEjecutorasPrincipales),
+        EntidadesEjecutorasParticipantes = MapInstitutions(proyecto.EntidadesEjecutorasParticipantes),
+        SectoresEstrategicos = MapNomencladores(proyecto.SectoresEstrategicos),
+        EjesEstrategicos = MapNomencladores(proyecto.EjesEstrategicos),
+        Empresas = MapInstitutions(proyecto.Empresas),
+        PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
+    };
+
+    private static ProyectoApoyoProgramaDto MapApoyoProgramaDto(ProyectoApoyoPrograma proyecto) => new()
+    {
+        Id = proyecto.Id,
+        Titulo = proyecto.Titulo,
+        JefeId = proyecto.JefeId,
+        Jefe = GetNombreCompleto(proyecto.JefeUsuario),
+        CorreoJefe = proyecto.JefeUsuario.Email,
+        NumeroMiembros = proyecto.NumeroMiembros,
+        CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
+        CantidadEstudiantes = proyecto.CantidadEstudiantes,
+        CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
+        TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
+        ClasificacionId = proyecto.ClasificacionId,
+        ClasificacionNombre = proyecto.Clasificacion.Nombre,
+        AreaId = proyecto.AreaId,
+        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        FechaInicio = proyecto.FechaInicio,
+        FechaCierre = proyecto.FechaCierre,
+        CodigoProyecto = proyecto.CodigoProyecto,
+        TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
+        EstadosDeEjecucion = MapNomencladores(proyecto.EstadosDeEjecucion),
+        EntidadesEjecutorasPrincipales = MapInstitutions(proyecto.EntidadesEjecutorasPrincipales),
+        EntidadesEjecutorasParticipantes = MapInstitutions(proyecto.EntidadesEjecutorasParticipantes),
+        SectoresEstrategicos = MapNomencladores(proyecto.SectoresEstrategicos),
+        EjesEstrategicos = MapNomencladores(proyecto.EjesEstrategicos),
+        Programas = proyecto.Programas.Select(p => new NomencladorDto(p.Id, p.Nombre)).ToList(),
+        TipoPAP = proyecto.TipoPAP,
+        PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
+    };
+
+    private static ProyectoDesarrolloLocalDto MapDesarrolloLocalDto(ProyectoDesarrolloLocal proyecto) => new()
+    {
+        Id = proyecto.Id,
+        Titulo = proyecto.Titulo,
+        JefeId = proyecto.JefeId,
+        Jefe = GetNombreCompleto(proyecto.JefeUsuario),
+        CorreoJefe = proyecto.JefeUsuario.Email,
+        NumeroMiembros = proyecto.NumeroMiembros,
+        CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
+        CantidadEstudiantes = proyecto.CantidadEstudiantes,
+        CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
+        TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
+        ClasificacionId = proyecto.ClasificacionId,
+        ClasificacionNombre = proyecto.Clasificacion.Nombre,
+        AreaId = proyecto.AreaId,
+        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        FechaInicio = proyecto.FechaInicio,
+        FechaCierre = proyecto.FechaCierre,
+        CodigoProyecto = proyecto.CodigoProyecto,
+        TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
+        EstadosDeEjecucion = MapNomencladores(proyecto.EstadosDeEjecucion),
+        EntidadesEjecutorasPrincipales = MapInstitutions(proyecto.EntidadesEjecutorasPrincipales),
+        EntidadesEjecutorasParticipantes = MapInstitutions(proyecto.EntidadesEjecutorasParticipantes),
+        SectoresEstrategicos = MapNomencladores(proyecto.SectoresEstrategicos),
+        EjesEstrategicos = MapNomencladores(proyecto.EjesEstrategicos),
+        MunicipioId = proyecto.MunicipioId,
+        MunicipioNombre = proyecto.Municipio?.Nombre ?? string.Empty,
+        ProvinciaNombre = proyecto.Municipio?.Provincia?.Nombre,
+        PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
+    };
+
+    private static ProyectoNoEmpresarialDto MapNoEmpresarialDto(ProyectoNoEmpresarial proyecto) => new()
+    {
+        Id = proyecto.Id,
+        Titulo = proyecto.Titulo,
+        JefeId = proyecto.JefeId,
+        Jefe = GetNombreCompleto(proyecto.JefeUsuario),
+        CorreoJefe = proyecto.JefeUsuario.Email,
+        NumeroMiembros = proyecto.NumeroMiembros,
+        CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
+        CantidadEstudiantes = proyecto.CantidadEstudiantes,
+        CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
+        TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
+        ClasificacionId = proyecto.ClasificacionId,
+        ClasificacionNombre = proyecto.Clasificacion.Nombre,
+        AreaId = proyecto.AreaId,
+        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        FechaInicio = proyecto.FechaInicio,
+        FechaCierre = proyecto.FechaCierre,
+        CodigoProyecto = proyecto.CodigoProyecto,
+        TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
+        EstadosDeEjecucion = MapNomencladores(proyecto.EstadosDeEjecucion),
+        EntidadesEjecutorasPrincipales = MapInstitutions(proyecto.EntidadesEjecutorasPrincipales),
+        EntidadesEjecutorasParticipantes = MapInstitutions(proyecto.EntidadesEjecutorasParticipantes),
+        SectoresEstrategicos = MapNomencladores(proyecto.SectoresEstrategicos),
+        EjesEstrategicos = MapNomencladores(proyecto.EjesEstrategicos),
+        Entidades = MapInstitutions(proyecto.Entidades),
+        PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
+    };
+
+    private static ProyectoColabInternacionalDto MapColabInternacionalDto(ProyectoColabInternacional proyecto) => new()
+    {
+        Id = proyecto.Id,
+        Titulo = proyecto.Titulo,
+        JefeId = proyecto.JefeId,
+        Jefe = GetNombreCompleto(proyecto.JefeUsuario),
+        CorreoJefe = proyecto.JefeUsuario.Email,
+        NumeroMiembros = proyecto.NumeroMiembros,
+        CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
+        CantidadEstudiantes = proyecto.CantidadEstudiantes,
+        CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
+        TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
+        ClasificacionId = proyecto.ClasificacionId,
+        ClasificacionNombre = proyecto.Clasificacion.Nombre,
+        AreaId = proyecto.AreaId,
+        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        FechaInicio = proyecto.FechaInicio,
+        FechaCierre = proyecto.FechaCierre,
+        CodigoProyecto = proyecto.CodigoProyecto,
+        TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
+        EstadosDeEjecucion = MapNomencladores(proyecto.EstadosDeEjecucion),
+        EntidadesEjecutorasPrincipales = MapInstitutions(proyecto.EntidadesEjecutorasPrincipales),
+        EntidadesEjecutorasParticipantes = MapInstitutions(proyecto.EntidadesEjecutorasParticipantes),
+        SectoresEstrategicos = MapNomencladores(proyecto.SectoresEstrategicos),
+        EjesEstrategicos = MapNomencladores(proyecto.EjesEstrategicos),
+        FuentesFinanciacion = MapNomencladores(proyecto.FuentesFinanciacion),
+        TerminosReferencia = proyecto.TerminosReferencia,
+        PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
+    };
+
+    private static ProyectoPNAPDto MapPnapDto(ProyectoPNAP proyecto) => new()
+    {
+        Id = proyecto.Id,
+        Titulo = proyecto.Titulo,
+        JefeId = proyecto.JefeId,
+        Jefe = GetNombreCompleto(proyecto.JefeUsuario),
+        CorreoJefe = proyecto.JefeUsuario.Email,
+        NumeroMiembros = proyecto.NumeroMiembros,
+        CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
+        CantidadEstudiantes = proyecto.CantidadEstudiantes,
+        CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
+        TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
+        ClasificacionId = proyecto.ClasificacionId,
+        ClasificacionNombre = proyecto.Clasificacion.Nombre,
+        AreaId = proyecto.AreaId,
+        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        FechaInicio = proyecto.FechaInicio,
+        FechaCierre = proyecto.FechaCierre,
+        CodigoProyecto = proyecto.CodigoProyecto,
+        TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
+        EstadosDeEjecucion = MapNomencladores(proyecto.EstadosDeEjecucion),
+        EntidadesEjecutorasPrincipales = MapInstitutions(proyecto.EntidadesEjecutorasPrincipales),
+        EntidadesEjecutorasParticipantes = MapInstitutions(proyecto.EntidadesEjecutorasParticipantes),
+        SectoresEstrategicos = MapNomencladores(proyecto.SectoresEstrategicos),
+        EjesEstrategicos = MapNomencladores(proyecto.EjesEstrategicos),
+        FuentesFinanciacion = MapNomencladores(proyecto.FuentesFinanciacion),
+        PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
+    };
+
+    // ── Mapping utilities ─────────────────────────────────────────────────────
+
+    private static List<NomencladorDto> MapNomencladores<T>(ICollection<T> items)
+        where T : class
+    {
+        // Use duck-typing via reflection-less runtime cast for the known nomenclator types.
+        // All nomencladors have (int Id, string Nombre).
+        return items.Select(item => item switch
+        {
+            EstadoProyecto e => new NomencladorDto(e.Id, e.Nombre),
+            SectorEstrategico s => new NomencladorDto(s.Id, s.Nombre),
+            EjeEstrategico ej => new NomencladorDto(ej.Id, ej.Nombre),
+            FuenteFinanciacion f => new NomencladorDto(f.Id, f.Nombre),
+            SituacionProyecto si => new NomencladorDto(si.Id, si.Nombre),
+            Programa p => new NomencladorDto(p.Id, p.Nombre),
+            _ => throw new InvalidOperationException($"Unrecognized nomenclator type: {item.GetType().Name}")
+        }).ToList();
     }
 
-    private static ProyectoEnRevisionDto MapEnRevisionDto(ProyectoEnRevision proyecto)
-    {
-        return new ProyectoEnRevisionDto
-        {
-            Id = proyecto.Id,
-            Titulo = proyecto.Titulo,
-            JefeId = proyecto.JefeId,
-            Jefe = GetNombreCompleto(proyecto.JefeUsuario),
-            CorreoJefe = proyecto.JefeUsuario.Email,
-            NumeroMiembros = proyecto.NumeroMiembros,
-            CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
-            CantidadEstudiantes = proyecto.CantidadEstudiantes,
-            CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
-            ClasificacionId = proyecto.ClasificacionId,
-            ClasificacionNombre = proyecto.Clasificacion.Nombre,
-            AreaId = proyecto.AreaId,
-            AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
-            Situacion = proyecto.Situacion,
-            Tipo = proyecto.Tipo,
-            PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
-        };
-    }
-
-    private static ProyectoEmpresarialDto MapEmpresarialDto(ProyectoEmpresarial proyecto)
-    {
-        return new ProyectoEmpresarialDto
-        {
-            Id = proyecto.Id,
-            Titulo = proyecto.Titulo,
-            JefeId = proyecto.JefeId,
-            Jefe = GetNombreCompleto(proyecto.JefeUsuario),
-            CorreoJefe = proyecto.JefeUsuario.Email,
-            NumeroMiembros = proyecto.NumeroMiembros,
-            CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
-            CantidadEstudiantes = proyecto.CantidadEstudiantes,
-            CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
-            ClasificacionId = proyecto.ClasificacionId,
-            ClasificacionNombre = proyecto.Clasificacion.Nombre,
-            AreaId = proyecto.AreaId,
-            AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
-            FechaInicio = proyecto.FechaInicio,
-            FechaCierre = proyecto.FechaCierre,
-            EstadoDeEjecucion = proyecto.EstadoDeEjecucion,
-            CodigoProyecto = proyecto.CodigoProyecto,
-            EntidadEjecutoraPrincipal = proyecto.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = proyecto.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = proyecto.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = proyecto.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
-            Empresa = proyecto.Empresa,
-            PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
-        };
-    }
-
-    private static ProyectoApoyoProgramaDto MapApoyoProgramaDto(ProyectoApoyoPrograma proyecto)
-    {
-        return new ProyectoApoyoProgramaDto
-        {
-            Id = proyecto.Id,
-            Titulo = proyecto.Titulo,
-            JefeId = proyecto.JefeId,
-            Jefe = GetNombreCompleto(proyecto.JefeUsuario),
-            CorreoJefe = proyecto.JefeUsuario.Email,
-            NumeroMiembros = proyecto.NumeroMiembros,
-            CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
-            CantidadEstudiantes = proyecto.CantidadEstudiantes,
-            CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
-            ClasificacionId = proyecto.ClasificacionId,
-            ClasificacionNombre = proyecto.Clasificacion.Nombre,
-            AreaId = proyecto.AreaId,
-            AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
-            FechaInicio = proyecto.FechaInicio,
-            FechaCierre = proyecto.FechaCierre,
-            EstadoDeEjecucion = proyecto.EstadoDeEjecucion,
-            CodigoProyecto = proyecto.CodigoProyecto,
-            EntidadEjecutoraPrincipal = proyecto.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = proyecto.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = proyecto.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = proyecto.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
-            NombrePrograma = proyecto.NombrePrograma,
-            TipoPAP = proyecto.TipoPAP,
-            PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
-        };
-    }
-
-    private static ProyectoDesarrolloLocalDto MapDesarrolloLocalDto(ProyectoDesarrolloLocal proyecto)
-    {
-        return new ProyectoDesarrolloLocalDto
-        {
-            Id = proyecto.Id,
-            Titulo = proyecto.Titulo,
-            JefeId = proyecto.JefeId,
-            Jefe = GetNombreCompleto(proyecto.JefeUsuario),
-            CorreoJefe = proyecto.JefeUsuario.Email,
-            NumeroMiembros = proyecto.NumeroMiembros,
-            CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
-            CantidadEstudiantes = proyecto.CantidadEstudiantes,
-            CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
-            ClasificacionId = proyecto.ClasificacionId,
-            ClasificacionNombre = proyecto.Clasificacion.Nombre,
-            AreaId = proyecto.AreaId,
-            AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
-            FechaInicio = proyecto.FechaInicio,
-            FechaCierre = proyecto.FechaCierre,
-            EstadoDeEjecucion = proyecto.EstadoDeEjecucion,
-            CodigoProyecto = proyecto.CodigoProyecto,
-            EntidadEjecutoraPrincipal = proyecto.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = proyecto.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = proyecto.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = proyecto.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
-            Municipio = proyecto.Municipio,
-            PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
-        };
-    }
-
-    private static ProyectoNoEmpresarialDto MapNoEmpresarialDto(ProyectoNoEmpresarial proyecto)
-    {
-        return new ProyectoNoEmpresarialDto
-        {
-            Id = proyecto.Id,
-            Titulo = proyecto.Titulo,
-            JefeId = proyecto.JefeId,
-            Jefe = GetNombreCompleto(proyecto.JefeUsuario),
-            CorreoJefe = proyecto.JefeUsuario.Email,
-            NumeroMiembros = proyecto.NumeroMiembros,
-            CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
-            CantidadEstudiantes = proyecto.CantidadEstudiantes,
-            CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
-            ClasificacionId = proyecto.ClasificacionId,
-            ClasificacionNombre = proyecto.Clasificacion.Nombre,
-            AreaId = proyecto.AreaId,
-            AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
-            FechaInicio = proyecto.FechaInicio,
-            FechaCierre = proyecto.FechaCierre,
-            EstadoDeEjecucion = proyecto.EstadoDeEjecucion,
-            CodigoProyecto = proyecto.CodigoProyecto,
-            EntidadEjecutoraPrincipal = proyecto.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = proyecto.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = proyecto.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = proyecto.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
-            EntidadNoEmpresarial = proyecto.EntidadNoEmpresarial,
-            PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
-        };
-    }
-
-    private static ProyectoColabInternacionalDto MapColabInternacionalDto(ProyectoColabInternacional proyecto)
-    {
-        return new ProyectoColabInternacionalDto
-        {
-            Id = proyecto.Id,
-            Titulo = proyecto.Titulo,
-            JefeId = proyecto.JefeId,
-            Jefe = GetNombreCompleto(proyecto.JefeUsuario),
-            CorreoJefe = proyecto.JefeUsuario.Email,
-            NumeroMiembros = proyecto.NumeroMiembros,
-            CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
-            CantidadEstudiantes = proyecto.CantidadEstudiantes,
-            CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
-            ClasificacionId = proyecto.ClasificacionId,
-            ClasificacionNombre = proyecto.Clasificacion.Nombre,
-            AreaId = proyecto.AreaId,
-            AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
-            FechaInicio = proyecto.FechaInicio,
-            FechaCierre = proyecto.FechaCierre,
-            EstadoDeEjecucion = proyecto.EstadoDeEjecucion,
-            CodigoProyecto = proyecto.CodigoProyecto,
-            EntidadEjecutoraPrincipal = proyecto.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = proyecto.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = proyecto.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = proyecto.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
-            FuenteFinanciacion = proyecto.FuenteFinanciacion,
-            TerminosReferencia = proyecto.TerminosReferencia,
-            PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
-        };
-    }
-
-    private static ProyectoPNAPDto MapPnapDto(ProyectoPNAP proyecto)
-    {
-        return new ProyectoPNAPDto
-        {
-            Id = proyecto.Id,
-            Titulo = proyecto.Titulo,
-            JefeId = proyecto.JefeId,
-            Jefe = GetNombreCompleto(proyecto.JefeUsuario),
-            CorreoJefe = proyecto.JefeUsuario.Email,
-            NumeroMiembros = proyecto.NumeroMiembros,
-            CantidadMiembrosUH = proyecto.CantidadMiembrosUH,
-            CantidadEstudiantes = proyecto.CantidadEstudiantes,
-            CantidadEstudiantesContratados = proyecto.CantidadEstudiantesContratados,
-            TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
-            ClasificacionId = proyecto.ClasificacionId,
-            ClasificacionNombre = proyecto.Clasificacion.Nombre,
-            AreaId = proyecto.AreaId,
-            AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
-            FechaInicio = proyecto.FechaInicio,
-            FechaCierre = proyecto.FechaCierre,
-            EstadoDeEjecucion = proyecto.EstadoDeEjecucion,
-            CodigoProyecto = proyecto.CodigoProyecto,
-            EntidadEjecutoraPrincipal = proyecto.EntidadEjecutoraPrincipal,
-            EntidadEjecutoraParticipante = proyecto.EntidadEjecutoraParticipante,
-            ContribucionSectoresEstrategicos = proyecto.ContribucionSectoresEstrategicos,
-            ContribucionEjesEstrategicos = proyecto.ContribucionEjesEstrategicos,
-            TributaDesarrolloLocal = proyecto.TributaDesarrolloLocal,
-            FinanciamientoUH = proyecto.FinanciamientoUH,
-            PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
-        };
-    }
+    private static List<InstitutionRefDto> MapInstitutions(ICollection<Institution> items)
+        => items.Select(i => new InstitutionRefDto(i.Id, i.Nombre)).ToList();
 
     private static string GetNombreCompleto(User user)
         => user.UserName + " " + user.UserLastName1 + (user.UserLastName2 != null ? " " + user.UserLastName2 : "");

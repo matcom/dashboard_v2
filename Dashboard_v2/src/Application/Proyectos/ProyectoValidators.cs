@@ -3,9 +3,7 @@ using Dashboard_v2.Domain.Constants;
 
 namespace Dashboard_v2.Application.Proyectos;
 
-/// <summary>
-/// Validación específica para proyectos en revisión.
-/// </summary>
+/// <summary>Validación específica para proyectos en revisión.</summary>
 public sealed class ProyectoEnRevisionUpsertRequestValidator
     : ProyectoBaseValidator<ProyectoEnRevisionUpsertRequest>
 {
@@ -19,78 +17,68 @@ public sealed class ProyectoEnRevisionUpsertRequestValidator
     }
 }
 
-/// <summary>
-/// Validación específica para proyectos empresariales.
-/// </summary>
+/// <summary>Validación específica para proyectos empresariales.</summary>
 public sealed class ProyectoEmpresarialUpsertRequestValidator
     : ProyectoBaseValidator<ProyectoEmpresarialUpsertRequest>
 {
     public ProyectoEmpresarialUpsertRequestValidator(IApplicationDbContext context)
         : base(context)
     {
-        RuleFor(x => x.Empresa)
+        RuleFor(x => x.EmpresasIds)
             .NotEmpty()
-            .WithMessage("El nombre de la empresa es obligatorio.");
+            .WithMessage("Debe indicar al menos una empresa.");
     }
 }
 
-/// <summary>
-/// Validación específica para proyectos de apoyo a programa.
-/// </summary>
+/// <summary>Validación específica para proyectos de apoyo a programa.</summary>
 public sealed class ProyectoApoyoProgramaUpsertRequestValidator
     : ProyectoBaseValidator<ProyectoApoyoProgramaUpsertRequest>
 {
     public ProyectoApoyoProgramaUpsertRequestValidator(IApplicationDbContext context)
         : base(context)
     {
-        RuleFor(x => x.NombrePrograma)
+        RuleFor(x => x.ProgramasIds)
             .NotEmpty()
-            .WithMessage("El nombre del programa es obligatorio.");
+            .WithMessage("Debe indicar al menos un programa.");
     }
 }
 
-/// <summary>
-/// Validación específica para proyectos de desarrollo local.
-/// </summary>
+/// <summary>Validación específica para proyectos de desarrollo local.</summary>
 public sealed class ProyectoDesarrolloLocalUpsertRequestValidator
     : ProyectoBaseValidator<ProyectoDesarrolloLocalUpsertRequest>
 {
     public ProyectoDesarrolloLocalUpsertRequestValidator(IApplicationDbContext context)
         : base(context)
     {
-        RuleFor(x => x.Municipio)
-            .NotEmpty()
+        RuleFor(x => x.MunicipioId)
+            .GreaterThan(0)
             .WithMessage("El municipio es obligatorio.");
     }
 }
 
-/// <summary>
-/// Validación específica para proyectos no empresariales.
-/// </summary>
+/// <summary>Validación específica para proyectos no empresariales.</summary>
 public sealed class ProyectoNoEmpresarialUpsertRequestValidator
     : ProyectoBaseValidator<ProyectoNoEmpresarialUpsertRequest>
 {
     public ProyectoNoEmpresarialUpsertRequestValidator(IApplicationDbContext context)
         : base(context)
     {
-        RuleFor(x => x.EntidadNoEmpresarial)
+        RuleFor(x => x.EntidadesIds)
             .NotEmpty()
-            .WithMessage("La entidad no empresarial es obligatoria.");
+            .WithMessage("Debe indicar al menos una entidad.");
     }
 }
 
-/// <summary>
-/// Validación específica para proyectos de colaboración internacional.
-/// </summary>
+/// <summary>Validación específica para proyectos de colaboración internacional.</summary>
 public sealed class ProyectoColabInternacionalUpsertRequestValidator
     : ProyectoBaseValidator<ProyectoColabInternacionalUpsertRequest>
 {
     public ProyectoColabInternacionalUpsertRequestValidator(IApplicationDbContext context)
         : base(context)
     {
-        RuleFor(x => x.FuenteFinanciacion)
+        RuleFor(x => x.FuentesFinanciacionIds)
             .NotEmpty()
-            .WithMessage("La fuente de financiación es obligatoria.");
+            .WithMessage("Debe indicar al menos una fuente de financiación.");
 
         RuleFor(x => x.TerminosReferencia)
             .NotEmpty()
@@ -98,17 +86,15 @@ public sealed class ProyectoColabInternacionalUpsertRequestValidator
     }
 }
 
-/// <summary>
-/// Validación específica para proyectos PNAP.
-/// </summary>
+/// <summary>Validación específica para proyectos PNAP.</summary>
 public sealed class ProyectoPNAPUpsertRequestValidator
     : ProyectoBaseValidator<ProyectoPNAPUpsertRequest>
 {
     public ProyectoPNAPUpsertRequestValidator(IApplicationDbContext context)
         : base(context)
     {
-        RuleFor(x => x.FinanciamientoUH)
+        RuleFor(x => x.FuentesFinanciacionIds)
             .NotEmpty()
-            .WithMessage("El financiamiento UH es obligatorio.");
+            .WithMessage("Debe indicar al menos una fuente de financiación UH.");
     }
 }

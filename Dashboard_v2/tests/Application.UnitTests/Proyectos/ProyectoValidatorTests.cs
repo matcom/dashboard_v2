@@ -11,14 +11,9 @@ namespace Dashboard_v2.Application.UnitTests.Proyectos;
 
 /// <summary>
 /// Tests for all concrete FluentValidation validators of Proyecto requests.
-/// Each test class covers:
-///   - The inherited base rules (Titulo, ClasificacionId, AreaId) through one representative test.
-///   - The specific rule(s) unique to that concrete validator.
 /// </summary>
 public class ProyectoValidatorTests
 {
-    // ── DB helper ─────────────────────────────────────────────────────────────
-
     private static ApplicationDbContext CreateDb()
     {
         var opts = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -27,7 +22,6 @@ public class ProyectoValidatorTests
         return new ApplicationDbContext(opts);
     }
 
-    /// <summary>Seeds the minimum data needed for a valid request.</summary>
     private static (string areaId, string clasificId) SeedMinimum(ApplicationDbContext db)
     {
         var area = new Area { Id = "area-1", Nombre = "MATCOM", Descripcion = "d", UniversidadId = "uh" };
@@ -38,9 +32,7 @@ public class ProyectoValidatorTests
         return (area.Id, clasif.Id);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ProyectoBaseValidator – shared rules (tested via EnRevision validator)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── ProyectoBaseValidator – shared rules ──────────────────────────────────
 
     [Test]
     public async Task BaseValidator_EmptyTitulo_FailsWithMessage()
@@ -55,7 +47,6 @@ public class ProyectoValidatorTests
             JefeId = "j1",
             ClasificacionId = clasificId,
             AreaId = areaId,
-            Situacion = "Pendiente",
             Tipo = "PE"
         });
 
@@ -78,7 +69,6 @@ public class ProyectoValidatorTests
             JefeId = "j1",
             ClasificacionId = "",
             AreaId = areaId,
-            Situacion = "Pendiente",
             Tipo = "PE"
         });
 
@@ -99,7 +89,6 @@ public class ProyectoValidatorTests
             JefeId = "j1",
             ClasificacionId = "no-existe",
             AreaId = areaId,
-            Situacion = "Pendiente",
             Tipo = "PE"
         });
 
@@ -109,9 +98,7 @@ public class ProyectoValidatorTests
             e.ErrorMessage.Contains("clasificación indicada no existe"));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ProyectoEnRevisionUpsertRequestValidator – Tipo rule
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── EnRevision – Tipo rule ────────────────────────────────────────────────
 
     [Test]
     public async Task EnRevisionValidator_EmptyTipo_FailsWithMessage()
@@ -126,8 +113,7 @@ public class ProyectoValidatorTests
             JefeId = "j1",
             ClasificacionId = clasificId,
             AreaId = areaId,
-            Situacion = "Pendiente",
-            Tipo = ""    // empty
+            Tipo = ""
         });
 
         result.IsValid.ShouldBeFalse();
@@ -149,7 +135,6 @@ public class ProyectoValidatorTests
             JefeId = "j1",
             ClasificacionId = clasificId,
             AreaId = areaId,
-            Situacion = "Pendiente",
             Tipo = "INVALIDO"
         });
 
@@ -177,7 +162,6 @@ public class ProyectoValidatorTests
             JefeId = "j1",
             ClasificacionId = clasificId,
             AreaId = areaId,
-            Situacion = "Pendiente",
             Tipo = tipo
         });
 
@@ -197,112 +181,114 @@ public class ProyectoValidatorTests
         validos.Count.ShouldBe(6);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ProyectoEmpresarialUpsertRequestValidator – Empresa rule
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── Empresarial – EmpresasIds rule ────────────────────────────────────────
 
     [Test]
-    public async Task EmpresarialValidator_EmptyEmpresa_FailsWithMessage()
+    public async Task EmpresarialValidator_EmptyEmpresasIds_FailsWithMessage()
     {
         await using var db = CreateDb();
         var (areaId, clasificId) = SeedMinimum(db);
         var validator = new ProyectoEmpresarialUpsertRequestValidator(db);
 
-        var result = await validator.ValidateAsync(BuildEmpresarial(areaId, clasificId, empresa: ""));
+        var result = await validator.ValidateAsync(BuildEmpresarial(areaId, clasificId, empresasIds: []));
 
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldContain(e =>
-            e.PropertyName == nameof(ProyectoEmpresarialUpsertRequest.Empresa) &&
-            e.ErrorMessage.Contains("nombre de la empresa es obligatorio"));
+            e.PropertyName == nameof(ProyectoEmpresarialUpsertRequest.EmpresasIds) &&
+            e.ErrorMessage.Contains("al menos una empresa"));
     }
 
     [Test]
-    public async Task EmpresarialValidator_ValidEmpresa_NoEmpresaError()
+    public async Task EmpresarialValidator_WithEmpresasIds_NoEmpresasError()
     {
         await using var db = CreateDb();
         var (areaId, clasificId) = SeedMinimum(db);
         var validator = new ProyectoEmpresarialUpsertRequestValidator(db);
 
-        var result = await validator.ValidateAsync(BuildEmpresarial(areaId, clasificId, empresa: "MATCOM SRL"));
+        var result = await validator.ValidateAsync(BuildEmpresarial(areaId, clasificId, empresasIds: ["inst-1"]));
 
-        result.Errors.ShouldNotContain(e => e.PropertyName == nameof(ProyectoEmpresarialUpsertRequest.Empresa));
+        result.Errors.ShouldNotContain(e => e.PropertyName == nameof(ProyectoEmpresarialUpsertRequest.EmpresasIds));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ProyectoApoyoProgramaUpsertRequestValidator – NombrePrograma rule
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── ApoyoPrograma – ProgramasIds rule ─────────────────────────────────────
 
     [Test]
-    public async Task ApoyoProgramaValidator_EmptyNombrePrograma_FailsWithMessage()
+    public async Task ApoyoProgramaValidator_EmptyProgramasIds_FailsWithMessage()
     {
         await using var db = CreateDb();
         var (areaId, clasificId) = SeedMinimum(db);
         var validator = new ProyectoApoyoProgramaUpsertRequestValidator(db);
 
-        var result = await validator.ValidateAsync(BuildApoyoPrograma(areaId, clasificId, nombrePrograma: ""));
+        var result = await validator.ValidateAsync(BuildApoyoPrograma(areaId, clasificId, programasIds: []));
 
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldContain(e =>
-            e.PropertyName == nameof(ProyectoApoyoProgramaUpsertRequest.NombrePrograma) &&
-            e.ErrorMessage.Contains("nombre del programa es obligatorio"));
+            e.PropertyName == nameof(ProyectoApoyoProgramaUpsertRequest.ProgramasIds) &&
+            e.ErrorMessage.Contains("al menos un programa"));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ProyectoDesarrolloLocalUpsertRequestValidator – Municipio rule
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── DesarrolloLocal – MunicipioId rule ────────────────────────────────────
 
     [Test]
-    public async Task DesarrolloLocalValidator_EmptyMunicipio_FailsWithMessage()
+    public async Task DesarrolloLocalValidator_ZeroMunicipioId_FailsWithMessage()
     {
         await using var db = CreateDb();
         var (areaId, clasificId) = SeedMinimum(db);
         var validator = new ProyectoDesarrolloLocalUpsertRequestValidator(db);
 
-        var result = await validator.ValidateAsync(BuildDesarrolloLocal(areaId, clasificId, municipio: ""));
+        var result = await validator.ValidateAsync(BuildDesarrolloLocal(areaId, clasificId, municipioId: 0));
 
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldContain(e =>
-            e.PropertyName == nameof(ProyectoDesarrolloLocalUpsertRequest.Municipio) &&
+            e.PropertyName == nameof(ProyectoDesarrolloLocalUpsertRequest.MunicipioId) &&
             e.ErrorMessage.Contains("municipio es obligatorio"));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ProyectoNoEmpresarialUpsertRequestValidator – EntidadNoEmpresarial rule
-    // ══════════════════════════════════════════════════════════════════════════
+    [Test]
+    public async Task DesarrolloLocalValidator_ValidMunicipioId_NoMunicipioError()
+    {
+        await using var db = CreateDb();
+        var (areaId, clasificId) = SeedMinimum(db);
+        var validator = new ProyectoDesarrolloLocalUpsertRequestValidator(db);
+
+        var result = await validator.ValidateAsync(BuildDesarrolloLocal(areaId, clasificId, municipioId: 1));
+
+        result.Errors.ShouldNotContain(e => e.PropertyName == nameof(ProyectoDesarrolloLocalUpsertRequest.MunicipioId));
+    }
+
+    // ── NoEmpresarial – EntidadesIds rule ─────────────────────────────────────
 
     [Test]
-    public async Task NoEmpresarialValidator_EmptyEntidad_FailsWithMessage()
+    public async Task NoEmpresarialValidator_EmptyEntidadesIds_FailsWithMessage()
     {
         await using var db = CreateDb();
         var (areaId, clasificId) = SeedMinimum(db);
         var validator = new ProyectoNoEmpresarialUpsertRequestValidator(db);
 
-        var result = await validator.ValidateAsync(BuildNoEmpresarial(areaId, clasificId, entidad: ""));
+        var result = await validator.ValidateAsync(BuildNoEmpresarial(areaId, clasificId, entidadesIds: []));
 
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldContain(e =>
-            e.PropertyName == nameof(ProyectoNoEmpresarialUpsertRequest.EntidadNoEmpresarial) &&
-            e.ErrorMessage.Contains("entidad no empresarial es obligatoria"));
+            e.PropertyName == nameof(ProyectoNoEmpresarialUpsertRequest.EntidadesIds) &&
+            e.ErrorMessage.Contains("al menos una entidad"));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ProyectoColabInternacionalUpsertRequestValidator
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── ColabInternacional ────────────────────────────────────────────────────
 
     [Test]
-    public async Task ColabInternacionalValidator_EmptyFuenteFinanciacion_FailsWithMessage()
+    public async Task ColabInternacionalValidator_EmptyFuentesIds_FailsWithMessage()
     {
         await using var db = CreateDb();
         var (areaId, clasificId) = SeedMinimum(db);
         var validator = new ProyectoColabInternacionalUpsertRequestValidator(db);
 
         var result = await validator.ValidateAsync(BuildColabInternacional(
-            areaId, clasificId, fuente: "", terminos: "términos válidos"));
+            areaId, clasificId, fuentesIds: [], terminos: "TDR válidos"));
 
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldContain(e =>
-            e.PropertyName == nameof(ProyectoColabInternacionalUpsertRequest.FuenteFinanciacion) &&
-            e.ErrorMessage.Contains("fuente de financiación es obligatoria"));
+            e.PropertyName == nameof(ProyectoColabInternacionalUpsertRequest.FuentesFinanciacionIds) &&
+            e.ErrorMessage.Contains("al menos una fuente de financiación"));
     }
 
     [Test]
@@ -313,7 +299,7 @@ public class ProyectoValidatorTests
         var validator = new ProyectoColabInternacionalUpsertRequestValidator(db);
 
         var result = await validator.ValidateAsync(BuildColabInternacional(
-            areaId, clasificId, fuente: "UE", terminos: ""));
+            areaId, clasificId, fuentesIds: [1], terminos: ""));
 
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldContain(e =>
@@ -329,135 +315,104 @@ public class ProyectoValidatorTests
         var validator = new ProyectoColabInternacionalUpsertRequestValidator(db);
 
         var result = await validator.ValidateAsync(BuildColabInternacional(
-            areaId, clasificId, fuente: "UE", terminos: "TOR 2025"));
+            areaId, clasificId, fuentesIds: [1], terminos: "TOR 2025"));
 
         result.Errors.ShouldNotContain(e =>
-            e.PropertyName == nameof(ProyectoColabInternacionalUpsertRequest.FuenteFinanciacion));
+            e.PropertyName == nameof(ProyectoColabInternacionalUpsertRequest.FuentesFinanciacionIds));
         result.Errors.ShouldNotContain(e =>
             e.PropertyName == nameof(ProyectoColabInternacionalUpsertRequest.TerminosReferencia));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ProyectoPNAPUpsertRequestValidator – FinanciamientoUH rule
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── PNAP – FuentesFinanciacionIds rule ────────────────────────────────────
 
     [Test]
-    public async Task PNAPValidator_EmptyFinanciamientoUH_FailsWithMessage()
+    public async Task PNAPValidator_EmptyFuentesIds_FailsWithMessage()
     {
         await using var db = CreateDb();
         var (areaId, clasificId) = SeedMinimum(db);
         var validator = new ProyectoPNAPUpsertRequestValidator(db);
 
-        var result = await validator.ValidateAsync(BuildPNAP(areaId, clasificId, financiamiento: ""));
+        var result = await validator.ValidateAsync(BuildPNAP(areaId, clasificId, fuentesIds: []));
 
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldContain(e =>
-            e.PropertyName == nameof(ProyectoPNAPUpsertRequest.FinanciamientoUH) &&
-            e.ErrorMessage.Contains("financiamiento UH es obligatorio"));
+            e.PropertyName == nameof(ProyectoPNAPUpsertRequest.FuentesFinanciacionIds) &&
+            e.ErrorMessage.Contains("al menos una fuente de financiación"));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // Private request builders
-    // ══════════════════════════════════════════════════════════════════════════
-
-    private static ProyectoEnEjecucionUpsertRequestBase BaseEjecucion(string areaId, string clasificId) =>
-        // returned as base to be used by derived builder helpers
-        new ProyectoEmpresarialUpsertRequest
-        {
-            Titulo = "Título",
-            JefeId = "j1",
-            ClasificacionId = clasificId,
-            AreaId = areaId,
-            FechaInicio = new DateOnly(2025, 1, 1),
-            EstadoDeEjecucion = "En curso",
-            CodigoProyecto = "P-001",
-            EntidadEjecutoraPrincipal = "UH",
-            Empresa = "X"
-        };
+    // ── Private request builders ──────────────────────────────────────────────
 
     private static ProyectoEmpresarialUpsertRequest BuildEmpresarial(
-        string areaId, string clasificId, string empresa) => new()
+        string areaId, string clasificId, IList<string> empresasIds) => new()
     {
         Titulo = "Título",
         JefeId = "j1",
         ClasificacionId = clasificId,
         AreaId = areaId,
         FechaInicio = new DateOnly(2025, 1, 1),
-        EstadoDeEjecucion = "En curso",
         CodigoProyecto = "P-001",
-        EntidadEjecutoraPrincipal = "UH",
-        Empresa = empresa
+        EmpresasIds = empresasIds
     };
 
     private static ProyectoApoyoProgramaUpsertRequest BuildApoyoPrograma(
-        string areaId, string clasificId, string nombrePrograma) => new()
+        string areaId, string clasificId, IList<int> programasIds) => new()
     {
         Titulo = "Título",
         JefeId = "j1",
         ClasificacionId = clasificId,
         AreaId = areaId,
         FechaInicio = new DateOnly(2025, 1, 1),
-        EstadoDeEjecucion = "En curso",
         CodigoProyecto = "P-001",
-        EntidadEjecutoraPrincipal = "UH",
-        NombrePrograma = nombrePrograma,
+        ProgramasIds = programasIds,
         TipoPAP = TipoPAP.Nacional
     };
 
     private static ProyectoDesarrolloLocalUpsertRequest BuildDesarrolloLocal(
-        string areaId, string clasificId, string municipio) => new()
+        string areaId, string clasificId, int municipioId) => new()
     {
         Titulo = "Título",
         JefeId = "j1",
         ClasificacionId = clasificId,
         AreaId = areaId,
         FechaInicio = new DateOnly(2025, 1, 1),
-        EstadoDeEjecucion = "En curso",
         CodigoProyecto = "P-001",
-        EntidadEjecutoraPrincipal = "UH",
-        Municipio = municipio
+        MunicipioId = municipioId
     };
 
     private static ProyectoNoEmpresarialUpsertRequest BuildNoEmpresarial(
-        string areaId, string clasificId, string entidad) => new()
+        string areaId, string clasificId, IList<string> entidadesIds) => new()
     {
         Titulo = "Título",
         JefeId = "j1",
         ClasificacionId = clasificId,
         AreaId = areaId,
         FechaInicio = new DateOnly(2025, 1, 1),
-        EstadoDeEjecucion = "En curso",
         CodigoProyecto = "P-001",
-        EntidadEjecutoraPrincipal = "UH",
-        EntidadNoEmpresarial = entidad
+        EntidadesIds = entidadesIds
     };
 
     private static ProyectoColabInternacionalUpsertRequest BuildColabInternacional(
-        string areaId, string clasificId, string fuente, string terminos) => new()
+        string areaId, string clasificId, IList<int> fuentesIds, string terminos) => new()
     {
         Titulo = "Título",
         JefeId = "j1",
         ClasificacionId = clasificId,
         AreaId = areaId,
         FechaInicio = new DateOnly(2025, 1, 1),
-        EstadoDeEjecucion = "En curso",
         CodigoProyecto = "P-001",
-        EntidadEjecutoraPrincipal = "UH",
-        FuenteFinanciacion = fuente,
+        FuentesFinanciacionIds = fuentesIds,
         TerminosReferencia = terminos
     };
 
     private static ProyectoPNAPUpsertRequest BuildPNAP(
-        string areaId, string clasificId, string financiamiento) => new()
+        string areaId, string clasificId, IList<int> fuentesIds) => new()
     {
         Titulo = "Título",
         JefeId = "j1",
         ClasificacionId = clasificId,
         AreaId = areaId,
         FechaInicio = new DateOnly(2025, 1, 1),
-        EstadoDeEjecucion = "En curso",
         CodigoProyecto = "P-001",
-        EntidadEjecutoraPrincipal = "UH",
-        FinanciamientoUH = financiamiento
+        FuentesFinanciacionIds = fuentesIds
     };
 }

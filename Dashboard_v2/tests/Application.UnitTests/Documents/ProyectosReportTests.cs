@@ -59,9 +59,7 @@ public class ProyectosReportTests
         p.NumeroMiembros = 3;
         p.CantidadMiembrosUH = 2;
         p.FechaInicio = DateOnly.FromDateTime(DateTime.Today);
-        p.EstadoDeEjecucion = "En ejecución";
         p.CodigoProyecto = $"{typeof(T).Name}-001";
-        p.EntidadEjecutoraPrincipal = "UH";
         return p;
     }
 
@@ -110,7 +108,13 @@ public class ProyectosReportTests
     public async Task GatherVariablesAsync_WithProyectoEmpresarial_PopulatesPERow()
     {
         await SeedBaseAsync();
-        _db.Proyectos.Add(BaseProject(new ProyectoEmpresarial { Empresa = "Acme S.A." }));
+        var empresa = new Institution { Nombre = "Acme S.A." };
+        _db.Institutions.Add(empresa);
+        await _db.SaveChangesAsync();
+
+        var proy = BaseProject(new ProyectoEmpresarial());
+        proy.Empresas = new List<Institution> { empresa };
+        _db.Proyectos.Add(proy);
         await _db.SaveChangesAsync();
 
         var result = await _sut.GatherVariablesAsync(null, default);
@@ -125,11 +129,13 @@ public class ProyectosReportTests
     public async Task GatherVariablesAsync_WithProyectoPAP_Nacional_PopulatesPAPNRow()
     {
         await SeedBaseAsync();
-        _db.Proyectos.Add(BaseProject(new ProyectoApoyoPrograma
-        {
-            NombrePrograma = "Prog Nacional",
-            TipoPAP = TipoPAP.Nacional
-        }));
+        var prog = new Programa { Nombre = "Prog Nacional" };
+        _db.Programas.Add(prog);
+        await _db.SaveChangesAsync();
+
+        var proy = BaseProject(new ProyectoApoyoPrograma { TipoPAP = TipoPAP.Nacional });
+        proy.Programas = new List<Programa> { prog };
+        _db.Proyectos.Add(proy);
         await _db.SaveChangesAsync();
 
         var result = await _sut.GatherVariablesAsync(null, default);
@@ -144,11 +150,13 @@ public class ProyectosReportTests
     public async Task GatherVariablesAsync_WithProyectoPAP_Sectorial_PopulatesPAPSRow()
     {
         await SeedBaseAsync();
-        _db.Proyectos.Add(BaseProject(new ProyectoApoyoPrograma
-        {
-            NombrePrograma = "Prog Sectorial",
-            TipoPAP = TipoPAP.Sectorial
-        }));
+        var prog = new Programa { Nombre = "Prog Sectorial" };
+        _db.Programas.Add(prog);
+        await _db.SaveChangesAsync();
+
+        var proy = BaseProject(new ProyectoApoyoPrograma { TipoPAP = TipoPAP.Sectorial });
+        proy.Programas = new List<Programa> { prog };
+        _db.Proyectos.Add(proy);
         await _db.SaveChangesAsync();
 
         var result = await _sut.GatherVariablesAsync(null, default);
@@ -161,11 +169,13 @@ public class ProyectosReportTests
     public async Task GatherVariablesAsync_WithProyectoPAP_Territorial_PopulatesPAPTRow()
     {
         await SeedBaseAsync();
-        _db.Proyectos.Add(BaseProject(new ProyectoApoyoPrograma
-        {
-            NombrePrograma = "Prog Territorial",
-            TipoPAP = TipoPAP.Territorial
-        }));
+        var prog = new Programa { Nombre = "Prog Territorial" };
+        _db.Programas.Add(prog);
+        await _db.SaveChangesAsync();
+
+        var proy = BaseProject(new ProyectoApoyoPrograma { TipoPAP = TipoPAP.Territorial });
+        proy.Programas = new List<Programa> { prog };
+        _db.Proyectos.Add(proy);
         await _db.SaveChangesAsync();
 
         var result = await _sut.GatherVariablesAsync(null, default);
@@ -178,7 +188,13 @@ public class ProyectosReportTests
     public async Task GatherVariablesAsync_WithProyectoNoEmpresarial_PopulatesPNERow()
     {
         await SeedBaseAsync();
-        _db.Proyectos.Add(BaseProject(new ProyectoNoEmpresarial { EntidadNoEmpresarial = "Ministerio" }));
+        var entidad = new Institution { Nombre = "Ministerio" };
+        _db.Institutions.Add(entidad);
+        await _db.SaveChangesAsync();
+
+        var proy = BaseProject(new ProyectoNoEmpresarial());
+        proy.Entidades = new List<Institution> { entidad };
+        _db.Proyectos.Add(proy);
         await _db.SaveChangesAsync();
 
         var result = await _sut.GatherVariablesAsync(null, default);
@@ -193,7 +209,15 @@ public class ProyectosReportTests
     public async Task GatherVariablesAsync_WithProyectoDesarrolloLocal_PopulatesPDLRow()
     {
         await SeedBaseAsync();
-        _db.Proyectos.Add(BaseProject(new ProyectoDesarrolloLocal { Municipio = "Plaza" }));
+        var provincia = new Provincia { Nombre = "La Habana" };
+        _db.Provincias.Add(provincia);
+        await _db.SaveChangesAsync();
+        var municipio = new Municipio { Nombre = "Plaza", ProvinciaId = provincia.Id };
+        _db.Municipios.Add(municipio);
+        await _db.SaveChangesAsync();
+
+        var proy = BaseProject(new ProyectoDesarrolloLocal { MunicipioId = municipio.Id });
+        _db.Proyectos.Add(proy);
         await _db.SaveChangesAsync();
 
         var result = await _sut.GatherVariablesAsync(null, default);
@@ -208,11 +232,13 @@ public class ProyectosReportTests
     public async Task GatherVariablesAsync_WithProyectoColabInternacional_PopulatesPRCIRow()
     {
         await SeedBaseAsync();
-        _db.Proyectos.Add(BaseProject(new ProyectoColabInternacional
-        {
-            FuenteFinanciacion = "EU",
-            TerminosReferencia = "TDR"
-        }));
+        var fuente = new FuenteFinanciacion { Nombre = "EU" };
+        _db.FuentesFinanciacion.Add(fuente);
+        await _db.SaveChangesAsync();
+
+        var proy = BaseProject(new ProyectoColabInternacional { TerminosReferencia = "TDR" });
+        proy.FuentesFinanciacion = new List<FuenteFinanciacion> { fuente };
+        _db.Proyectos.Add(proy);
         await _db.SaveChangesAsync();
 
         var result = await _sut.GatherVariablesAsync(null, default);
@@ -227,7 +253,13 @@ public class ProyectosReportTests
     public async Task GatherVariablesAsync_WithProyectoPNAP_PopulatesPNAPRow()
     {
         await SeedBaseAsync();
-        _db.Proyectos.Add(BaseProject(new ProyectoPNAP { FinanciamientoUH = "1M CUP" }));
+        var fuente = new FuenteFinanciacion { Nombre = "1M CUP" };
+        _db.FuentesFinanciacion.Add(fuente);
+        await _db.SaveChangesAsync();
+
+        var proy = BaseProject(new ProyectoPNAP());
+        proy.FuentesFinanciacion = new List<FuenteFinanciacion> { fuente };
+        _db.Proyectos.Add(proy);
         await _db.SaveChangesAsync();
 
         var result = await _sut.GatherVariablesAsync(null, default);
@@ -250,7 +282,6 @@ public class ProyectosReportTests
             AreaId = AreaId,
             NumeroMiembros = 2,
             CantidadMiembrosUH = 1,
-            Situacion = "Pendiente",
             Tipo = "PE"
         });
         await _db.SaveChangesAsync();

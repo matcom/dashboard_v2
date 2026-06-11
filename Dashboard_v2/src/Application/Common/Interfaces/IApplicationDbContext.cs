@@ -46,6 +46,14 @@ public interface IApplicationDbContext
     DbSet<AuthorProductoComercializado> AuthorProductosComercializados { get; }
     DbSet<AuthorPatente> AuthorPatentes { get; }
     DbSet<ProyectoPatente> ProyectoPatentes { get; }
+    DbSet<Provincia> Provincias { get; }
+    DbSet<Municipio> Municipios { get; }
+    DbSet<SectorEstrategico> SectoresEstrategicos { get; }
+    DbSet<EjeEstrategico> EjesEstrategicos { get; }
+    DbSet<FuenteFinanciacion> FuentesFinanciacion { get; }
+    DbSet<EstadoProyecto> EstadosProyecto { get; }
+    DbSet<SituacionProyecto> SituacionesProyecto { get; }
+    DbSet<Programa> Programas { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

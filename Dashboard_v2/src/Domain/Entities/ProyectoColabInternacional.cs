@@ -4,6 +4,9 @@ namespace Dashboard_v2.Domain.Entities;
 public class ProyectoColabInternacional : ProyectoEnEjecucion
 {
     public override string TipoIdentificador => "PRCI";
-    public string FuenteFinanciacion { get; set; } = default!;
+
+    /// <summary>M:N: fuentes de financiación internacionales del proyecto.</summary>
+    public ICollection<FuenteFinanciacion> FuentesFinanciacion { get; set; } = new List<FuenteFinanciacion>();
+
     public string TerminosReferencia { get; set; } = default!;
 }

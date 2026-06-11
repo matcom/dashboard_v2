@@ -68,7 +68,6 @@ public class ProyectoPatenteTests
             CantidadEstudiantes = 0,
             CantidadEstudiantesContratados = 0,
             TributaFormacionDoctoral = false,
-            Situacion = "Pendiente",
             Tipo = "en-revision"
         };
 
