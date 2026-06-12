@@ -50,12 +50,25 @@ function awardTypeLabel(value) {
   return AWARD_TYPES.find(t => t.value === value)?.label ?? 'Desconocido';
 }
 
+function isoToDDMM(v) {
+  const m = v && v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+}
+function ddmmToISO(v) {
+  const m = v && v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return '';
+  return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+}
+
+const _now = new Date();
+const _todayDDMM = `${String(_now.getDate()).padStart(2, '0')}/${String(_now.getMonth() + 1).padStart(2, '0')}/${_now.getFullYear()}`;
+
 const EMPTY_FORM = {
   awardId: '',
   createNewAward: false,
   newAwardName: '',
   awardType: '0',
-  awardedAt: new Date().toISOString().slice(0, 10),
+  awardedAt: _todayDDMM,
   evidenceFileId: null,
 };
 
@@ -116,7 +129,7 @@ export default function AwardsPage() {
           awardTypeId: a.awardTypeId,
           awardTypeName: a.awardTypeName,
           awardedAt: g.awardedAt,
-          year: (g.awardedAt ? new Date(g.awardedAt).getFullYear() : new Date().getFullYear()),
+          year: (g.awardedAt ? parseInt(g.awardedAt.substring(0, 4), 10) : new Date().getFullYear()),
           recipients: recipients,
           ownerRecipientId: owner ? owner.id : null,
           ownerEvidenceFileId: owner?.evidenceFileId ?? null,
@@ -193,7 +206,7 @@ export default function AwardsPage() {
         createNewAward: false,
         newAwardName: '',
         awardType: String(matchingCatalogEntry.awardTypeId),
-        awardedAt: (award.awardedAt ?? '').slice(0, 10),
+        awardedAt: isoToDDMM((award.awardedAt ?? '').slice(0, 10)),
         evidenceFileId: award.evidenceFileId ?? null,
       });
     } else {
@@ -202,7 +215,7 @@ export default function AwardsPage() {
         createNewAward: true,
         newAwardName: award.awardName,
         awardType: String(award.awardTypeId ?? award.awardType ?? '0'),
-        awardedAt: (award.awardedAt ?? '').slice(0, 10),
+        awardedAt: isoToDDMM((award.awardedAt ?? '').slice(0, 10)),
         evidenceFileId: award.evidenceFileId ?? null,
       });
     }
@@ -252,7 +265,7 @@ export default function AwardsPage() {
       awardId: form.createNewAward ? null : parseInt(form.awardId, 10),
       newAwardName: form.createNewAward ? form.newAwardName.trim() : null,
       awardTypeId: form.createNewAward ? parseInt(form.awardType, 10) : null,
-      awardedAt: new Date(form.awardedAt).toISOString(),
+      awardedAt: (ddmmToISO(form.awardedAt) || form.awardedAt) + 'T00:00:00Z',
       evidenceFileId: form.evidenceFileId ?? null,
     };
     try {
@@ -355,7 +368,7 @@ export default function AwardsPage() {
                   key: 'awardedAt',
                   label: 'Fecha de otorgamiento',
                   sortable: true,
-                  render: v => new Date(v).toLocaleDateString('es-CU'),
+                  render: v => new Date(v).toLocaleDateString('es-CU', { timeZone: 'UTC' }),
                 },
                 {
                   key: 'recipients',
@@ -479,11 +492,13 @@ export default function AwardsPage() {
             <FormGroup>
               <Label for="awardedAt">Fecha de otorgamiento *</Label>
               <Input
-                type="date"
+                type="text"
                 id="awardedAt"
                 name="awardedAt"
                 value={form.awardedAt}
                 onChange={handleChange}
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
                 required
               />
             </FormGroup>

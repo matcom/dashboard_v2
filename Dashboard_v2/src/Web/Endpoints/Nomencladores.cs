@@ -12,25 +12,29 @@ public class Nomencladores : EndpointGroupBase
 
     public override void Map(RouteGroupBuilder g)
     {
-        var auth = new Action<Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder>(
+        var canWrite = new Action<Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder>(
             p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)));
 
-        g.MapGet("estados",    GetEstados)       .RequireAuthorization(auth).WithName("GetEstadosProyecto");
-        g.MapPost("estados",   CreateEstado)     .RequireAuthorization(auth).WithName("CreateEstadoProyecto");
-        g.MapGet("situaciones", GetSituaciones)  .RequireAuthorization(auth).WithName("GetSituacionesProyecto");
-        g.MapPost("situaciones", CreateSituacion).RequireAuthorization(auth).WithName("CreateSituacionProyecto");
-        g.MapGet("sectores",   GetSectores)      .RequireAuthorization(auth).WithName("GetSectoresEstrategicos");
-        g.MapPost("sectores",  CreateSector)     .RequireAuthorization(auth).WithName("CreateSectorEstrategico");
-        g.MapGet("ejes",       GetEjes)          .RequireAuthorization(auth).WithName("GetEjesEstrategicos");
-        g.MapPost("ejes",      CreateEje)        .RequireAuthorization(auth).WithName("CreateEjeEstrategico");
-        g.MapGet("fuentes",    GetFuentes)       .RequireAuthorization(auth).WithName("GetFuentesFinanciacion");
-        g.MapPost("fuentes",   CreateFuente)     .RequireAuthorization(auth).WithName("CreateFuenteFinanciacion");
-        g.MapGet("programas",  GetProgramas)     .RequireAuthorization(auth).WithName("GetProgramas");
-        g.MapPost("programas", CreatePrograma)   .RequireAuthorization(auth).WithName("CreatePrograma");
-        g.MapGet("provincias",    GetProvincias)       .RequireAuthorization(auth).WithName("GetProvincias");
-        g.MapGet("municipios",    GetMunicipios)       .RequireAuthorization(auth).WithName("GetMunicipios");
-        g.MapGet("basesdedatos",  GetBasesDeDatos)     .RequireAuthorization(auth).WithName("GetBasesDeDatosPublicacion");
-        g.MapPost("basesdedatos", CreateBaseDeDatos)   .RequireAuthorization(auth).WithName("CreateBaseDeDatosPublicacion");
+        var canRead = new Action<Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder>(
+            p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto),
+                               nameof(RolesEnum.Vicedecano_de_investigacion)));
+
+        g.MapGet("estados",    GetEstados)       .RequireAuthorization(canRead) .WithName("GetEstadosProyecto");
+        g.MapPost("estados",   CreateEstado)     .RequireAuthorization(canWrite).WithName("CreateEstadoProyecto");
+        g.MapGet("situaciones", GetSituaciones)  .RequireAuthorization(canRead) .WithName("GetSituacionesProyecto");
+        g.MapPost("situaciones", CreateSituacion).RequireAuthorization(canWrite).WithName("CreateSituacionProyecto");
+        g.MapGet("sectores",   GetSectores)      .RequireAuthorization(canRead) .WithName("GetSectoresEstrategicos");
+        g.MapPost("sectores",  CreateSector)     .RequireAuthorization(canWrite).WithName("CreateSectorEstrategico");
+        g.MapGet("ejes",       GetEjes)          .RequireAuthorization(canRead) .WithName("GetEjesEstrategicos");
+        g.MapPost("ejes",      CreateEje)        .RequireAuthorization(canWrite).WithName("CreateEjeEstrategico");
+        g.MapGet("fuentes",    GetFuentes)       .RequireAuthorization(canRead) .WithName("GetFuentesFinanciacion");
+        g.MapPost("fuentes",   CreateFuente)     .RequireAuthorization(canWrite).WithName("CreateFuenteFinanciacion");
+        g.MapGet("programas",  GetProgramas)     .RequireAuthorization(canRead) .WithName("GetProgramas");
+        g.MapPost("programas", CreatePrograma)   .RequireAuthorization(canWrite).WithName("CreatePrograma");
+        g.MapGet("provincias", GetProvincias)    .RequireAuthorization(canRead) .WithName("GetProvincias");
+        g.MapGet("municipios", GetMunicipios)    .RequireAuthorization(canRead) .WithName("GetMunicipios");
+        g.MapGet("basesdedatos",  GetBasesDeDatos)   .RequireAuthorization().WithName("GetBasesDeDatosPublicacion");
+        g.MapPost("basesdedatos", CreateBaseDeDatos) .RequireAuthorization().WithName("CreateBaseDeDatosPublicacion");
     }
 
     // ── GET ──────────────────────────────────────────────────────────────────

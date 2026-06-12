@@ -7293,7 +7293,7 @@
           },
           "fecha": {
             "type": "string",
-            "format": "date-time"
+            "format": "date"
           },
           "userId": {
             "type": "string"
@@ -7321,7 +7321,7 @@
           },
           "fecha": {
             "type": "string",
-            "format": "date-time"
+            "format": "date"
           }
         }
       },
@@ -7338,7 +7338,7 @@
           },
           "fecha": {
             "type": "string",
-            "format": "date-time"
+            "format": "date"
           }
         }
       },

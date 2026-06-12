@@ -29,7 +29,7 @@ public record PresentationDto
     public string Name { get; init; } = default!;
     public int EventId { get; init; }
     public string EventName { get; init; } = default!;
-    public DateTime Fecha { get; init; }
+    public DateOnly Fecha { get; init; }
     public string UserId { get; init; } = default!;
     public LinkedUserSummaryDto? User { get; init; }
 }

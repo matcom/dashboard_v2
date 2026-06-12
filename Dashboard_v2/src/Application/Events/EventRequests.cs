@@ -30,12 +30,12 @@ public record CreatePresentationRequest
 {
     public string Name { get; init; } = default!;
     public int EventId { get; init; }
-    public DateTime Fecha { get; init; }
+    public DateOnly Fecha { get; init; }
 }
 
 public record UpdatePresentationRequest
 {
     public string Name { get; init; } = default!;
     public int EventId { get; init; }
-    public DateTime Fecha { get; init; }
+    public DateOnly Fecha { get; init; }
 }

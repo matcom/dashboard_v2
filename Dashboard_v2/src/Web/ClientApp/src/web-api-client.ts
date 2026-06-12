@@ -10770,7 +10770,7 @@ export class PresentationDto implements IPresentationDto {
         data["name"] = this.name;
         data["eventId"] = this.eventId;
         data["eventName"] = this.eventName;
-        data["fecha"] = this.fecha ? this.fecha.toISOString() : undefined as any;
+        data["fecha"] = this.fecha ? formatDate(this.fecha) : undefined as any;
         data["userId"] = this.userId;
         data["user"] = this.user ? this.user.toJSON() : undefined as any;
         return data;
@@ -10820,7 +10820,7 @@ export class CreatePresentationRequest implements ICreatePresentationRequest {
         data = typeof data === 'object' ? data : {};
         data["name"] = this.name;
         data["eventId"] = this.eventId;
-        data["fecha"] = this.fecha ? this.fecha.toISOString() : undefined as any;
+        data["fecha"] = this.fecha ? formatDate(this.fecha) : undefined as any;
         return data;
     }
 }
@@ -10864,7 +10864,7 @@ export class UpdatePresentationRequest implements IUpdatePresentationRequest {
         data = typeof data === 'object' ? data : {};
         data["name"] = this.name;
         data["eventId"] = this.eventId;
-        data["fecha"] = this.fecha ? this.fecha.toISOString() : undefined as any;
+        data["fecha"] = this.fecha ? formatDate(this.fecha) : undefined as any;
         return data;
     }
 }

@@ -31,6 +31,16 @@ async function apiFetch(url, options = {}) {
 
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
+function isoToDDMM(v) {
+  const m = v && v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+}
+function ddmmToISO(v) {
+  const m = v && v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return '';
+  return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+}
+
 const EMPTY_PRES = { name: '', eventId: '', fecha: '' };
 const EMPTY_EVENT = { name: '', countryId: '', eventType: '', institutions: [], redId: '', organizadorIds: [], evidenceFileId: null };
 
@@ -176,7 +186,9 @@ export default function EventsPage() {
 
   function openCreatePres() {
     setPresEditing(null);
-    setPresForm(EMPTY_PRES);
+    const d = new Date();
+    const todayDDMM = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    setPresForm({ ...EMPTY_PRES, fecha: todayDDMM });
     setPresFormError('');
     setPresModal(true);
   }
@@ -186,7 +198,7 @@ export default function EventsPage() {
     setPresForm({
       name: pres.name,
       eventId: pres.eventId.toString(),
-      fecha: pres.fecha ? pres.fecha.substring(0, 10) : '',
+      fecha: isoToDDMM(pres.fecha ? pres.fecha.substring(0, 10) : ''),
     });
     setPresFormError('');
     setPresModal(true);
@@ -200,7 +212,7 @@ export default function EventsPage() {
     const body = {
       name: presForm.name.trim(),
       eventId: parseInt(presForm.eventId, 10),
-      fecha: presForm.fecha || new Date().toISOString().substring(0, 10),
+      fecha: ddmmToISO(presForm.fecha) || new Date().toISOString().substring(0, 10),
     };
 
     try {
@@ -458,7 +470,11 @@ export default function EventsPage() {
                       key: 'fecha',
                       label: 'Fecha',
                       sortable: true,
-                      render: v => v ? new Date(v).toLocaleDateString('es-CU') : '—',
+                      render: v => {
+                        if (!v) return '—';
+                        const [y, m, d] = String(v).substring(0, 10).split('-');
+                        return `${d}/${m}/${y}`;
+                      },
                     },
                     {
                       key: 'user',
@@ -567,8 +583,9 @@ export default function EventsPage() {
 
             <FormGroup>
               <Label for="presFecha">Fecha *</Label>
-              <Input type="date" id="presFecha" value={presForm.fecha}
-                onChange={e => setPresForm(f => ({ ...f, fecha: e.target.value }))} />
+              <Input type="text" id="presFecha" value={presForm.fecha}
+                onChange={e => setPresForm(f => ({ ...f, fecha: e.target.value }))}
+                placeholder="DD/MM/AAAA" maxLength={10} />
             </FormGroup>
           </ModalBody>
           <ModalFooter>

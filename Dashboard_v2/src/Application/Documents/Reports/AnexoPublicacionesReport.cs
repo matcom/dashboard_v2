@@ -75,6 +75,8 @@ public sealed class AnexoPublicacionesReport : IDocumentReport
                 .ThenInclude(ap => ap.Author)
             .Include(p => p.JournalPublication)
                 .ThenInclude(jp => jp!.JournalGroup1Publication)
+            .Include(p => p.JournalPublication)
+                .ThenInclude(jp => jp!.BaseDeDatos)
             .Include(p => p.IndexedPublication)
             .Where(p => requestingAreaId != null &&
                 p.AuthorPublications.Any(ap =>
