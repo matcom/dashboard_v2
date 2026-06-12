@@ -2397,6 +2397,78 @@
         }
       }
     },
+    "/api/Nomencladores/tiposnorma": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetTiposNorma",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateTipoNorma",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/tiposproducto": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetTiposProductoComercializado",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateTipoProductoComercializado",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/Normas": {
       "get": {
         "tags": [
@@ -7048,8 +7120,14 @@
           "titulo": {
             "type": "string"
           },
-          "tipo": {
-            "type": "string"
+          "tipoNormaId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "tipoNormaNombre": {
+            "type": "string",
+            "nullable": true
           },
           "institutionId": {
             "type": "string"
@@ -7094,8 +7172,10 @@
           "titulo": {
             "type": "string"
           },
-          "tipo": {
-            "type": "string"
+          "tipoNormaId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "institutionId": {
             "type": "string"
@@ -7130,8 +7210,10 @@
           "titulo": {
             "type": "string"
           },
-          "tipo": {
-            "type": "string"
+          "tipoNormaId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "institutionId": {
             "type": "string"

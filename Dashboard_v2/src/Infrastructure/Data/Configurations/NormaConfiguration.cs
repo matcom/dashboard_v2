@@ -12,7 +12,13 @@ public class NormaConfiguration : IEntityTypeConfiguration<Norma>
         builder.HasKey(n => n.Id);
         builder.Property(n => n.Id).HasMaxLength(450);
         builder.Property(n => n.Titulo).IsRequired().HasMaxLength(1000);
-        builder.Property(n => n.Tipo).HasMaxLength(200);
+
+        builder.Property(n => n.TipoNormaId).IsRequired(false);
+        builder.HasOne(n => n.TipoNorma)
+            .WithMany()
+            .HasForeignKey(n => n.TipoNormaId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         builder.HasOne(n => n.Institution)
             .WithMany(i => i.Normas)

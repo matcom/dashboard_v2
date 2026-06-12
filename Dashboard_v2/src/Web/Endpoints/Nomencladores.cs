@@ -35,6 +35,10 @@ public class Nomencladores : EndpointGroupBase
         g.MapGet("municipios", GetMunicipios)    .RequireAuthorization(canRead) .WithName("GetMunicipios");
         g.MapGet("basesdedatos",  GetBasesDeDatos)   .RequireAuthorization().WithName("GetBasesDeDatosPublicacion");
         g.MapPost("basesdedatos", CreateBaseDeDatos) .RequireAuthorization().WithName("CreateBaseDeDatosPublicacion");
+        g.MapGet("tiposnorma",    GetTiposNorma)     .RequireAuthorization().WithName("GetTiposNorma");
+        g.MapPost("tiposnorma",   CreateTipoNorma)   .RequireAuthorization().WithName("CreateTipoNorma");
+        g.MapGet("tiposproducto",  GetTiposProducto)   .RequireAuthorization().WithName("GetTiposProductoComercializado");
+        g.MapPost("tiposproducto", CreateTipoProducto) .RequireAuthorization().WithName("CreateTipoProductoComercializado");
     }
 
     // ── GET ──────────────────────────────────────────────────────────────────
@@ -150,6 +154,35 @@ public class Nomencladores : EndpointGroupBase
         db.Programas.Add(e);
         await db.SaveChangesAsync(ct);
         return Results.Created($"/api/Nomencladores/programas/{e.Id}", new { e.Id, e.Nombre });
+    }
+    private static async Task<IResult> GetTiposNorma(IApplicationDbContext db, CancellationToken ct)
+        => Results.Ok(await db.TiposNorma.OrderBy(x => x.Nombre).Select(x => new { x.Id, x.Nombre }).ToListAsync(ct));
+
+    private static async Task<IResult> CreateTipoNorma(IApplicationDbContext db, NomencladorCreateRequest req, CancellationToken ct)
+    {
+        var nombre = req.Nombre?.Trim();
+        if (string.IsNullOrEmpty(nombre)) return Results.BadRequest(new { errors = NombreRequeridoError });
+        var ex = await db.TiposNorma.FirstOrDefaultAsync(x => x.Nombre.ToLower() == nombre.ToLower(), ct);
+        if (ex is not null) return Results.Ok(new { ex.Id, ex.Nombre });
+        var e = new Domain.Entities.TipoNorma { Nombre = nombre };
+        db.TiposNorma.Add(e);
+        await db.SaveChangesAsync(ct);
+        return Results.Created($"/api/Nomencladores/tiposnorma/{e.Id}", new { e.Id, e.Nombre });
+    }
+
+    private static async Task<IResult> GetTiposProducto(IApplicationDbContext db, CancellationToken ct)
+        => Results.Ok(await db.TipoProductosComercializados.OrderBy(x => x.Nombre).Select(x => new { x.Id, x.Nombre }).ToListAsync(ct));
+
+    private static async Task<IResult> CreateTipoProducto(IApplicationDbContext db, NomencladorCreateRequest req, CancellationToken ct)
+    {
+        var nombre = req.Nombre?.Trim();
+        if (string.IsNullOrEmpty(nombre)) return Results.BadRequest(new { errors = NombreRequeridoError });
+        var ex = await db.TipoProductosComercializados.FirstOrDefaultAsync(x => x.Nombre.ToLower() == nombre.ToLower(), ct);
+        if (ex is not null) return Results.Ok(new { ex.Id, ex.Nombre });
+        var e = new Domain.Entities.TipoProductoComercializado { Nombre = nombre };
+        db.TipoProductosComercializados.Add(e);
+        await db.SaveChangesAsync(ct);
+        return Results.Created($"/api/Nomencladores/tiposproducto/{e.Id}", new { e.Id, e.Nombre });
     }
 }
 

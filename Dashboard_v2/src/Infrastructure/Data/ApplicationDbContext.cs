@@ -40,6 +40,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Proyecto> Proyectos => Set<Proyecto>();
     public DbSet<Registro> Registros => Set<Registro>();
     public DbSet<Norma> Normas => Set<Norma>();
+    public DbSet<TipoNorma> TiposNorma => Set<TipoNorma>();
     public DbSet<Red> Reds => Set<Red>();
     public DbSet<RedCoordinada> RedesCoordinadas => Set<RedCoordinada>();
     public DbSet<TipoProductoComercializado> TipoProductosComercializados => Set<TipoProductoComercializado>();

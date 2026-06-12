@@ -8,7 +8,45 @@ import FilterableDataTable from '../components/FilterableDataTable';
 import CoauthorPicker from '../components/CoauthorPicker';
 import { useAuth } from '../contexts/AuthContext';
 
-const EMPTY_FORM = { titulo: '', tipo: '', institutionId: '' };
+const EMPTY_FORM = { titulo: '', tipoNormaId: null, tipoNormaNombre: '', institutionId: '' };
+
+function NuevoTipoNormaInline({ onCreated }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+
+  async function handleCreate() {
+    const nombre = value.trim();
+    if (!nombre) return;
+    setLoading(true); setErr('');
+    try {
+      const created = await apiFetch('/api/Nomencladores/tiposnorma', { method: 'POST', body: JSON.stringify({ nombre }) });
+      onCreated(created);
+      setValue(''); setOpen(false);
+    } catch (e) { setErr(e.message); } finally { setLoading(false); }
+  }
+
+  if (!open) return (
+    <Button type="button" color="secondary" outline size="sm" onClick={() => setOpen(true)}>
+      <i className="bi bi-plus" /> Nuevo tipo
+    </Button>
+  );
+  return (
+    <div className="w-100 mt-1">
+      {err && <Alert color="danger" className="py-1 px-2 small mb-1">{err}</Alert>}
+      <InputGroup size="sm">
+        <Input placeholder="Nombre del tipo..." value={value} autoFocus
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreate(); } }} />
+        <Button type="button" color="primary" onClick={handleCreate} disabled={loading}>
+          {loading ? <Spinner size="sm" /> : 'Crear'}
+        </Button>
+        <Button type="button" color="secondary" outline onClick={() => { setOpen(false); setErr(''); }}>✕</Button>
+      </InputGroup>
+    </div>
+  );
+}
 
 async function apiFetch(url, options = {}) {
   const res = await fetch(url, {
@@ -28,6 +66,7 @@ export default function MisNormasPage() {
   const { user } = useAuth();
   const [items, setItems]         = useState([]);
   const [institutions, setInstitutions] = useState([]);
+  const [tiposNorma, setTiposNorma] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState('');
 
@@ -51,8 +90,8 @@ export default function MisNormasPage() {
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const [ns, insts] = await Promise.all([apiFetch('/api/Normas/mis'), apiFetch('/api/Institutions')]);
-      setItems(ns); setInstitutions(insts);
+      const [ns, insts, tipos] = await Promise.all([apiFetch('/api/Normas/mis'), apiFetch('/api/Institutions'), apiFetch('/api/Nomencladores/tiposnorma')]);
+      setItems(ns); setInstitutions(insts); setTiposNorma(tipos);
     } catch (e) { setError(e.message); } finally { setLoading(false); }
   }, []);
 
@@ -69,7 +108,7 @@ export default function MisNormasPage() {
   }
   function openEdit(item) {
     setEditing(item);
-    setForm({ titulo: item.titulo, tipo: item.tipo, institutionId: item.institutionId });
+    setForm({ titulo: item.titulo, tipoNormaId: item.tipoNormaId ?? null, tipoNormaNombre: item.tipoNormaNombre ?? '', institutionId: item.institutionId });
     const initialTags = (item.creadoresDetalle ?? [])
       .filter(c => c.userId !== user?.id)
       .map(mapCreatorToPickerEntry);
@@ -82,7 +121,9 @@ export default function MisNormasPage() {
     if (e) e.preventDefault();
     setSaving(true); setFormError('');
     const body = {
-      ...form,
+      titulo: form.titulo,
+      tipoNormaId: form.tipoNormaId,
+      institutionId: form.institutionId,
       additionalAuthorIds: coauthorTags.filter(t => t.type === 'author').map(t => t.id),
       additionalAuthorNames: coauthorTags.filter(t => t.type === 'new').map(t => t.name),
       additionalUserIds: coauthorTags.filter(t => t.type === 'user').map(t => t.id),
@@ -113,7 +154,6 @@ export default function MisNormasPage() {
 
   if (loading) return <div className="d-flex justify-content-center mt-5"><Spinner color="primary" /></div>;
 
-  const tipoOpts        = [...new Set(items.map(i => i.tipo).filter(Boolean))].sort();
   const institutionOpts = [...new Set(items.map(i => i.institutionNombre).filter(Boolean))].sort();
 
   return (
@@ -134,13 +174,13 @@ export default function MisNormasPage() {
             filterConfig={{
               search: { fields: ['titulo'], placeholder: 'Buscar norma...' },
               filters: [
-                { key: 'tipo',              label: 'Tipo',        options: tipoOpts.map(v => ({ value: v, label: v })) },
+                { key: 'tipoNormaNombre',   label: 'Tipo',        options: tiposNorma.map(t => ({ value: t.nombre, label: t.nombre })) },
                 { key: 'institutionNombre', label: 'Institución', options: institutionOpts.map(v => ({ value: v, label: v })) },
               ],
             }}
             columns={[
               { key: 'titulo',            label: 'Título',      sortable: true },
-              { key: 'tipo',              label: 'Tipo' },
+              { key: 'tipoNormaNombre',   label: 'Tipo' },
               { key: 'institutionNombre', label: 'Institución' },
               { key: 'creadores',         label: 'Creadores',   render: v => (v ?? []).join(', ') },
             ]}
@@ -166,8 +206,23 @@ export default function MisNormasPage() {
               <Input required value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} />
             </FormGroup>
             <FormGroup>
-              <Label>Tipo *</Label>
-              <Input required value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} placeholder="ISO, INEN, ASTM…" />
+              <Label>Tipo</Label>
+              <Input type="select" value={form.tipoNormaId ?? ''} onChange={e => {
+                const id = e.target.value ? parseInt(e.target.value, 10) : null;
+                const found = tiposNorma.find(t => t.id === id);
+                setForm(f => ({ ...f, tipoNormaId: id, tipoNormaNombre: found?.nombre ?? '' }));
+              }}>
+                <option value="">— Sin tipo —</option>
+                {tiposNorma.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+              </Input>
+              <div className="mt-1">
+                <NuevoTipoNormaInline
+                  onCreated={t => {
+                    setTiposNorma(prev => [...prev, t].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+                    setForm(f => ({ ...f, tipoNormaId: t.id, tipoNormaNombre: t.nombre }));
+                  }}
+                />
+              </div>
             </FormGroup>
             <FormGroup>
               <Label>Institución *</Label>

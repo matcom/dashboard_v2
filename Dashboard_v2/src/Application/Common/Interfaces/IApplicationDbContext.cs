@@ -36,6 +36,7 @@ public interface IApplicationDbContext
     DbSet<Proyecto> Proyectos { get; }
     DbSet<Registro> Registros { get; }
     DbSet<Norma> Normas { get; }
+    DbSet<TipoNorma> TiposNorma { get; }
     DbSet<Red> Reds { get; }
     DbSet<RedCoordinada> RedesCoordinadas { get; }
     DbSet<TipoProductoComercializado> TipoProductosComercializados { get; }

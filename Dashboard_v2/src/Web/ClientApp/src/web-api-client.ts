@@ -3295,6 +3295,138 @@ export class NomencladoresClient {
         }
         return Promise.resolve<void>(null as any);
     }
+
+    getTiposNorma(): Promise<void> {
+        let url_ = this.baseUrl + "/api/Nomencladores/tiposnorma";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetTiposNorma(_response);
+        });
+    }
+
+    protected processGetTiposNorma(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    createTipoNorma(req: NomencladorCreateRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/Nomencladores/tiposnorma";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateTipoNorma(_response);
+        });
+    }
+
+    protected processCreateTipoNorma(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getTiposProductoComercializado(): Promise<void> {
+        let url_ = this.baseUrl + "/api/Nomencladores/tiposproducto";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetTiposProductoComercializado(_response);
+        });
+    }
+
+    protected processGetTiposProductoComercializado(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    createTipoProductoComercializado(req: NomencladorCreateRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/Nomencladores/tiposproducto";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateTipoProductoComercializado(_response);
+        });
+    }
+
+    protected processCreateTipoProductoComercializado(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 }
 
 export class NormasClient {
@@ -10178,7 +10310,8 @@ export interface INomencladorCreateRequest {
 export class NormaDto implements INormaDto {
     id?: string;
     titulo?: string;
-    tipo?: string;
+    tipoNormaId?: number | undefined;
+    tipoNormaNombre?: string | undefined;
     institutionId?: string;
     institutionNombre?: string;
     creadores?: string[];
@@ -10197,7 +10330,8 @@ export class NormaDto implements INormaDto {
         if (_data) {
             this.id = _data["id"];
             this.titulo = _data["titulo"];
-            this.tipo = _data["tipo"];
+            this.tipoNormaId = _data["tipoNormaId"];
+            this.tipoNormaNombre = _data["tipoNormaNombre"];
             this.institutionId = _data["institutionId"];
             this.institutionNombre = _data["institutionNombre"];
             if (Array.isArray(_data["creadores"])) {
@@ -10224,7 +10358,8 @@ export class NormaDto implements INormaDto {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["titulo"] = this.titulo;
-        data["tipo"] = this.tipo;
+        data["tipoNormaId"] = this.tipoNormaId;
+        data["tipoNormaNombre"] = this.tipoNormaNombre;
         data["institutionId"] = this.institutionId;
         data["institutionNombre"] = this.institutionNombre;
         if (Array.isArray(this.creadores)) {
@@ -10244,7 +10379,8 @@ export class NormaDto implements INormaDto {
 export interface INormaDto {
     id?: string;
     titulo?: string;
-    tipo?: string;
+    tipoNormaId?: number | undefined;
+    tipoNormaNombre?: string | undefined;
     institutionId?: string;
     institutionNombre?: string;
     creadores?: string[];
@@ -10297,7 +10433,7 @@ export interface ICreatorDto {
 
 export class CreateNormaBody implements ICreateNormaBody {
     titulo?: string;
-    tipo?: string;
+    tipoNormaId?: number | undefined;
     institutionId?: string;
     additionalAuthorIds?: string[] | undefined;
     additionalAuthorNames?: string[] | undefined;
@@ -10315,7 +10451,7 @@ export class CreateNormaBody implements ICreateNormaBody {
     init(_data?: any) {
         if (_data) {
             this.titulo = _data["titulo"];
-            this.tipo = _data["tipo"];
+            this.tipoNormaId = _data["tipoNormaId"];
             this.institutionId = _data["institutionId"];
             if (Array.isArray(_data["additionalAuthorIds"])) {
                 this.additionalAuthorIds = [] as any;
@@ -10345,7 +10481,7 @@ export class CreateNormaBody implements ICreateNormaBody {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["titulo"] = this.titulo;
-        data["tipo"] = this.tipo;
+        data["tipoNormaId"] = this.tipoNormaId;
         data["institutionId"] = this.institutionId;
         if (Array.isArray(this.additionalAuthorIds)) {
             data["additionalAuthorIds"] = [];
@@ -10368,7 +10504,7 @@ export class CreateNormaBody implements ICreateNormaBody {
 
 export interface ICreateNormaBody {
     titulo?: string;
-    tipo?: string;
+    tipoNormaId?: number | undefined;
     institutionId?: string;
     additionalAuthorIds?: string[] | undefined;
     additionalAuthorNames?: string[] | undefined;
@@ -10377,7 +10513,7 @@ export interface ICreateNormaBody {
 
 export class UpdateNormaBody implements IUpdateNormaBody {
     titulo?: string;
-    tipo?: string;
+    tipoNormaId?: number | undefined;
     institutionId?: string;
     additionalAuthorIds?: string[] | undefined;
     additionalAuthorNames?: string[] | undefined;
@@ -10395,7 +10531,7 @@ export class UpdateNormaBody implements IUpdateNormaBody {
     init(_data?: any) {
         if (_data) {
             this.titulo = _data["titulo"];
-            this.tipo = _data["tipo"];
+            this.tipoNormaId = _data["tipoNormaId"];
             this.institutionId = _data["institutionId"];
             if (Array.isArray(_data["additionalAuthorIds"])) {
                 this.additionalAuthorIds = [] as any;
@@ -10425,7 +10561,7 @@ export class UpdateNormaBody implements IUpdateNormaBody {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["titulo"] = this.titulo;
-        data["tipo"] = this.tipo;
+        data["tipoNormaId"] = this.tipoNormaId;
         data["institutionId"] = this.institutionId;
         if (Array.isArray(this.additionalAuthorIds)) {
             data["additionalAuthorIds"] = [];
@@ -10448,7 +10584,7 @@ export class UpdateNormaBody implements IUpdateNormaBody {
 
 export interface IUpdateNormaBody {
     titulo?: string;
-    tipo?: string;
+    tipoNormaId?: number | undefined;
     institutionId?: string;
     additionalAuthorIds?: string[] | undefined;
     additionalAuthorNames?: string[] | undefined;
