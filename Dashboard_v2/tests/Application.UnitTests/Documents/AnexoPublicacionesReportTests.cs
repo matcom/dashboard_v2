@@ -55,7 +55,7 @@ public class AnexoPublicacionesReportTests
         {
             PublicationId = pub.Id,
             Group = group,
-            DataBase = "WoS",
+            BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" },
         };
         pub.JournalPublication = jp;
         pub.AuthorPublications.Add(new AuthorPublication
@@ -163,7 +163,7 @@ public class AnexoPublicacionesReportTests
             PublicationData = "Datos mixtos",
             PublishedDate = "2024",
             PublicationType = PublicationType.Diario,
-            JournalPublication = new JournalPublication { PublicationId = "pub-mixed", Group = 2, DataBase = "Scopus" },
+            JournalPublication = new JournalPublication { PublicationId = "pub-mixed", Group = 2, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "Scopus" } },
         };
         pub.AuthorPublications.Add(new AuthorPublication { AuthorId = authorA.Id, PublicationId = pub.Id, Author = authorA, Publication = pub });
         pub.AuthorPublications.Add(new AuthorPublication { AuthorId = authorB.Id, PublicationId = pub.Id, Author = authorB, Publication = pub });
@@ -447,7 +447,7 @@ public class AnexoPublicacionesReportTests
             {
                 PublicationId = pubId,
                 Group = 1,
-                DataBase = "WoS",
+                BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" },
                 JournalGroup1Publication = new JournalGroup1Publication
                 {
                     PublicationId = pubId,
@@ -536,7 +536,7 @@ public class AnexoPublicacionesReportTests
             PublicationData = "Datos",
             PublishedDate = "2024",
             PublicationType = PublicationType.Diario,
-            JournalPublication = new JournalPublication { PublicationId = pubId, Group = 1, DataBase = "WoS" },
+            JournalPublication = new JournalPublication { PublicationId = pubId, Group = 1, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" } },
         };
         // Z añadido antes de A para verificar que el reporte ordena alfabéticamente
         pub.AuthorPublications.Add(new AuthorPublication { AuthorId = authorZ.Id, PublicationId = pubId, Author = authorZ, Publication = pub });

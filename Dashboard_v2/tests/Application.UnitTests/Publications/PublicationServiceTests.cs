@@ -246,7 +246,7 @@ public class PublicationServiceTests
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
-                DataBase = "WoS",
+                BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" },
                 Group = 1,
                 JournalGroup1Publication = new JournalGroup1Publication { PublicationId = pubId, Cuartil = "Q1" }
             }
@@ -309,7 +309,7 @@ public class PublicationServiceTests
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
-                DataBase = "Scopus",
+                BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "Scopus" },
                 Group = 2
             }
         };
@@ -688,7 +688,7 @@ public class PublicationServiceTests
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
-                DataBase = "Scopus",
+                BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "Scopus" },
                 Group = 2
             }
         };
@@ -1042,7 +1042,7 @@ public class PublicationServiceTests
             PublicationData = "{}",
             PublicationType = PublicationType.Diario,
             AuthorPublications = new List<AuthorPublication> { new() { AuthorId = "a-tr", PublicationId = pubId } },
-            JournalPublication = new JournalPublication { PublicationId = pubId, DataBase = "Scopus", Group = 2 }
+            JournalPublication = new JournalPublication { PublicationId = pubId, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "Scopus" }, Group = 2 }
         };
         _db.Authors.Add(author);
         _db.Publications.Add(pub);
@@ -1109,7 +1109,7 @@ public class PublicationServiceTests
             PublicationData = "{}",
             PublicationType = PublicationType.Diario,
             AuthorPublications = new List<AuthorPublication> { new() { AuthorId = "a-g1", PublicationId = pubId } },
-            JournalPublication = new JournalPublication { PublicationId = pubId, DataBase = "WoS", Group = 2 }
+            JournalPublication = new JournalPublication { PublicationId = pubId, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" }, Group = 2 }
         };
         _db.Authors.Add(author);
         _db.Publications.Add(pub);

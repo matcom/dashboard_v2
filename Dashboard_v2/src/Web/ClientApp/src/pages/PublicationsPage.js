@@ -17,6 +17,95 @@ import DataTable from '../components/DataTable';
 import FilterableDataTable from '../components/FilterableDataTable';
 import CertificateUpload, { CertificateViewButton } from '../components/CertificateUpload';
 
+function SingleSelectPicker({ label, options, value, onChange, onCreate }) {
+  const [inputVal, setInputVal] = useState('');
+  const [open, setOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+
+  const filtered = options.filter(o =>
+    o.nombre.toLowerCase().includes(inputVal.toLowerCase())
+  );
+  const hasExactMatch = options.some(
+    o => o.nombre.toLowerCase() === inputVal.trim().toLowerCase()
+  );
+  const canCreate = onCreate && inputVal.trim().length > 0 && !hasExactMatch;
+  const showDropdown = open && (filtered.length > 0 || canCreate);
+
+  function select(nombre) {
+    onChange(nombre);
+    setInputVal('');
+    setOpen(false);
+  }
+
+  async function handleCreate() {
+    if (!canCreate || creating) return;
+    setCreating(true);
+    setCreateError('');
+    try {
+      await onCreate(inputVal.trim());
+      onChange(inputVal.trim());
+      setInputVal('');
+      setOpen(false);
+    } catch (e) {
+      setCreateError(e.message);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  return (
+    <FormGroup>
+      <Label>{label}</Label>
+      {value && (
+        <div className="d-flex align-items-center gap-1 mb-2">
+          <Badge color="secondary" className="d-flex align-items-center gap-1 py-1 px-2">
+            {value}
+            <i className="bi bi-x" style={{ cursor: 'pointer' }} onClick={() => onChange('')} />
+          </Badge>
+        </div>
+      )}
+      <div style={{ position: 'relative' }}>
+        <Input
+          value={inputVal}
+          onChange={e => { setInputVal(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          placeholder={value ? 'Cambiar...' : (onCreate ? 'Buscar o escribir para crear...' : 'Buscar...')}
+        />
+        {showDropdown && (
+          <div style={{
+            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999,
+            background: '#fff', border: '1px solid #dee2e6',
+            borderRadius: '0 0 0.25rem 0.25rem', maxHeight: '180px', overflowY: 'auto',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          }}>
+            {filtered.slice(0, 12).map(o => (
+              <div key={o.id} className="dropdown-item"
+                style={{ cursor: 'pointer', padding: '0.4rem 0.75rem' }}
+                onMouseDown={e => { e.preventDefault(); select(o.nombre); }}>
+                {o.nombre}
+              </div>
+            ))}
+            {canCreate && (
+              <div className="dropdown-item text-primary"
+                style={{
+                  cursor: creating ? 'default' : 'pointer',
+                  padding: '0.4rem 0.75rem', fontStyle: 'italic',
+                  borderTop: filtered.length > 0 ? '1px solid #dee2e6' : 'none',
+                }}
+                onMouseDown={e => { e.preventDefault(); handleCreate(); }}>
+                {creating ? <Spinner size="sm" /> : `+ Crear "${inputVal.trim()}"`}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {createError && <small className="text-danger">{createError}</small>}
+    </FormGroup>
+  );
+}
+
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, {
     credentials: 'include',
@@ -64,6 +153,7 @@ export default function PublicationsPage() {
   const { user } = useAuth();
   const [publications, setPublications] = useState([]);
   const [types, setTypes] = useState([]);
+  const [basesdedatos, setBasesdedatos] = useState([]);
   const [proyectos, setProyectos] = useState([]);
   const [proyectosError, setProyectosError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -124,13 +214,15 @@ export default function PublicationsPage() {
     setLoading(true);
     setError('');
     try {
-      const [pubs, pubTypes, cats] = await Promise.all([
+      const [pubs, pubTypes, cats, dbs] = await Promise.all([
         apiFetch('/api/Publications'),
         apiFetch('/api/Publications/types'),
         apiFetch('/api/Proyectos/catalogo').catch(() => null),
+        apiFetch('/api/Nomencladores/basesdedatos'),
       ]);
       setPublications(pubs);
       setTypes(pubTypes);
+      setBasesdedatos(dbs);
       if (cats === null) {
         setProyectosError(true);
         setProyectos([]);
@@ -146,6 +238,14 @@ export default function PublicationsPage() {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  async function createBaseDeDatos(nombre) {
+    const created = await apiFetch('/api/Nomencladores/basesdedatos', {
+      method: 'POST', body: JSON.stringify({ nombre }),
+    });
+    setBasesdedatos(prev => [...prev, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+    return created;
+  }
 
   // ── helpers de formulario ──────────────────────────────────────────────────
 
@@ -1012,16 +1112,16 @@ export default function PublicationsPage() {
 
             {parseInt(form.publicationType, 10) === 0 ? (
               <>
-                <FormGroup>
-                  <Label for="dataBase">Base de datos <span className="text-danger">*</span></Label>
-                  <Input
-                    id="dataBase"
-                    name="dataBase"
-                    value={form.dataBase}
-                    onChange={handleFormChange}
-                    placeholder="Ej. Scopus, Web of Science..."
-                  />
-                </FormGroup>
+                <SingleSelectPicker
+                  label={<>Base de datos <span className="text-danger">*</span></>}
+                  options={basesdedatos}
+                  value={form.dataBase}
+                  onChange={nombre => {
+                    const inferred = inferGroupFromDatabase(nombre);
+                    setForm(f => ({ ...f, dataBase: nombre, group: inferred || f.group }));
+                  }}
+                  onCreate={createBaseDeDatos}
+                />
                 <div className="row g-3 mb-3">
                   <div className="col-md-6">
                     <Label for="group">Grupo (1–4) <span className="text-danger">*</span></Label>

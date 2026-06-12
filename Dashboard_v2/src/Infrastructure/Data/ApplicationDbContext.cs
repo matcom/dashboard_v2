@@ -28,6 +28,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<IndexedPublication> IndexedPublications => Set<IndexedPublication>();
     public DbSet<JournalPublication> JournalPublications => Set<JournalPublication>();
     public DbSet<JournalGroup1Publication> JournalGroup1Publications => Set<JournalGroup1Publication>();
+    public DbSet<BaseDeDatosPublicacion> BasesDeDatosPublicacion => Set<BaseDeDatosPublicacion>();
     public DbSet<Universidad> Universidades => Set<Universidad>();
     public DbSet<Institution> Institutions => Set<Institution>();
     public DbSet<Area> Areas => Set<Area>();

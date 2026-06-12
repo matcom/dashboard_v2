@@ -24,6 +24,7 @@ public interface IApplicationDbContext
     DbSet<IndexedPublication> IndexedPublications { get; }
     DbSet<JournalPublication> JournalPublications { get; }
     DbSet<JournalGroup1Publication> JournalGroup1Publications { get; }
+    DbSet<BaseDeDatosPublicacion> BasesDeDatosPublicacion { get; }
     DbSet<Universidad> Universidades { get; }
     DbSet<Institution> Institutions { get; }
     DbSet<Area> Areas { get; }

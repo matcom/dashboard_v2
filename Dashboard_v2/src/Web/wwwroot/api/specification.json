@@ -2361,6 +2361,42 @@
         }
       }
     },
+    "/api/Nomencladores/basesdedatos": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetBasesDeDatosPublicacion",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateBaseDeDatosPublicacion",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/Normas": {
       "get": {
         "tags": [

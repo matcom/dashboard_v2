@@ -27,8 +27,10 @@ public class Nomencladores : EndpointGroupBase
         g.MapPost("fuentes",   CreateFuente)     .RequireAuthorization(auth).WithName("CreateFuenteFinanciacion");
         g.MapGet("programas",  GetProgramas)     .RequireAuthorization(auth).WithName("GetProgramas");
         g.MapPost("programas", CreatePrograma)   .RequireAuthorization(auth).WithName("CreatePrograma");
-        g.MapGet("provincias", GetProvincias)    .RequireAuthorization(auth).WithName("GetProvincias");
-        g.MapGet("municipios", GetMunicipios)    .RequireAuthorization(auth).WithName("GetMunicipios");
+        g.MapGet("provincias",    GetProvincias)       .RequireAuthorization(auth).WithName("GetProvincias");
+        g.MapGet("municipios",    GetMunicipios)       .RequireAuthorization(auth).WithName("GetMunicipios");
+        g.MapGet("basesdedatos",  GetBasesDeDatos)     .RequireAuthorization(auth).WithName("GetBasesDeDatosPublicacion");
+        g.MapPost("basesdedatos", CreateBaseDeDatos)   .RequireAuthorization(auth).WithName("CreateBaseDeDatosPublicacion");
     }
 
     // ── GET ──────────────────────────────────────────────────────────────────
@@ -56,6 +58,21 @@ public class Nomencladores : EndpointGroupBase
 
     private static async Task<IResult> GetMunicipios(IApplicationDbContext db, CancellationToken ct)
         => Results.Ok(await db.Municipios.OrderBy(x => x.Nombre).Select(x => new { x.Id, x.Nombre, x.ProvinciaId }).ToListAsync(ct));
+
+    private static async Task<IResult> GetBasesDeDatos(IApplicationDbContext db, CancellationToken ct)
+        => Results.Ok(await db.BasesDeDatosPublicacion.OrderBy(x => x.Nombre).Select(x => new { x.Id, x.Nombre }).ToListAsync(ct));
+
+    private static async Task<IResult> CreateBaseDeDatos(IApplicationDbContext db, NomencladorCreateRequest req, CancellationToken ct)
+    {
+        var nombre = req.Nombre?.Trim();
+        if (string.IsNullOrEmpty(nombre)) return Results.BadRequest(new { errors = NombreRequeridoError });
+        var ex = await db.BasesDeDatosPublicacion.FirstOrDefaultAsync(x => x.Nombre.ToLower() == nombre.ToLower(), ct);
+        if (ex is not null) return Results.Ok(new { ex.Id, ex.Nombre });
+        var e = new BaseDeDatosPublicacion { Nombre = nombre };
+        db.BasesDeDatosPublicacion.Add(e);
+        await db.SaveChangesAsync(ct);
+        return Results.Created($"/api/Nomencladores/basesdedatos/{e.Id}", new { e.Id, e.Nombre });
+    }
 
     // ── POST (upsert-by-name) ─────────────────────────────────────────────────
 
