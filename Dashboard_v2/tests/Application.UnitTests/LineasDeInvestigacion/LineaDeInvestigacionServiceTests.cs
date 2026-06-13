@@ -132,4 +132,97 @@ public class LineaDeInvestigacionServiceTests
         var result = await _sut.DeleteAsync("no-existe");
         result.Succeeded.ShouldBeFalse();
     }
+
+    // ── CreateAsync con relaciones ────────────────────────────────────────────
+
+    [Test]
+    public async Task CreateAsync_WithAreasDelConocimientoIds_AssociatesAreas()
+    {
+        var area = new Domain.Entities.AreaDelConocimiento { Id = "ac-1", Nombre = "Matemáticas" };
+        _db.AreasDelConocimiento.Add(area);
+        await _db.SaveChangesAsync();
+
+        var (result, id) = await _sut.CreateAsync(new CreateLineaDeInvestigacionRequest
+        {
+            Nombre = "Álgebra Lineal",
+            AreasDelConocimientoIds = new List<string> { "ac-1" }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var entity = await _db.LineasDeInvestigacion
+            .Include(l => l.AreasDelConocimiento)
+            .FirstAsync(l => l.Id == id);
+        entity.AreasDelConocimiento.Count.ShouldBe(1);
+        entity.AreasDelConocimiento.First().Id.ShouldBe("ac-1");
+    }
+
+    [Test]
+    public async Task CreateAsync_WithUnknownAreaId_IgnoresUnknownId()
+    {
+        var (result, id) = await _sut.CreateAsync(new CreateLineaDeInvestigacionRequest
+        {
+            Nombre = "Test",
+            AreasDelConocimientoIds = new List<string> { "area-inexistente" }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var entity = await _db.LineasDeInvestigacion
+            .Include(l => l.AreasDelConocimiento)
+            .FirstAsync(l => l.Id == id);
+        entity.AreasDelConocimiento.ShouldBeEmpty();
+    }
+
+    // ── UpdateAsync con relaciones ────────────────────────────────────────────
+
+    [Test]
+    public async Task UpdateAsync_WithAreasDelConocimientoIds_AssociatesAreas()
+    {
+        var area1 = new Domain.Entities.AreaDelConocimiento { Id = "ac-1", Nombre = "Matemáticas" };
+        var area2 = new Domain.Entities.AreaDelConocimiento { Id = "ac-2", Nombre = "Física" };
+        _db.AreasDelConocimiento.AddRange(area1, area2);
+        await _db.SaveChangesAsync();
+
+        var (_, id) = await _sut.CreateAsync(new CreateLineaDeInvestigacionRequest { Nombre = "Test" });
+
+        var result = await _sut.UpdateAsync(id!, new UpdateLineaDeInvestigacionRequest
+        {
+            Nombre = "Updated",
+            AreasDelConocimientoIds = new List<string> { "ac-1", "ac-2" }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var entity = await _db.LineasDeInvestigacion
+            .Include(l => l.AreasDelConocimiento)
+            .FirstAsync(l => l.Id == id);
+        entity.AreasDelConocimiento.Count.ShouldBe(2);
+    }
+
+    [Test]
+    public async Task UpdateAsync_ReplacesAreasWithNewSet()
+    {
+        var area1 = new Domain.Entities.AreaDelConocimiento { Id = "ac-1", Nombre = "Matemáticas" };
+        var area2 = new Domain.Entities.AreaDelConocimiento { Id = "ac-2", Nombre = "Física" };
+        _db.AreasDelConocimiento.AddRange(area1, area2);
+        await _db.SaveChangesAsync();
+
+        var (_, id) = await _sut.CreateAsync(new CreateLineaDeInvestigacionRequest
+        {
+            Nombre = "Test",
+            AreasDelConocimientoIds = new List<string> { "ac-1" }
+        });
+
+        // Replace ac-1 with ac-2
+        var result = await _sut.UpdateAsync(id!, new UpdateLineaDeInvestigacionRequest
+        {
+            Nombre = "Test",
+            AreasDelConocimientoIds = new List<string> { "ac-2" }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var entity = await _db.LineasDeInvestigacion
+            .Include(l => l.AreasDelConocimiento)
+            .FirstAsync(l => l.Id == id);
+        entity.AreasDelConocimiento.Count.ShouldBe(1);
+        entity.AreasDelConocimiento.First().Id.ShouldBe("ac-2");
+    }
 }

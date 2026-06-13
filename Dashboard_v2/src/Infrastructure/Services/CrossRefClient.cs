@@ -148,7 +148,7 @@ public class CrossRefClient : ICrossRefClient
         }
     }
 
-    private int ComputeDelayMs(int attempt)
+    internal int ComputeDelayMs(int attempt)
     {
         var exp = Math.Pow(2, attempt - 1);
         var baseMs = Math.Max(1, _opts.BaseDelayMs);
@@ -158,7 +158,7 @@ public class CrossRefClient : ICrossRefClient
         return delay;
     }
 
-    private static string NormalizeDoi(string doi)
+    internal static string NormalizeDoi(string doi)
     {
         var s = doi.Trim();
 
@@ -177,7 +177,7 @@ public class CrossRefClient : ICrossRefClient
         return s.Trim().TrimEnd('/').TrimEnd('.', ',', ';', ':');
     }
 
-    private static PublicationCrossRefDto? ParseMessageToDto(JsonElement message)
+    internal static PublicationCrossRefDto? ParseMessageToDto(JsonElement message)
     {
         try
         {

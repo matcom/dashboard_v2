@@ -92,4 +92,114 @@ public class AnexoRedesUniversitariasReportTests
         result[0].ShouldBe((byte)0x50);
         result[1].ShouldBe((byte)0x4B);
     }
+
+    // ── BuildVariables — eventos reales ───────────────────────────────────────
+
+    [Test]
+    public async Task GenerateAsync_WithEvents_PopulatesEventosList()
+    {
+        var red = new Red { Nombre = "Red Univ Events", Tipo = TipoRed.Universitaria };
+        _db.Reds.Add(red);
+        var country = new Country { Name = "Cuba" };
+        _db.Countries.Add(country);
+        _db.EventTypes.Add(new EventType { Id = 1, Name = "Congreso" });
+        await _db.SaveChangesAsync();
+
+        _db.Events.Add(new Event
+        {
+            Name = "Congreso Universitario",
+            CountryId = country.Id,
+            EventTypeId = 1,
+            RedId = red.Id
+        });
+        await _db.SaveChangesAsync();
+
+        IReadOnlyDictionary<string, object>? captured = null;
+        _rendererMock
+            .Setup(r => r.Render(It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
+            .Callback<string, IReadOnlyDictionary<string, object>>((_, vars) => captured = vars)
+            .Returns(new byte[] { 1, 2, 3 });
+
+        await _sut.GenerateAsync(_rendererMock.Object);
+
+        captured.ShouldNotBeNull();
+        var eventos = (List<AnexoEventoRedRowDto>)captured!["EventosRed"];
+        eventos.Count.ShouldBe(1);
+        eventos[0].Nombre.ShouldBe("Congreso Universitario");
+        eventos[0].FechaLugar.ShouldBe("Cuba");
+    }
+
+    [Test]
+    public async Task GenerateAsync_NoEvents_FallsBackToEmptyRow()
+    {
+        _db.Reds.Add(new Red { Nombre = "Red Sin Eventos", Tipo = TipoRed.Universitaria });
+        await _db.SaveChangesAsync();
+
+        IReadOnlyDictionary<string, object>? captured = null;
+        _rendererMock
+            .Setup(r => r.Render(It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
+            .Callback<string, IReadOnlyDictionary<string, object>>((_, vars) => captured = vars)
+            .Returns(new byte[] { 1, 2, 3 });
+
+        await _sut.GenerateAsync(_rendererMock.Object);
+
+        captured.ShouldNotBeNull();
+        var eventos = (List<AnexoEventoRedRowDto>)captured!["EventosRed"];
+        eventos.Count.ShouldBe(1);
+        eventos[0].Nombre.ShouldBe(string.Empty);
+    }
+
+    [Test]
+    public async Task GenerateAsync_WithRedesCoordinadas_PopulatesAreasParticipantes()
+    {
+        var red = new Red { Nombre = "Red Con Áreas", Tipo = TipoRed.Universitaria };
+        _db.Reds.Add(red);
+        var area = new Domain.Entities.Area { Id = "area-rc-1", Nombre = "Facultad de Matemáticas" };
+        _db.Areas.Add(area);
+        var coordinador = new Domain.Entities.User
+        {
+            Id = "coord-1", UserName = "coord", UserLastName1 = "C", Email = "c@test.cu"
+        };
+        _db.Users.Add(coordinador);
+        await _db.SaveChangesAsync();
+
+        _db.Set<Domain.Entities.RedCoordinada>().Add(new Domain.Entities.RedCoordinada
+        {
+            RedId = red.Id,
+            AreaId = area.Id,
+            CoordinadorId = coordinador.Id
+        });
+        await _db.SaveChangesAsync();
+
+        IReadOnlyDictionary<string, object>? captured = null;
+        _rendererMock
+            .Setup(r => r.Render(It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
+            .Callback<string, IReadOnlyDictionary<string, object>>((_, vars) => captured = vars)
+            .Returns(new byte[] { 1, 2, 3 });
+
+        await _sut.GenerateAsync(_rendererMock.Object);
+
+        captured.ShouldNotBeNull();
+        var areasParticipantes = (List<AnexoAreaParticipanteRowDto>)captured!["AreasParticipantes"];
+        areasParticipantes.Count.ShouldBe(1);
+        areasParticipantes[0].AreaUH.ShouldBe("Facultad de Matemáticas");
+    }
+
+    [Test]
+    public async Task GenerateAsync_NombreRed_IsIncludedInVariables()
+    {
+        _db.Reds.Add(new Red { Nombre = "Mi Red Universitaria", Tipo = TipoRed.Universitaria });
+        await _db.SaveChangesAsync();
+
+        IReadOnlyDictionary<string, object>? captured = null;
+        _rendererMock
+            .Setup(r => r.Render(It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
+            .Callback<string, IReadOnlyDictionary<string, object>>((_, vars) => captured = vars)
+            .Returns(new byte[] { 1, 2, 3 });
+
+        await _sut.GenerateAsync(_rendererMock.Object);
+
+        captured.ShouldNotBeNull();
+        captured!["NombreRed"].ShouldBe("Mi Red Universitaria");
+    }
 }

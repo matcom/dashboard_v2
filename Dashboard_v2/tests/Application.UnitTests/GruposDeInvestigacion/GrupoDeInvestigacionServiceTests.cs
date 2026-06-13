@@ -84,6 +84,60 @@ public class GrupoDeInvestigacionServiceTests
         result.Succeeded.ShouldBeFalse();
     }
 
+    [Test]
+    public async Task CreateAsync_WithLineasDeInvestigacionIds_AssociatesLineas()
+    {
+        await AddAreaAsync();
+        _userMock.Setup(u => u.Id).Returns("creator-1");
+
+        var linea = new Domain.Entities.LineaDeInvestigacion
+        {
+            Id = Guid.NewGuid().ToString(),
+            Nombre = "Sistemas Distribuidos"
+        };
+        _db.LineasDeInvestigacion.Add(linea);
+        await _db.SaveChangesAsync();
+
+        var (result, id) = await _sut.CreateAsync(new CreateGrupoDeInvestigacionRequest
+        {
+            Nombre = "Grupo Distribuidos",
+            AreaId = "area-1",
+            LineasDeInvestigacionIds = new List<string> { linea.Id }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var grupo = await _db.GruposDeInvestigacion
+            .Include(g => g.LineasDeInvestigacion)
+            .FirstAsync(g => g.Id == id);
+        grupo.LineasDeInvestigacion.Count.ShouldBe(1);
+        grupo.LineasDeInvestigacion.First().Id.ShouldBe(linea.Id);
+    }
+
+    [Test]
+    public async Task CreateAsync_WithMultipleLineas_AssociatesAll()
+    {
+        await AddAreaAsync();
+        _userMock.Setup(u => u.Id).Returns("creator-1");
+
+        var linea1 = new Domain.Entities.LineaDeInvestigacion { Id = Guid.NewGuid().ToString(), Nombre = "L1" };
+        var linea2 = new Domain.Entities.LineaDeInvestigacion { Id = Guid.NewGuid().ToString(), Nombre = "L2" };
+        _db.LineasDeInvestigacion.AddRange(linea1, linea2);
+        await _db.SaveChangesAsync();
+
+        var (result, id) = await _sut.CreateAsync(new CreateGrupoDeInvestigacionRequest
+        {
+            Nombre = "Grupo Multi",
+            AreaId = "area-1",
+            LineasDeInvestigacionIds = new List<string> { linea1.Id, linea2.Id }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var grupo = await _db.GruposDeInvestigacion
+            .Include(g => g.LineasDeInvestigacion)
+            .FirstAsync(g => g.Id == id);
+        grupo.LineasDeInvestigacion.Count.ShouldBe(2);
+    }
+
     // ── UpdateAsync ──────────────────────────────────────────────────────────
 
     [Test]

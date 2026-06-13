@@ -90,6 +90,33 @@ public class GrupoEstudiantilServiceTests
         result.Succeeded.ShouldBeFalse();
     }
 
+    [Test]
+    public async Task CreateAsync_WithLineasDeInvestigacionIds_AssociatesLineas()
+    {
+        await AddAreaAsync();
+        var linea = new Domain.Entities.LineaDeInvestigacion
+        {
+            Id = Guid.NewGuid().ToString(),
+            Nombre = "Inteligencia Artificial"
+        };
+        _db.LineasDeInvestigacion.Add(linea);
+        await _db.SaveChangesAsync();
+
+        var (result, id) = await _sut.CreateAsync(new CreateGrupoEstudiantilRequest
+        {
+            Nombre = "Grupo IA",
+            AreaId = "area-1",
+            LineasDeInvestigacionIds = new List<string> { linea.Id }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var grupo = await _db.GruposEstudiantiles
+            .Include(g => g.LineasDeInvestigacion)
+            .FirstAsync(g => g.Id == id);
+        grupo.LineasDeInvestigacion.Count.ShouldBe(1);
+        grupo.LineasDeInvestigacion.First().Id.ShouldBe(linea.Id);
+    }
+
     // ── UpdateAsync ──────────────────────────────────────────────────────────
 
     [Test]
@@ -141,6 +168,53 @@ public class GrupoEstudiantilServiceTests
         result.Succeeded.ShouldBeTrue();
         var grupo = await _db.GruposEstudiantiles.FindAsync(id);
         grupo!.Nombre.ShouldBe("Modified");
+    }
+
+    [Test]
+    public async Task UpdateAsync_NonExistentAreaAfterPermissionCheck_ReturnsFailure()
+    {
+        await AddAreaAsync();
+        var (_, id) = await _sut.CreateAsync(
+            new CreateGrupoEstudiantilRequest { Nombre = "Grupo B", AreaId = "area-1" });
+
+        _userMock.Setup(u => u.Roles).Returns(["Superuser"]);
+
+        var result = await _sut.UpdateAsync(id!,
+            new UpdateGrupoEstudiantilRequest { Nombre = "Modified", AreaId = "area-inexistente" });
+
+        result.Succeeded.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.Contains("área"));
+    }
+
+    [Test]
+    public async Task UpdateAsync_WithLineasDeInvestigacion_AssociatesLineas()
+    {
+        await AddAreaAsync();
+        var linea = new Domain.Entities.LineaDeInvestigacion
+        {
+            Id = Guid.NewGuid().ToString(),
+            Nombre = "Redes Neuronales"
+        };
+        _db.LineasDeInvestigacion.Add(linea);
+        await _db.SaveChangesAsync();
+
+        var (_, id) = await _sut.CreateAsync(
+            new CreateGrupoEstudiantilRequest { Nombre = "Grupo B", AreaId = "area-1" });
+
+        _userMock.Setup(u => u.Roles).Returns(["Superuser"]);
+
+        var result = await _sut.UpdateAsync(id!, new UpdateGrupoEstudiantilRequest
+        {
+            Nombre = "Grupo B",
+            AreaId = "area-1",
+            LineasDeInvestigacionIds = new List<string> { linea.Id }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var grupo = await _db.GruposEstudiantiles
+            .Include(g => g.LineasDeInvestigacion)
+            .FirstAsync(g => g.Id == id);
+        grupo.LineasDeInvestigacion.Count.ShouldBe(1);
     }
 
     // ── DeleteAsync ──────────────────────────────────────────────────────────

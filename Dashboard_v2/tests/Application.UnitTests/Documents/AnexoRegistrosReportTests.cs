@@ -141,12 +141,14 @@ public class AnexoRegistrosReportTests
     {
         var institution = new Institution { Id = "inst-3", Nombre = "CITMA" };
         _db.Institutions.Add(institution);
+        var tipoNorma = new TipoNorma { Nombre = "ISO" };
+        _db.TiposNorma.Add(tipoNorma);
         await _db.SaveChangesAsync();
 
         _db.Normas.Add(new Norma
         {
             Titulo = "Norma ISO-001",
-            Tipo = "ISO",
+            TipoNormaId = tipoNorma.Id,
             InstitutionId = institution.Id
         });
         await _db.SaveChangesAsync();
