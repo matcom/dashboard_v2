@@ -98,6 +98,66 @@ public class AreaServiceTests
         area!.Nombre.ShouldBe("Matemáticas");
     }
 
+    [Test]
+    public async Task CreateAsync_WithAreasDelConocimientoIds_AssociatesAreasDelConocimiento()
+    {
+        var areaConoc = new Domain.Entities.AreaDelConocimiento { Id = "ac-1", Nombre = "Ciencias Exactas" };
+        _db.AreasDelConocimiento.Add(areaConoc);
+        await _db.SaveChangesAsync();
+
+        var request = new CreateAreaRequest
+        {
+            Nombre = "Área de Ciencias",
+            AreasDelConocimientoIds = new List<string> { "ac-1" }
+        };
+
+        var (result, id) = await _sut.CreateAsync(request);
+
+        result.Succeeded.ShouldBeTrue();
+        var area = await _db.Areas
+            .Include(a => a.AreasDelConocimiento)
+            .FirstAsync(a => a.Id == id);
+        area.AreasDelConocimiento.Count.ShouldBe(1);
+        area.AreasDelConocimiento.First().Id.ShouldBe("ac-1");
+    }
+
+    [Test]
+    public async Task CreateAsync_WithMultipleAreasDelConocimiento_AssociatesAll()
+    {
+        _db.AreasDelConocimiento.AddRange(
+            new Domain.Entities.AreaDelConocimiento { Id = "ac-1", Nombre = "Matemáticas" },
+            new Domain.Entities.AreaDelConocimiento { Id = "ac-2", Nombre = "Física" });
+        await _db.SaveChangesAsync();
+
+        var (result, id) = await _sut.CreateAsync(new CreateAreaRequest
+        {
+            Nombre = "Ciencias",
+            AreasDelConocimientoIds = new List<string> { "ac-1", "ac-2" }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var area = await _db.Areas
+            .Include(a => a.AreasDelConocimiento)
+            .FirstAsync(a => a.Id == id);
+        area.AreasDelConocimiento.Count.ShouldBe(2);
+    }
+
+    [Test]
+    public async Task CreateAsync_WithUnknownAreaDelConocimientoId_IgnoresIt()
+    {
+        var (result, id) = await _sut.CreateAsync(new CreateAreaRequest
+        {
+            Nombre = "Test",
+            AreasDelConocimientoIds = new List<string> { "ac-inexistente" }
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var area = await _db.Areas
+            .Include(a => a.AreasDelConocimiento)
+            .FirstAsync(a => a.Id == id);
+        area.AreasDelConocimiento.ShouldBeEmpty();
+    }
+
     // ── UpdateAsync ──────────────────────────────────────────────────────────
 
     [Test]

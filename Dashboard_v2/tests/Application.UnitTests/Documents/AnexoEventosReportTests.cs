@@ -301,7 +301,7 @@ public class AnexoEventosReportTests
         db.Events.AddRange(intlAbroad, intlCuba, natl);
         await db.SaveChangesAsync();
 
-        var fecha = DateTime.UtcNow;
+        var fecha = DateOnly.FromDateTime(DateTime.UtcNow);
         db.Presentations.AddRange(
             new Presentation { Name = "P1", EventId = intlAbroad.Id, UserId = user.Id, Fecha = fecha },
             new Presentation { Name = "P2", EventId = intlAbroad.Id, UserId = user.Id, Fecha = fecha },
@@ -347,7 +347,7 @@ public class AnexoEventosReportTests
             Name = "Mi Ponencia",
             EventId = ev.Id,
             UserId = presenter.Id,
-            Fecha = DateTime.UtcNow,
+            Fecha = DateOnly.FromDateTime(DateTime.UtcNow),
         });
         await db.SaveChangesAsync();
 
@@ -381,7 +381,7 @@ public class AnexoEventosReportTests
         db.Events.AddRange(ev1, ev2);
         await db.SaveChangesAsync();
 
-        var fecha = DateTime.UtcNow;
+        var fecha = DateOnly.FromDateTime(DateTime.UtcNow);
         db.Presentations.AddRange(
             new Presentation { Name = "Ponencia A", EventId = ev1.Id, UserId = user.Id, Fecha = fecha },
             new Presentation { Name = "Ponencia B", EventId = ev2.Id, UserId = user.Id, Fecha = fecha },

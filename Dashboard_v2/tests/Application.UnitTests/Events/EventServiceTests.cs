@@ -75,8 +75,8 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(10));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Name = "P1", EventId = 10, UserId = "user-1", Fecha = DateTime.UtcNow });
-        _db.Presentations.Add(new Presentation { Name = "P2", EventId = 10, UserId = "user-1", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Name = "P1", EventId = 10, UserId = "user-1", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
+        _db.Presentations.Add(new Presentation { Name = "P2", EventId = 10, UserId = "user-1", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
         var result = await _sut.GetAllEventsAsync();
@@ -100,7 +100,7 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(60, "Mi Congreso"));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Name = "Mi Ponencia", EventId = 60, UserId = "user-1", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Name = "Mi Ponencia", EventId = 60, UserId = "user-1", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
         var result = await _sut.GetMyEventsAsync();
@@ -347,6 +347,99 @@ public class EventServiceTests
     }
 
     [Test]
+    public async Task UpdateEventAsync_WithNewInstitution_CreatesAndLinksIt()
+    {
+        await SeedBaseDataAsync();
+        _db.Events.Add(MakeEvent(30, "Evento 30"));
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.UpdateEventAsync(30, new UpdateEventRequest
+        {
+            Name = "Evento 30",
+            CountryId = 1,
+            EventType = 1,
+            Institutions = ["Universidad Nueva"],
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var institutionCount = await _db.Institutions.CountAsync(i => i.Nombre == "Universidad Nueva");
+        institutionCount.ShouldBe(1);
+        var link = await _db.EventInstitutions.AnyAsync(ei => ei.EventId == 30);
+        link.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task UpdateEventAsync_WithExistingInstitution_ReusesIt()
+    {
+        await SeedBaseDataAsync();
+        _db.Events.Add(MakeEvent(31, "Evento 31"));
+        var existingId = Guid.NewGuid().ToString();
+        _db.Institutions.Add(new Institution { Id = existingId, Nombre = "UH" });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.UpdateEventAsync(31, new UpdateEventRequest
+        {
+            Name = "Evento 31",
+            CountryId = 1,
+            EventType = 1,
+            Institutions = ["UH"],
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var institutionCount = await _db.Institutions.CountAsync(i => i.Nombre == "UH");
+        institutionCount.ShouldBe(1, "No debe crear duplicados");
+        var link = await _db.EventInstitutions.FirstOrDefaultAsync(ei => ei.EventId == 31);
+        link.ShouldNotBeNull();
+        link!.InstitutionId.ShouldBe(existingId);
+    }
+
+    [Test]
+    public async Task UpdateEventAsync_ReplacesOldInstitutionLinks()
+    {
+        await SeedBaseDataAsync();
+        _db.Events.Add(MakeEvent(32, "Evento 32"));
+        var uhId = Guid.NewGuid().ToString();
+        _db.Institutions.Add(new Institution { Id = uhId, Nombre = "UH" });
+        await _db.SaveChangesAsync();
+        _db.EventInstitutions.Add(new EventInstitution { EventId = 32, InstitutionId = uhId });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.UpdateEventAsync(32, new UpdateEventRequest
+        {
+            Name = "Evento 32",
+            CountryId = 1,
+            EventType = 1,
+            Institutions = ["UCI"],
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var oldLink = await _db.EventInstitutions.AnyAsync(ei => ei.EventId == 32 && ei.InstitutionId == uhId);
+        oldLink.ShouldBeFalse("El enlace antiguo debe eliminarse");
+        var newLink = await _db.EventInstitutions.AnyAsync(ei => ei.EventId == 32);
+        newLink.ShouldBeTrue("Debe existir el nuevo enlace");
+    }
+
+    [Test]
+    public async Task UpdateEventAsync_DuplicateInstitutionNames_DeduplicatesThem()
+    {
+        await SeedBaseDataAsync();
+        _db.Events.Add(MakeEvent(33, "Evento 33"));
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.UpdateEventAsync(33, new UpdateEventRequest
+        {
+            Name = "Evento 33",
+            CountryId = 1,
+            EventType = 1,
+            Institutions = ["UH", "uh", "UH"],
+        });
+
+        result.Succeeded.ShouldBeTrue();
+        var linkCount = await _db.EventInstitutions.CountAsync(ei => ei.EventId == 33);
+        linkCount.ShouldBe(1, "Nombres duplicados deben producir un solo enlace");
+    }
+
+    [Test]
     public async Task UpdateEventAsync_UpdatesOrganizadores()
     {
         await SeedBaseDataAsync();
@@ -401,7 +494,7 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(2));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Name = "P", EventId = 2, UserId = "user-1", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Name = "P", EventId = 2, UserId = "user-1", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
         var result = await _sut.DeleteEventAsync(2);
@@ -426,7 +519,7 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(6, "CCIA"));
         await _db.SaveChangesAsync();
 
-        var fecha = new DateTime(2024, 5, 10, 0, 0, 0, DateTimeKind.Utc);
+        var fecha = new DateOnly(2024, 5, 10);
         _db.Presentations.Add(new Presentation { Id = 20, Name = "Ponencia Datos", EventId = 6, UserId = "user-a", Fecha = fecha });
         await _db.SaveChangesAsync();
 
@@ -455,7 +548,7 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(7, "Jornada"));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Id = 30, Name = "Mi Ponencia", EventId = 7, UserId = "user-1", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Id = 30, Name = "Mi Ponencia", EventId = 7, UserId = "user-1", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
         var result = await _sut.GetMyPresentationsAsync();
@@ -474,7 +567,7 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(8));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Name = "Ponencia Ajena", EventId = 8, UserId = "user-2", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Name = "Ponencia Ajena", EventId = 8, UserId = "user-2", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
         var result = await _sut.GetMyPresentationsAsync();
@@ -486,7 +579,7 @@ public class EventServiceTests
     [Test]
     public async Task CreatePresentationAsync_EmptyName_Fails()
     {
-        var (result, _) = await _sut.CreatePresentationAsync(new CreatePresentationRequest { Name = "", EventId = 1, Fecha = DateTime.UtcNow });
+        var (result, _) = await _sut.CreatePresentationAsync(new CreatePresentationRequest { Name = "", EventId = 1, Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         result.Succeeded.ShouldBeFalse();
         result.Errors.ShouldContain(e => e.Contains("nombre"));
     }
@@ -494,7 +587,7 @@ public class EventServiceTests
     [Test]
     public async Task CreatePresentationAsync_NonExistingEvent_Fails()
     {
-        var (result, _) = await _sut.CreatePresentationAsync(new CreatePresentationRequest { Name = "Mi Ponencia", EventId = 999, Fecha = DateTime.UtcNow });
+        var (result, _) = await _sut.CreatePresentationAsync(new CreatePresentationRequest { Name = "Mi Ponencia", EventId = 999, Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         result.Succeeded.ShouldBeFalse();
     }
 
@@ -506,7 +599,7 @@ public class EventServiceTests
         await _db.SaveChangesAsync();
 
         // user-1 not seeded in Users table
-        var (result, _) = await _sut.CreatePresentationAsync(new CreatePresentationRequest { Name = "Ponencia", EventId = 1, Fecha = DateTime.UtcNow });
+        var (result, _) = await _sut.CreatePresentationAsync(new CreatePresentationRequest { Name = "Ponencia", EventId = 1, Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         result.Succeeded.ShouldBeFalse();
         result.Errors.ShouldContain(e => e.Contains("Usuario"));
     }
@@ -519,7 +612,7 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(1));
         await _db.SaveChangesAsync();
 
-        var fecha = new DateTime(2024, 3, 15, 0, 0, 0, DateTimeKind.Utc);
+        var fecha = new DateOnly(2024, 3, 15);
         var (result, id) = await _sut.CreatePresentationAsync(new CreatePresentationRequest
         {
             Name = "Ponencia Valid",
@@ -541,7 +634,7 @@ public class EventServiceTests
     [Test]
     public async Task UpdatePresentationAsync_EmptyName_Fails()
     {
-        var result = await _sut.UpdatePresentationAsync(1, new UpdatePresentationRequest { Name = "", EventId = 1, Fecha = DateTime.UtcNow });
+        var result = await _sut.UpdatePresentationAsync(1, new UpdatePresentationRequest { Name = "", EventId = 1, Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         result.Succeeded.ShouldBeFalse();
         result.Errors.ShouldContain(e => e.Contains("nombre"));
     }
@@ -549,7 +642,7 @@ public class EventServiceTests
     [Test]
     public async Task UpdatePresentationAsync_PresentationNotFound_Fails()
     {
-        var result = await _sut.UpdatePresentationAsync(9999, new UpdatePresentationRequest { Name = "X", EventId = 1, Fecha = DateTime.UtcNow });
+        var result = await _sut.UpdatePresentationAsync(9999, new UpdatePresentationRequest { Name = "X", EventId = 1, Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         result.Succeeded.ShouldBeFalse();
         result.Errors.ShouldContain(e => e.Contains("encontrada"));
     }
@@ -562,10 +655,10 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(200));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Id = 200, Name = "Pres200", EventId = 200, UserId = "user-2", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Id = 200, Name = "Pres200", EventId = 200, UserId = "user-2", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
-        var result = await _sut.UpdatePresentationAsync(200, new UpdatePresentationRequest { Name = "Hack", EventId = 200, Fecha = DateTime.UtcNow });
+        var result = await _sut.UpdatePresentationAsync(200, new UpdatePresentationRequest { Name = "Hack", EventId = 200, Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         result.Succeeded.ShouldBeFalse();
         result.Errors.ShouldContain(e => e.Contains("permiso"));
     }
@@ -578,10 +671,10 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(300));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Id = 300, Name = "Pres300", EventId = 300, UserId = "user-1", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Id = 300, Name = "Pres300", EventId = 300, UserId = "user-1", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
-        var result = await _sut.UpdatePresentationAsync(300, new UpdatePresentationRequest { Name = "Updated", EventId = 9999, Fecha = DateTime.UtcNow });
+        var result = await _sut.UpdatePresentationAsync(300, new UpdatePresentationRequest { Name = "Updated", EventId = 9999, Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         result.Succeeded.ShouldBeFalse();
         result.Errors.ShouldContain(e => e.Contains("evento"));
     }
@@ -594,10 +687,10 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(2));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Id = 10, Name = "Original Pres", EventId = 2, UserId = "user-1", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Id = 10, Name = "Original Pres", EventId = 2, UserId = "user-1", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
-        var newFecha = new DateTime(2025, 1, 20, 0, 0, 0, DateTimeKind.Utc);
+        var newFecha = new DateOnly(2025, 1, 20);
         var result = await _sut.UpdatePresentationAsync(10, new UpdatePresentationRequest { Name = "Updated Pres", EventId = 2, Fecha = newFecha });
 
         result.Succeeded.ShouldBeTrue();
@@ -623,7 +716,7 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(50));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Id = 50, Name = "Pres50", EventId = 50, UserId = "user-2", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Id = 50, Name = "Pres50", EventId = 50, UserId = "user-2", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
         var result = await _sut.DeletePresentationAsync(50);
@@ -639,7 +732,7 @@ public class EventServiceTests
         _db.Events.Add(MakeEvent(51));
         await _db.SaveChangesAsync();
 
-        _db.Presentations.Add(new Presentation { Id = 51, Name = "Pres to Delete", EventId = 51, UserId = "user-1", Fecha = DateTime.UtcNow });
+        _db.Presentations.Add(new Presentation { Id = 51, Name = "Pres to Delete", EventId = 51, UserId = "user-1", Fecha = DateOnly.FromDateTime(DateTime.UtcNow) });
         await _db.SaveChangesAsync();
 
         var result = await _sut.DeletePresentationAsync(51);
