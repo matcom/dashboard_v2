@@ -70,7 +70,7 @@ public class ProfessorAuthorCreatorsFlowTests : BaseTestFixture
         var createPayload = new
         {
             titulo = "Norma funcional",
-            tipo = "ISO",
+            tipoNormaId = (int?)null,
             institutionId,
             additionalAuthorIds = Array.Empty<string>(),
             additionalAuthorNames = new[] { "Gomez, Raul" },
@@ -85,7 +85,7 @@ public class ProfessorAuthorCreatorsFlowTests : BaseTestFixture
         var updatePayload = new
         {
             titulo = "Norma funcional actualizada",
-            tipo = "ASTM",
+            tipoNormaId = (int?)null,
             institutionId,
             additionalAuthorIds = Array.Empty<string>(),
             additionalAuthorNames = new[] { "Suarez, Karla" },
