@@ -2119,6 +2119,356 @@
         }
       }
     },
+    "/api/Nomencladores/estados": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetEstadosProyecto",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateEstadoProyecto",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/situaciones": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetSituacionesProyecto",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateSituacionProyecto",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/sectores": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetSectoresEstrategicos",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateSectorEstrategico",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/ejes": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetEjesEstrategicos",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateEjeEstrategico",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/fuentes": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetFuentesFinanciacion",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateFuenteFinanciacion",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/programas": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetProgramas",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreatePrograma",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/provincias": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetProvincias",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/municipios": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetMunicipios",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/basesdedatos": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetBasesDeDatosPublicacion",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateBaseDeDatosPublicacion",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/tiposnorma": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetTiposNorma",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateTipoNorma",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Nomencladores/tiposproducto": {
+      "get": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "GetTiposProductoComercializado",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nomencladores"
+        ],
+        "operationId": "CreateTipoProductoComercializado",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NomencladorCreateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/Normas": {
       "get": {
         "tags": [
@@ -6750,6 +7100,16 @@
           }
         }
       },
+      "NomencladorCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "NormaDto": {
         "type": "object",
         "additionalProperties": false,
@@ -6760,8 +7120,14 @@
           "titulo": {
             "type": "string"
           },
-          "tipo": {
-            "type": "string"
+          "tipoNormaId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "tipoNormaNombre": {
+            "type": "string",
+            "nullable": true
           },
           "institutionId": {
             "type": "string"
@@ -6806,8 +7172,10 @@
           "titulo": {
             "type": "string"
           },
-          "tipo": {
-            "type": "string"
+          "tipoNormaId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "institutionId": {
             "type": "string"
@@ -6842,8 +7210,10 @@
           "titulo": {
             "type": "string"
           },
-          "tipo": {
-            "type": "string"
+          "tipoNormaId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "institutionId": {
             "type": "string"
@@ -7005,7 +7375,7 @@
           },
           "fecha": {
             "type": "string",
-            "format": "date-time"
+            "format": "date"
           },
           "userId": {
             "type": "string"
@@ -7033,7 +7403,7 @@
           },
           "fecha": {
             "type": "string",
-            "format": "date-time"
+            "format": "date"
           }
         }
       },
@@ -7050,7 +7420,7 @@
           },
           "fecha": {
             "type": "string",
-            "format": "date-time"
+            "format": "date"
           }
         }
       },
@@ -7204,13 +7574,17 @@
             "type": "string",
             "nullable": true
           },
-          "estadoDeEjecucion": {
-            "type": "string",
-            "nullable": true
+          "estadosDeEjecucion": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
-          "situacion": {
-            "type": "string",
-            "nullable": true
+          "situaciones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "publicacionesDerivadas": {
             "type": "array",
@@ -7241,8 +7615,11 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "situacion": {
-                "type": "string"
+              "situaciones": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NomencladorDto"
+                }
               },
               "tipo": {
                 "type": "string"
@@ -7250,6 +7627,19 @@
             }
           }
         ]
+      },
+      "NomencladorDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        }
       },
       "ProyectoBaseDto": {
         "type": "object",
@@ -7319,8 +7709,12 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "situacion": {
-                "type": "string"
+              "situacionesIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
               },
               "tipo": {
                 "type": "string"
@@ -7376,12 +7770,27 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "empresa": {
-                "type": "string"
+              "empresas": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InstitutionRefDto"
+                }
               }
             }
           }
         ]
+      },
+      "InstitutionRefDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        }
       },
       "ProyectoEnEjecucionBaseDto": {
         "allOf": [
@@ -7402,29 +7811,41 @@
                 "format": "date",
                 "nullable": true
               },
-              "estadoDeEjecucion": {
-                "type": "string"
-              },
               "codigoProyecto": {
                 "type": "string"
               },
-              "entidadEjecutoraPrincipal": {
-                "type": "string"
-              },
-              "entidadEjecutoraParticipante": {
-                "type": "string",
-                "nullable": true
-              },
-              "contribucionSectoresEstrategicos": {
-                "type": "string",
-                "nullable": true
-              },
-              "contribucionEjesEstrategicos": {
-                "type": "string",
-                "nullable": true
-              },
               "tributaDesarrolloLocal": {
                 "type": "boolean"
+              },
+              "estadosDeEjecucion": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NomencladorDto"
+                }
+              },
+              "entidadesEjecutorasPrincipales": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InstitutionRefDto"
+                }
+              },
+              "entidadesEjecutorasParticipantes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InstitutionRefDto"
+                }
+              },
+              "sectoresEstrategicos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NomencladorDto"
+                }
+              },
+              "ejesEstrategicos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NomencladorDto"
+                }
               }
             }
           }
@@ -7439,8 +7860,11 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "empresa": {
-                "type": "string"
+              "empresasIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -7465,29 +7889,44 @@
                 "format": "date",
                 "nullable": true
               },
-              "estadoDeEjecucion": {
-                "type": "string"
-              },
               "codigoProyecto": {
                 "type": "string"
               },
-              "entidadEjecutoraPrincipal": {
-                "type": "string"
-              },
-              "entidadEjecutoraParticipante": {
-                "type": "string",
-                "nullable": true
-              },
-              "contribucionSectoresEstrategicos": {
-                "type": "string",
-                "nullable": true
-              },
-              "contribucionEjesEstrategicos": {
-                "type": "string",
-                "nullable": true
-              },
               "tributaDesarrolloLocal": {
                 "type": "boolean"
+              },
+              "estadosDeEjecucionIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "entidadesEjecutorasPrincipalesIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "entidadesEjecutorasParticipantesIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "sectoresEstrategicosIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "ejesEstrategicosIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
               }
             }
           }
@@ -7502,8 +7941,11 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "nombrePrograma": {
-                "type": "string"
+              "programas": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NomencladorDto"
+                }
               },
               "tipoPAP": {
                 "$ref": "#/components/schemas/TipoPAP"
@@ -7535,8 +7977,12 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "nombrePrograma": {
-                "type": "string"
+              "programasIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
               },
               "tipoPAP": {
                 "$ref": "#/components/schemas/TipoPAP"
@@ -7554,8 +8000,16 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "municipio": {
+              "municipioId": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "municipioNombre": {
                 "type": "string"
+              },
+              "provinciaNombre": {
+                "type": "string",
+                "nullable": true
               }
             }
           }
@@ -7570,8 +8024,9 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "municipio": {
-                "type": "string"
+              "municipioId": {
+                "type": "integer",
+                "format": "int32"
               }
             }
           }
@@ -7586,8 +8041,11 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "entidadNoEmpresarial": {
-                "type": "string"
+              "entidades": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InstitutionRefDto"
+                }
               }
             }
           }
@@ -7602,8 +8060,11 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "entidadNoEmpresarial": {
-                "type": "string"
+              "entidadesIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -7618,8 +8079,11 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "fuenteFinanciacion": {
-                "type": "string"
+              "fuentesFinanciacion": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NomencladorDto"
+                }
               },
               "terminosReferencia": {
                 "type": "string"
@@ -7637,8 +8101,12 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "fuenteFinanciacion": {
-                "type": "string"
+              "fuentesFinanciacionIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
               },
               "terminosReferencia": {
                 "type": "string"
@@ -7656,8 +8124,11 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "financiamientoUH": {
-                "type": "string"
+              "fuentesFinanciacion": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NomencladorDto"
+                }
               }
             }
           }
@@ -7672,8 +8143,12 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "financiamientoUH": {
-                "type": "string"
+              "fuentesFinanciacionIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
               }
             }
           }

@@ -44,10 +44,13 @@ public class Normas : EndpointGroupBase
     private static async Task<IResult> GetNormas(IApplicationDbContext db)
     {
         var list = await db.Normas
+            .Include(n => n.TipoNorma)
             .Include(n => n.Institution)
             .Include(n => n.Creadores).ThenInclude(c => c.Author)
             .Select(n => new NormaDto(
-                n.Id, n.Titulo, n.Tipo, n.InstitutionId, n.Institution.Nombre,
+                n.Id, n.Titulo,
+                n.TipoNormaId, n.TipoNorma != null ? n.TipoNorma.Nombre : null,
+                n.InstitutionId, n.Institution.Nombre,
                 n.Creadores.Select(c => c.Author.Name).ToList(),
                 n.Creadores.Select(c => new CreatorDto(c.Author.Id, c.Author.Name, c.Author.UserId)).ToList()))
             .ToListAsync();
@@ -62,10 +65,12 @@ public class Normas : EndpointGroupBase
 
         var list = await db.AuthorNormas
             .Where(an => an.AuthorId == currentAuthor.Id)
+            .Include(an => an.Norma).ThenInclude(n => n.TipoNorma)
             .Include(an => an.Norma).ThenInclude(n => n.Institution)
             .Include(an => an.Norma).ThenInclude(n => n.Creadores).ThenInclude(c => c.Author)
             .Select(an => new NormaDto(
-                an.Norma.Id, an.Norma.Titulo, an.Norma.Tipo,
+                an.Norma.Id, an.Norma.Titulo,
+                an.Norma.TipoNormaId, an.Norma.TipoNorma != null ? an.Norma.TipoNorma.Nombre : null,
                 an.Norma.InstitutionId, an.Norma.Institution.Nombre,
                 an.Norma.Creadores.Select(c => c.Author.Name).ToList(),
                 an.Norma.Creadores.Select(c => new CreatorDto(c.Author.Id, c.Author.Name, c.Author.UserId)).ToList()))
@@ -82,7 +87,7 @@ public class Normas : EndpointGroupBase
         var norma = new Norma
         {
             Titulo = body.Titulo,
-            Tipo = body.Tipo,
+            TipoNormaId = body.TipoNormaId,
             InstitutionId = body.InstitutionId
         };
         db.Normas.Add(norma);
@@ -119,7 +124,7 @@ public class Normas : EndpointGroupBase
         }
 
         norma.Titulo = body.Titulo;
-        norma.Tipo = body.Tipo;
+        norma.TipoNormaId = body.TipoNormaId;
         norma.InstitutionId = body.InstitutionId;
 
         var toRemove = norma.Creadores.Where(c => c.AuthorId != currentAuthor.Id).ToList();
@@ -160,17 +165,17 @@ public class Normas : EndpointGroupBase
     }
 }
 
-public record NormaDto(string Id, string Titulo, string Tipo, string InstitutionId, string InstitutionNombre, List<string> Creadores, List<CreatorDto> CreadoresDetalle);
+public record NormaDto(string Id, string Titulo, int? TipoNormaId, string? TipoNormaNombre, string InstitutionId, string InstitutionNombre, List<string> Creadores, List<CreatorDto> CreadoresDetalle);
 public record CreateNormaBody(
     string Titulo,
-    string Tipo,
+    int? TipoNormaId,
     string InstitutionId,
     List<string>? AdditionalAuthorIds = null,
     List<string>? AdditionalAuthorNames = null,
     List<string>? AdditionalUserIds = null);
 public record UpdateNormaBody(
     string Titulo,
-    string Tipo,
+    int? TipoNormaId,
     string InstitutionId,
     List<string>? AdditionalAuthorIds = null,
     List<string>? AdditionalAuthorNames = null,

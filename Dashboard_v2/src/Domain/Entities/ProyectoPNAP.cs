@@ -4,5 +4,7 @@ namespace Dashboard_v2.Domain.Entities;
 public class ProyectoPNAP : ProyectoEnEjecucion
 {
     public override string TipoIdentificador => "PNAP";
-    public string FinanciamientoUH { get; set; } = default!;
+
+    /// <summary>M:N: fuentes de financiación de la UH para el proyecto.</summary>
+    public ICollection<FuenteFinanciacion> FuentesFinanciacion { get; set; } = new List<FuenteFinanciacion>();
 }

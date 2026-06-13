@@ -12,15 +12,11 @@ using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 namespace Dashboard_v2.Application.UnitTests.Proyectos;
 
 /// <summary>
-/// Tests for ProyectoService Create and Update operations that exercise
-/// <see cref="ProyectoService.CreateEjecucionAsync"/> and <see cref="ProyectoService.UpdateEjecucionAsync"/>
-/// generic paths via concrete typed methods.
+/// Tests for ProyectoService Create and Update operations.
 /// </summary>
 [TestFixture]
 public class ProyectoServiceCrudTests
 {
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private static ApplicationDbContext CreateDb()
     {
         var opts = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -82,8 +78,17 @@ public class ProyectoServiceCrudTests
         return (area.Id, clasif.Id, jefe.Id);
     }
 
+    /// <summary>Seeds an Institution and returns its Id.</summary>
+    private static string SeedInstitution(ApplicationDbContext db, string nombre = "Empresa Cubana S.A.")
+    {
+        var inst = new Institution { Nombre = nombre };
+        db.Institutions.Add(inst);
+        db.SaveChanges();
+        return inst.Id;
+    }
+
     private static ProyectoEmpresarialUpsertRequest BuildEmpresarialRequest(
-        string clasificId, string areaId, string jefeId) => new()
+        string clasificId, string areaId, string jefeId, IList<string>? empresasIds = null) => new()
     {
         Titulo = "Proyecto Empresarial Test",
         JefeId = jefeId,
@@ -92,10 +97,8 @@ public class ProyectoServiceCrudTests
         NumeroMiembros = 5,
         CantidadMiembrosUH = 3,
         FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-        EstadoDeEjecucion = "En ejecución",
         CodigoProyecto = "PE-001",
-        EntidadEjecutoraPrincipal = "UH",
-        Empresa = "Empresa Cubana S.A."
+        EmpresasIds = empresasIds ?? []
     };
 
     // ── CreateEmpresarialAsync ────────────────────────────────────────────────
@@ -105,9 +108,10 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var instId = SeedInstitution(db);
 
         var service = BuildService(db, MakeSuperuser());
-        var request = BuildEmpresarialRequest(clasificId, areaId, jefeId);
+        var request = BuildEmpresarialRequest(clasificId, areaId, jefeId, [instId]);
 
         var (result, id) = await service.CreateEmpresarialAsync(request);
 
@@ -115,11 +119,13 @@ public class ProyectoServiceCrudTests
         id.ShouldNotBeNullOrWhiteSpace();
 
         var created = await db.Proyectos.OfType<ProyectoEmpresarial>()
+            .Include(p => p.Empresas)
             .FirstOrDefaultAsync(p => p.Id == id);
         created.ShouldNotBeNull();
         created!.Titulo.ShouldBe("Proyecto Empresarial Test");
-        created.Empresa.ShouldBe("Empresa Cubana S.A.");
         created.CodigoProyecto.ShouldBe("PE-001");
+        created.Empresas.Count.ShouldBe(1);
+        created.Empresas.First().Id.ShouldBe(instId);
     }
 
     [Test]
@@ -127,13 +133,10 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
-
-        // Add a second area that Jefe tries to use
         db.Areas.Add(new Area { Id = "area-2", Nombre = "FIS", Descripcion = "d", UniversidadId = "uh" });
         await db.SaveChangesAsync();
 
         var service = BuildService(db, MakeJefe(jefeId));
-        // Jefe requests area-2 but should get area-1 (their own)
         var request = BuildEmpresarialRequest(clasificId, "area-2", jefeId);
 
         var (result, id) = await service.CreateEmpresarialAsync(request);
@@ -151,14 +154,14 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var instId1 = SeedInstitution(db, "Primera Empresa");
+        var instId2 = SeedInstitution(db, "Nueva Empresa");
 
-        // First create the project
         var service = BuildService(db, MakeJefe(jefeId));
         var (createResult, id) = await service.CreateEmpresarialAsync(
-            BuildEmpresarialRequest(clasificId, areaId, jefeId));
+            BuildEmpresarialRequest(clasificId, areaId, jefeId, [instId1]));
         createResult.Succeeded.ShouldBeTrue();
 
-        // Now update it
         var updateRequest = new ProyectoEmpresarialUpsertRequest
         {
             Titulo = "Titulo Actualizado",
@@ -168,19 +171,19 @@ public class ProyectoServiceCrudTests
             NumeroMiembros = 7,
             CantidadMiembrosUH = 4,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "Concluido",
             CodigoProyecto = "PE-002",
-            EntidadEjecutoraPrincipal = "MINCOM",
-            Empresa = "Nueva Empresa"
+            EmpresasIds = [instId2]
         };
 
         var result = await service.UpdateEmpresarialAsync(id!, updateRequest);
 
         result.Succeeded.ShouldBeTrue();
         var updated = await db.Proyectos.OfType<ProyectoEmpresarial>()
+            .Include(p => p.Empresas)
             .FirstOrDefaultAsync(p => p.Id == id);
         updated!.Titulo.ShouldBe("Titulo Actualizado");
-        updated.Empresa.ShouldBe("Nueva Empresa");
+        updated.Empresas.Count.ShouldBe(1);
+        updated.Empresas.First().Id.ShouldBe(instId2);
     }
 
     [Test]
@@ -189,7 +192,6 @@ public class ProyectoServiceCrudTests
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
 
-        // Seed a second jefe
         db.Users.Add(new User
         {
             Id = "jefe-2",
@@ -208,11 +210,9 @@ public class ProyectoServiceCrudTests
         });
         await db.SaveChangesAsync();
 
-        // jefe-1 creates a project
         var service1 = BuildService(db, MakeJefe(jefeId));
         var (_, id) = await service1.CreateEmpresarialAsync(BuildEmpresarialRequest(clasificId, areaId, jefeId));
 
-        // jefe-2 tries to update jefe-1's project
         var service2 = BuildService(db, MakeJefe("jefe-2"));
         var result = await service2.UpdateEmpresarialAsync(id!, BuildEmpresarialRequest(clasificId, areaId, "jefe-2"));
 
@@ -227,8 +227,10 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var situacion = new SituacionProyecto { Nombre = "En Revisión" };
+        db.SituacionesProyecto.Add(situacion);
+        await db.SaveChangesAsync();
 
-        // Seed a ProyectoEnRevision directly
         var proyecto = new ProyectoEnRevision
         {
             Id = "rev-1",
@@ -237,7 +239,6 @@ public class ProyectoServiceCrudTests
             AreaId = areaId,
             ClasificacionId = clasificId,
             NumeroMiembros = 2,
-            Situacion = "Pendiente",
             Tipo = "PE"
         };
         db.Proyectos.Add(proyecto);
@@ -252,7 +253,7 @@ public class ProyectoServiceCrudTests
             AreaId = areaId,
             NumeroMiembros = 4,
             CantidadMiembrosUH = 2,
-            Situacion = "En Revisión",
+            SituacionesIds = [situacion.Id],
             Tipo = "PI"
         };
 
@@ -260,9 +261,10 @@ public class ProyectoServiceCrudTests
 
         result.Succeeded.ShouldBeTrue();
         var updated = await db.Proyectos.OfType<ProyectoEnRevision>()
+            .Include(p => p.Situaciones)
             .FirstOrDefaultAsync(p => p.Id == "rev-1");
         updated!.Titulo.ShouldBe("Revisión Actualizada");
-        updated.Situacion.ShouldBe("En Revisión");
+        updated.Situaciones.ShouldContain(s => s.Id == situacion.Id);
     }
 
     // ── CreateApoyoProgramaAsync ──────────────────────────────────────────────
@@ -272,6 +274,9 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var programa = new Programa { Nombre = "Programa Nacional de IA" };
+        db.Programas.Add(programa);
+        await db.SaveChangesAsync();
 
         var service = BuildService(db, MakeSuperuser());
         var request = new ProyectoApoyoProgramaUpsertRequest
@@ -283,10 +288,8 @@ public class ProyectoServiceCrudTests
             NumeroMiembros = 3,
             CantidadMiembrosUH = 2,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "PAP-001",
-            EntidadEjecutoraPrincipal = "UH",
-            NombrePrograma = "Programa Nacional de IA",
+            ProgramasIds = [programa.Id],
             TipoPAP = TipoPAP.Nacional
         };
 
@@ -295,9 +298,10 @@ public class ProyectoServiceCrudTests
         result.Succeeded.ShouldBeTrue();
         id.ShouldNotBeNullOrWhiteSpace();
         var created = await db.Proyectos.OfType<ProyectoApoyoPrograma>()
+            .Include(p => p.Programas)
             .FirstOrDefaultAsync(p => p.Id == id);
         created.ShouldNotBeNull();
-        created!.NombrePrograma.ShouldBe("Programa Nacional de IA");
+        created!.Programas.ShouldContain(p => p.Id == programa.Id);
         created.TipoPAP.ShouldBe(TipoPAP.Nacional);
     }
 
@@ -308,6 +312,12 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var provincia = new Provincia { Nombre = "La Habana" };
+        db.Provincias.Add(provincia);
+        await db.SaveChangesAsync();
+        var municipio = new Municipio { Nombre = "Plaza de la Revolución", ProvinciaId = provincia.Id };
+        db.Municipios.Add(municipio);
+        await db.SaveChangesAsync();
 
         var service = BuildService(db, MakeSuperuser());
         var request = new ProyectoDesarrolloLocalUpsertRequest
@@ -319,10 +329,8 @@ public class ProyectoServiceCrudTests
             NumeroMiembros = 4,
             CantidadMiembrosUH = 3,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "DL-001",
-            EntidadEjecutoraPrincipal = "UH",
-            Municipio = "Plaza de la Revolución"
+            MunicipioId = municipio.Id
         };
 
         var (result, id) = await service.CreateDesarrolloLocalAsync(request);
@@ -330,7 +338,7 @@ public class ProyectoServiceCrudTests
         result.Succeeded.ShouldBeTrue();
         var created = await db.Proyectos.OfType<ProyectoDesarrolloLocal>()
             .FirstOrDefaultAsync(p => p.Id == id);
-        created!.Municipio.ShouldBe("Plaza de la Revolución");
+        created!.MunicipioId.ShouldBe(municipio.Id);
     }
 
     // ── GetEmpresarialByIdAsync with data ─────────────────────────────────────
@@ -340,15 +348,17 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var instId = SeedInstitution(db, "Mi Empresa");
 
         var service = BuildService(db, MakeSuperuser());
         var (_, id) = await service.CreateEmpresarialAsync(
-            BuildEmpresarialRequest(clasificId, areaId, jefeId));
+            BuildEmpresarialRequest(clasificId, areaId, jefeId, [instId]));
 
         var dto = await service.GetEmpresarialByIdAsync(id!);
 
         dto.ShouldNotBeNull();
         dto!.Titulo.ShouldBe("Proyecto Empresarial Test");
+        dto.Empresas.ShouldContain(e => e.Id == instId);
     }
 
     // ── GetEnRevisionByIdAsync with data ─────────────────────────────────────
@@ -368,7 +378,6 @@ public class ProyectoServiceCrudTests
             AreaId = areaId,
             ClasificacionId = clasificId,
             NumeroMiembros = 1,
-            Situacion = "Pendiente",
             Tipo = "PE"
         };
         db.Proyectos.Add(proyecto);
@@ -390,7 +399,6 @@ public class ProyectoServiceCrudTests
 
         var service = BuildService(db, MakeSuperuser());
 
-        // Create two different types
         await service.CreateEnRevisionAsync(new ProyectoEnRevisionUpsertRequest
         {
             Titulo = "En Revisión",
@@ -399,7 +407,6 @@ public class ProyectoServiceCrudTests
             AreaId = areaId,
             NumeroMiembros = 1,
             CantidadMiembrosUH = 1,
-            Situacion = "Pendiente",
             Tipo = "PE"
         });
         await service.CreateEmpresarialAsync(BuildEmpresarialRequest(clasificId, areaId, jefeId));
@@ -425,7 +432,7 @@ public class ProyectoServiceCrudTests
         result[0].Titulo.ShouldBe("Proyecto Empresarial Test");
     }
 
-    // ── GetPublicacionesDelProyectoAsync with data ────────────────────────────
+    // ── GetPublicacionesDelProyectoAsync ──────────────────────────────────────
 
     [Test]
     public async Task GetPublicacionesDelProyectoAsync_WithData_ReturnsPublicacionDtos()
@@ -436,7 +443,6 @@ public class ProyectoServiceCrudTests
         var service = BuildService(db, MakeSuperuser());
         var (_, proyId) = await service.CreateEmpresarialAsync(BuildEmpresarialRequest(clasificId, areaId, jefeId));
 
-        // Link a publication
         var pub = new Publication
         {
             Id = "pub-proj-1",
@@ -463,6 +469,9 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var programa = new Programa { Nombre = "PN de Biotecnología" };
+        db.Programas.Add(programa);
+        await db.SaveChangesAsync();
 
         var service = BuildService(db, MakeSuperuser());
         var (_, id) = await service.CreateApoyoProgramaAsync(new ProyectoApoyoProgramaUpsertRequest
@@ -474,10 +483,8 @@ public class ProyectoServiceCrudTests
             NumeroMiembros = 2,
             CantidadMiembrosUH = 1,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "PAP-99",
-            EntidadEjecutoraPrincipal = "UH",
-            NombrePrograma = "PN de Biotecnología",
+            ProgramasIds = [programa.Id],
             TipoPAP = TipoPAP.Sectorial
         });
 
@@ -485,6 +492,7 @@ public class ProyectoServiceCrudTests
 
         dto.ShouldNotBeNull();
         dto!.Titulo.ShouldBe("PAP Test");
+        dto.Programas.ShouldContain(p => p.Nombre == "PN de Biotecnología");
     }
 
     // ── CreateNoEmpresarialAsync ──────────────────────────────────────────────
@@ -494,6 +502,9 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var entidad = new Institution { Nombre = "Centro de Investigaciones" };
+        db.Institutions.Add(entidad);
+        await db.SaveChangesAsync();
 
         var service = BuildService(db, MakeSuperuser());
         var (result, id) = await service.CreateNoEmpresarialAsync(new ProyectoNoEmpresarialUpsertRequest
@@ -505,16 +516,15 @@ public class ProyectoServiceCrudTests
             NumeroMiembros = 4,
             CantidadMiembrosUH = 3,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "NE-001",
-            EntidadEjecutoraPrincipal = "CITMA",
-            EntidadNoEmpresarial = "Centro de Investigaciones"
+            EntidadesIds = [entidad.Id]
         });
 
         result.Succeeded.ShouldBeTrue();
         var created = await db.Proyectos.OfType<ProyectoNoEmpresarial>()
+            .Include(p => p.Entidades)
             .FirstOrDefaultAsync(p => p.Id == id);
-        created!.EntidadNoEmpresarial.ShouldBe("Centro de Investigaciones");
+        created!.Entidades.ShouldContain(e => e.Id == entidad.Id);
     }
 
     // ── CreateColabInternacionalAsync ─────────────────────────────────────────
@@ -524,6 +534,9 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var fuente = new FuenteFinanciacion { Nombre = "EU Horizon" };
+        db.FuentesFinanciacion.Add(fuente);
+        await db.SaveChangesAsync();
 
         var service = BuildService(db, MakeSuperuser());
         var (result, id) = await service.CreateColabInternacionalAsync(new ProyectoColabInternacionalUpsertRequest
@@ -535,17 +548,17 @@ public class ProyectoServiceCrudTests
             NumeroMiembros = 6,
             CantidadMiembrosUH = 4,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "CI-001",
-            EntidadEjecutoraPrincipal = "UH",
-            FuenteFinanciacion = "EU Horizon",
+            FuentesFinanciacionIds = [fuente.Id],
             TerminosReferencia = "Colaboración sur-sur"
         });
 
         result.Succeeded.ShouldBeTrue();
         var created = await db.Proyectos.OfType<ProyectoColabInternacional>()
+            .Include(p => p.FuentesFinanciacion)
             .FirstOrDefaultAsync(p => p.Id == id);
-        created!.FuenteFinanciacion.ShouldBe("EU Horizon");
+        created!.FuentesFinanciacion.ShouldContain(f => f.Id == fuente.Id);
+        created.TerminosReferencia.ShouldBe("Colaboración sur-sur");
     }
 
     // ── CreatePNAPAsync ───────────────────────────────────────────────────────
@@ -555,6 +568,9 @@ public class ProyectoServiceCrudTests
     {
         await using var db = CreateDb();
         var (areaId, clasificId, jefeId) = SeedBase(db);
+        var fuente = new FuenteFinanciacion { Nombre = "Presupuesto UH" };
+        db.FuentesFinanciacion.Add(fuente);
+        await db.SaveChangesAsync();
 
         var service = BuildService(db, MakeSuperuser());
         var (result, id) = await service.CreatePNAPAsync(new ProyectoPNAPUpsertRequest
@@ -566,15 +582,14 @@ public class ProyectoServiceCrudTests
             NumeroMiembros = 5,
             CantidadMiembrosUH = 3,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
-            EstadoDeEjecucion = "En ejecución",
             CodigoProyecto = "PNAP-001",
-            EntidadEjecutoraPrincipal = "UH",
-            FinanciamientoUH = "1.5M CUP"
+            FuentesFinanciacionIds = [fuente.Id]
         });
 
         result.Succeeded.ShouldBeTrue();
         var created = await db.Proyectos.OfType<ProyectoPNAP>()
+            .Include(p => p.FuentesFinanciacion)
             .FirstOrDefaultAsync(p => p.Id == id);
-        created!.FinanciamientoUH.ShouldBe("1.5M CUP");
+        created!.FuentesFinanciacion.ShouldContain(f => f.Id == fuente.Id);
     }
 }

@@ -24,18 +24,11 @@ internal static class ProyectoHelper
 
     internal static void SetEjecucion(ProyectoEnEjecucion pe,
         DateOnly fechaInicio, DateOnly? fechaCierre,
-        string estadoEjecucion, string codigoProyecto, string entidadPrincipal,
-        string? entidadParticipante, string? contribSectores, string? contribEjes,
-        bool tributaDesarrolloLocal)
+        string codigoProyecto, bool tributaDesarrolloLocal)
     {
         pe.FechaInicio = fechaInicio;
         pe.FechaCierre = fechaCierre;
-        pe.EstadoDeEjecucion = estadoEjecucion.Trim();
         pe.CodigoProyecto = codigoProyecto.Trim();
-        pe.EntidadEjecutoraPrincipal = entidadPrincipal.Trim();
-        pe.EntidadEjecutoraParticipante = entidadParticipante?.Trim();
-        pe.ContribucionSectoresEstrategicos = contribSectores?.Trim();
-        pe.ContribucionEjesEstrategicos = contribEjes?.Trim();
         pe.TributaDesarrolloLocal = tributaDesarrolloLocal;
     }
 

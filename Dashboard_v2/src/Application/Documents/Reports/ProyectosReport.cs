@@ -1,6 +1,7 @@
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Domain.Entities;
 using Dashboard_v2.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard_v2.Application.Documents.Reports;
 
@@ -32,176 +33,223 @@ public sealed class ProyectosReport : IDocumentReport
 
     public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)
     {
-        // Cargamos todos los proyectos en ejecución con sus relaciones necesarias.
-        // OfType<T>() genera un JOIN interno con la tabla de especialización correspondiente.
-        var pe = await _context.Proyectos
+        var pe = (await _context.Proyectos
             .OfType<ProyectoEmpresarial>()
+            .Include(p => p.JefeUsuario)
+            .Include(p => p.Clasificacion)
+            .Include(p => p.PublicacionesDerivadas)
+            .Include(p => p.EstadosDeEjecucion)
+            .Include(p => p.EntidadesEjecutorasPrincipales)
+            .Include(p => p.EntidadesEjecutorasParticipantes)
+            .Include(p => p.SectoresEstrategicos)
+            .Include(p => p.EjesEstrategicos)
+            .Include(p => p.Empresas)
             .OrderBy(p => p.CodigoProyecto)
+            .ToListAsync(ct))
             .Select(p => new ProyectoPERowDto
             {
-                CodigoProyecto                  = p.CodigoProyecto,
-                TituloProyecto                  = p.Titulo,
-                Empresa                         = p.Empresa,
-                JefeProyecto                    = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
-                CorreoJefeProyecto              = p.JefeUsuario.Email,
-                TotalMiembros                   = p.NumeroMiembros,
-                MiembrosUH                      = p.CantidadMiembrosUH,
-                Estudiantes                     = p.CantidadEstudiantes,
-                EstudiantesContratados          = p.CantidadEstudiantesContratados,
-                Clasificacion                   = p.Clasificacion.Nombre,
-                TributaFormacionDoctoral        = p.TributaFormacionDoctoral ? "Sí" : "No",
-                TributaDesarrolloLocal          = p.TributaDesarrolloLocal ? "Sí" : "No",
-                ContribucionSectoresEstrategicos = p.ContribucionSectoresEstrategicos ?? "",
-                ContribucionEjesEstrategicos    = p.ContribucionEjesEstrategicos ?? "",
-                FechaInicio                     = p.FechaInicio.ToString("dd/MM/yyyy"),
-                FechaCierre                     = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
-                EntidadEjecutoraPrincipal       = p.EntidadEjecutoraPrincipal,
-                EntidadEjecutoraParticipante    = p.EntidadEjecutoraParticipante ?? "",
-                EstadoEjecucion                 = p.EstadoDeEjecucion,
-                PublicacionesDerivadas          = string.Join("; ", p.PublicacionesDerivadas
-                    .Select(pub => pub.UrlDoi ?? pub.Title)),
+                CodigoProyecto                   = p.CodigoProyecto,
+                TituloProyecto                   = p.Titulo,
+                Empresa                          = string.Join(", ", p.Empresas.Select(e => e.Nombre)),
+                JefeProyecto                     = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
+                CorreoJefeProyecto               = p.JefeUsuario.Email,
+                TotalMiembros                    = p.NumeroMiembros,
+                MiembrosUH                       = p.CantidadMiembrosUH,
+                Estudiantes                      = p.CantidadEstudiantes,
+                EstudiantesContratados           = p.CantidadEstudiantesContratados,
+                Clasificacion                    = p.Clasificacion.Nombre,
+                TributaFormacionDoctoral         = p.TributaFormacionDoctoral ? "Sí" : "No",
+                TributaDesarrolloLocal           = p.TributaDesarrolloLocal ? "Sí" : "No",
+                ContribucionSectoresEstrategicos = string.Join(", ", p.SectoresEstrategicos.Select(s => s.Nombre)),
+                ContribucionEjesEstrategicos     = string.Join(", ", p.EjesEstrategicos.Select(e => e.Nombre)),
+                FechaInicio                      = p.FechaInicio.ToString("dd/MM/yyyy"),
+                FechaCierre                      = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
+                EntidadEjecutoraPrincipal        = string.Join(", ", p.EntidadesEjecutorasPrincipales.Select(e => e.Nombre)),
+                EntidadEjecutoraParticipante     = string.Join(", ", p.EntidadesEjecutorasParticipantes.Select(e => e.Nombre)),
+                EstadoEjecucion                  = string.Join(", ", p.EstadosDeEjecucion.Select(e => e.Nombre)),
+                PublicacionesDerivadas           = string.Join("; ", p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title)),
             })
-            .ToListAsync(ct);
+            .ToList();
 
         var papn = await QueryPAP(TipoPAP.Nacional, ct);
         var paps = await QueryPAP(TipoPAP.Sectorial, ct);
         var papt = await QueryPAP(TipoPAP.Territorial, ct);
 
-        var pne = await _context.Proyectos
+        var pne = (await _context.Proyectos
             .OfType<ProyectoNoEmpresarial>()
+            .Include(p => p.JefeUsuario)
+            .Include(p => p.Clasificacion)
+            .Include(p => p.PublicacionesDerivadas)
+            .Include(p => p.EstadosDeEjecucion)
+            .Include(p => p.EntidadesEjecutorasPrincipales)
+            .Include(p => p.EntidadesEjecutorasParticipantes)
+            .Include(p => p.SectoresEstrategicos)
+            .Include(p => p.EjesEstrategicos)
+            .Include(p => p.Entidades)
             .OrderBy(p => p.CodigoProyecto)
+            .ToListAsync(ct))
             .Select(p => new ProyectoPNERowDto
             {
-                CodigoProyecto                  = p.CodigoProyecto,
-                TituloProyecto                  = p.Titulo,
-                EntidadNoEmpresarial            = p.EntidadNoEmpresarial,
-                JefeProyecto                    = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
-                CorreoJefeProyecto              = p.JefeUsuario.Email,
-                TotalMiembros                   = p.NumeroMiembros,
-                MiembrosUH                      = p.CantidadMiembrosUH,
-                Estudiantes                     = p.CantidadEstudiantes,
-                EstudiantesContratados          = p.CantidadEstudiantesContratados,
-                Clasificacion                   = p.Clasificacion.Nombre,
-                TributaFormacionDoctoral        = p.TributaFormacionDoctoral ? "Sí" : "No",
-                TributaDesarrolloLocal          = p.TributaDesarrolloLocal ? "Sí" : "No",
-                ContribucionSectoresEstrategicos = p.ContribucionSectoresEstrategicos ?? "",
-                ContribucionEjesEstrategicos    = p.ContribucionEjesEstrategicos ?? "",
-                FechaInicio                     = p.FechaInicio.ToString("dd/MM/yyyy"),
-                FechaCierre                     = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
-                EntidadEjecutoraPrincipal       = p.EntidadEjecutoraPrincipal,
-                EntidadEjecutoraParticipante    = p.EntidadEjecutoraParticipante ?? "",
-                EstadoEjecucion                 = p.EstadoDeEjecucion,
-                PublicacionesDerivadas          = string.Join("; ", p.PublicacionesDerivadas
-                    .Select(pub => pub.UrlDoi ?? pub.Title)),
+                CodigoProyecto                   = p.CodigoProyecto,
+                TituloProyecto                   = p.Titulo,
+                EntidadNoEmpresarial             = string.Join(", ", p.Entidades.Select(e => e.Nombre)),
+                JefeProyecto                     = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
+                CorreoJefeProyecto               = p.JefeUsuario.Email,
+                TotalMiembros                    = p.NumeroMiembros,
+                MiembrosUH                       = p.CantidadMiembrosUH,
+                Estudiantes                      = p.CantidadEstudiantes,
+                EstudiantesContratados           = p.CantidadEstudiantesContratados,
+                Clasificacion                    = p.Clasificacion.Nombre,
+                TributaFormacionDoctoral         = p.TributaFormacionDoctoral ? "Sí" : "No",
+                TributaDesarrolloLocal           = p.TributaDesarrolloLocal ? "Sí" : "No",
+                ContribucionSectoresEstrategicos = string.Join(", ", p.SectoresEstrategicos.Select(s => s.Nombre)),
+                ContribucionEjesEstrategicos     = string.Join(", ", p.EjesEstrategicos.Select(e => e.Nombre)),
+                FechaInicio                      = p.FechaInicio.ToString("dd/MM/yyyy"),
+                FechaCierre                      = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
+                EntidadEjecutoraPrincipal        = string.Join(", ", p.EntidadesEjecutorasPrincipales.Select(e => e.Nombre)),
+                EntidadEjecutoraParticipante     = string.Join(", ", p.EntidadesEjecutorasParticipantes.Select(e => e.Nombre)),
+                EstadoEjecucion                  = string.Join(", ", p.EstadosDeEjecucion.Select(e => e.Nombre)),
+                PublicacionesDerivadas           = string.Join("; ", p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title)),
             })
-            .ToListAsync(ct);
+            .ToList();
 
-        var pdl = await _context.Proyectos
+        var pdl = (await _context.Proyectos
             .OfType<ProyectoDesarrolloLocal>()
+            .Include(p => p.JefeUsuario)
+            .Include(p => p.Clasificacion)
+            .Include(p => p.PublicacionesDerivadas)
+            .Include(p => p.EstadosDeEjecucion)
+            .Include(p => p.EntidadesEjecutorasPrincipales)
+            .Include(p => p.EntidadesEjecutorasParticipantes)
+            .Include(p => p.SectoresEstrategicos)
+            .Include(p => p.EjesEstrategicos)
+            .Include(p => p.Municipio).ThenInclude(m => m.Provincia)
             .OrderBy(p => p.CodigoProyecto)
+            .ToListAsync(ct))
             .Select(p => new ProyectoPDLRowDto
             {
-                CodigoProyecto                  = p.CodigoProyecto,
-                TituloProyecto                  = p.Titulo,
-                Municipio                       = p.Municipio,
-                JefeProyecto                    = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
-                CorreoJefeProyecto              = p.JefeUsuario.Email,
-                TotalMiembros                   = p.NumeroMiembros,
-                MiembrosUH                      = p.CantidadMiembrosUH,
-                Estudiantes                     = p.CantidadEstudiantes,
-                EstudiantesContratados          = p.CantidadEstudiantesContratados,
-                Clasificacion                   = p.Clasificacion.Nombre,
-                TributaFormacionDoctoral        = p.TributaFormacionDoctoral ? "Sí" : "No",
-                TributaDesarrolloLocal          = "Sí", // por definición siempre true para PDL
-                ContribucionSectoresEstrategicos = p.ContribucionSectoresEstrategicos ?? "",
-                ContribucionEjesEstrategicos    = p.ContribucionEjesEstrategicos ?? "",
-                FechaInicio                     = p.FechaInicio.ToString("dd/MM/yyyy"),
-                FechaCierre                     = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
-                EntidadEjecutoraPrincipal       = p.EntidadEjecutoraPrincipal,
-                EntidadEjecutoraParticipante    = p.EntidadEjecutoraParticipante ?? "",
-                EstadoEjecucion                 = p.EstadoDeEjecucion,
-                PublicacionesDerivadas          = string.Join("; ", p.PublicacionesDerivadas
-                    .Select(pub => pub.UrlDoi ?? pub.Title)),
+                CodigoProyecto                   = p.CodigoProyecto,
+                TituloProyecto                   = p.Titulo,
+                Municipio                        = p.Municipio?.Nombre ?? "",
+                JefeProyecto                     = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
+                CorreoJefeProyecto               = p.JefeUsuario.Email,
+                TotalMiembros                    = p.NumeroMiembros,
+                MiembrosUH                       = p.CantidadMiembrosUH,
+                Estudiantes                      = p.CantidadEstudiantes,
+                EstudiantesContratados           = p.CantidadEstudiantesContratados,
+                Clasificacion                    = p.Clasificacion.Nombre,
+                TributaFormacionDoctoral         = p.TributaFormacionDoctoral ? "Sí" : "No",
+                TributaDesarrolloLocal           = "Sí",
+                ContribucionSectoresEstrategicos = string.Join(", ", p.SectoresEstrategicos.Select(s => s.Nombre)),
+                ContribucionEjesEstrategicos     = string.Join(", ", p.EjesEstrategicos.Select(e => e.Nombre)),
+                FechaInicio                      = p.FechaInicio.ToString("dd/MM/yyyy"),
+                FechaCierre                      = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
+                EntidadEjecutoraPrincipal        = string.Join(", ", p.EntidadesEjecutorasPrincipales.Select(e => e.Nombre)),
+                EntidadEjecutoraParticipante     = string.Join(", ", p.EntidadesEjecutorasParticipantes.Select(e => e.Nombre)),
+                EstadoEjecucion                  = string.Join(", ", p.EstadosDeEjecucion.Select(e => e.Nombre)),
+                PublicacionesDerivadas           = string.Join("; ", p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title)),
             })
-            .ToListAsync(ct);
+            .ToList();
 
-        var prci = await _context.Proyectos
+        var prci = (await _context.Proyectos
             .OfType<ProyectoColabInternacional>()
+            .Include(p => p.JefeUsuario)
+            .Include(p => p.Clasificacion)
+            .Include(p => p.PublicacionesDerivadas)
+            .Include(p => p.EstadosDeEjecucion)
+            .Include(p => p.EntidadesEjecutorasPrincipales)
+            .Include(p => p.EntidadesEjecutorasParticipantes)
+            .Include(p => p.SectoresEstrategicos)
+            .Include(p => p.EjesEstrategicos)
+            .Include(p => p.FuentesFinanciacion)
             .OrderBy(p => p.CodigoProyecto)
+            .ToListAsync(ct))
             .Select(p => new ProyectoPRCIRowDto
             {
-                CodigoProyecto                  = p.CodigoProyecto,
-                TituloProyecto                  = p.Titulo,
-                FuenteFinanciacion              = p.FuenteFinanciacion,
-                JefeProyecto                    = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
-                CorreoJefeProyecto              = p.JefeUsuario.Email,
-                TotalMiembros                   = p.NumeroMiembros,
-                MiembrosUH                      = p.CantidadMiembrosUH,
-                Estudiantes                     = p.CantidadEstudiantes,
-                EstudiantesContratados          = p.CantidadEstudiantesContratados,
-                Clasificacion                   = p.Clasificacion.Nombre,
-                TributaFormacionDoctoral        = p.TributaFormacionDoctoral ? "Sí" : "No",
-                TributaDesarrolloLocal          = p.TributaDesarrolloLocal ? "Sí" : "No",
-                ConTerminosReferencia           = p.TerminosReferencia,
-                ContribucionSectoresEstrategicos = p.ContribucionSectoresEstrategicos ?? "",
-                ContribucionEjesEstrategicos    = p.ContribucionEjesEstrategicos ?? "",
-                FechaInicio                     = p.FechaInicio.ToString("dd/MM/yyyy"),
-                FechaCierre                     = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
-                EntidadEjecutoraPrincipal       = p.EntidadEjecutoraPrincipal,
-                EntidadEjecutoraParticipante    = p.EntidadEjecutoraParticipante ?? "",
-                EstadoEjecucion                 = p.EstadoDeEjecucion,
-                PublicacionesDerivadas          = string.Join("; ", p.PublicacionesDerivadas
-                    .Select(pub => pub.UrlDoi ?? pub.Title)),
+                CodigoProyecto                   = p.CodigoProyecto,
+                TituloProyecto                   = p.Titulo,
+                FuenteFinanciacion               = string.Join(", ", p.FuentesFinanciacion.Select(f => f.Nombre)),
+                JefeProyecto                     = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
+                CorreoJefeProyecto               = p.JefeUsuario.Email,
+                TotalMiembros                    = p.NumeroMiembros,
+                MiembrosUH                       = p.CantidadMiembrosUH,
+                Estudiantes                      = p.CantidadEstudiantes,
+                EstudiantesContratados           = p.CantidadEstudiantesContratados,
+                Clasificacion                    = p.Clasificacion.Nombre,
+                TributaFormacionDoctoral         = p.TributaFormacionDoctoral ? "Sí" : "No",
+                TributaDesarrolloLocal           = p.TributaDesarrolloLocal ? "Sí" : "No",
+                ConTerminosReferencia            = p.TerminosReferencia,
+                ContribucionSectoresEstrategicos = string.Join(", ", p.SectoresEstrategicos.Select(s => s.Nombre)),
+                ContribucionEjesEstrategicos     = string.Join(", ", p.EjesEstrategicos.Select(e => e.Nombre)),
+                FechaInicio                      = p.FechaInicio.ToString("dd/MM/yyyy"),
+                FechaCierre                      = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
+                EntidadEjecutoraPrincipal        = string.Join(", ", p.EntidadesEjecutorasPrincipales.Select(e => e.Nombre)),
+                EntidadEjecutoraParticipante     = string.Join(", ", p.EntidadesEjecutorasParticipantes.Select(e => e.Nombre)),
+                EstadoEjecucion                  = string.Join(", ", p.EstadosDeEjecucion.Select(e => e.Nombre)),
+                PublicacionesDerivadas           = string.Join("; ", p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title)),
             })
-            .ToListAsync(ct);
+            .ToList();
 
-        var pnap = await _context.Proyectos
+        var pnap = (await _context.Proyectos
             .OfType<ProyectoPNAP>()
+            .Include(p => p.JefeUsuario)
+            .Include(p => p.Clasificacion)
+            .Include(p => p.PublicacionesDerivadas)
+            .Include(p => p.EstadosDeEjecucion)
+            .Include(p => p.EntidadesEjecutorasPrincipales)
+            .Include(p => p.EntidadesEjecutorasParticipantes)
+            .Include(p => p.SectoresEstrategicos)
+            .Include(p => p.EjesEstrategicos)
+            .Include(p => p.FuentesFinanciacion)
             .OrderBy(p => p.CodigoProyecto)
-            .Select(static p => new ProyectoPNAPRowDto
+            .ToListAsync(ct))
+            .Select(p => new ProyectoPNAPRowDto
             {
-                CodigoProyecto                  = p.CodigoProyecto,
-                TituloProyecto                  = p.Titulo,
-                JefeProyecto                    = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
-                CorreoJefeProyecto              = p.JefeUsuario.Email,
-                TotalMiembros                   = p.NumeroMiembros,
-                MiembrosUH                      = p.CantidadMiembrosUH,
-                Estudiantes                     = p.CantidadEstudiantes,
-                EstudiantesContratados          = p.CantidadEstudiantesContratados,
-                Clasificacion                   = p.Clasificacion.Nombre,
-                TributaFormacionDoctoral        = p.TributaFormacionDoctoral ? "Sí" : "No",
-                TributaDesarrolloLocal          = p.TributaDesarrolloLocal ? "Sí" : "No",
-                FinanciamientoUH                = p.FinanciamientoUH,
-                ContribucionSectoresEstrategicos = p.ContribucionSectoresEstrategicos ?? "",
-                ContribucionEjesEstrategicos    = p.ContribucionEjesEstrategicos ?? "",
-                FechaInicio                     = p.FechaInicio.ToString("dd/MM/yyyy"),
-                FechaCierre                     = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
-                EntidadEjecutoraPrincipal       = p.EntidadEjecutoraPrincipal,
-                EntidadEjecutoraParticipante    = p.EntidadEjecutoraParticipante ?? "",
-                EstadoEjecucion                 = p.EstadoDeEjecucion,
-                PublicacionesDerivadas          = string.Join("; ", p.PublicacionesDerivadas
-                    .Select(pub => pub.UrlDoi ?? pub.Title)),
+                CodigoProyecto                   = p.CodigoProyecto,
+                TituloProyecto                   = p.Titulo,
+                JefeProyecto                     = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
+                CorreoJefeProyecto               = p.JefeUsuario.Email,
+                TotalMiembros                    = p.NumeroMiembros,
+                MiembrosUH                       = p.CantidadMiembrosUH,
+                Estudiantes                      = p.CantidadEstudiantes,
+                EstudiantesContratados           = p.CantidadEstudiantesContratados,
+                Clasificacion                    = p.Clasificacion.Nombre,
+                TributaFormacionDoctoral         = p.TributaFormacionDoctoral ? "Sí" : "No",
+                TributaDesarrolloLocal           = p.TributaDesarrolloLocal ? "Sí" : "No",
+                FinanciamientoUH                 = string.Join(", ", p.FuentesFinanciacion.Select(f => f.Nombre)),
+                ContribucionSectoresEstrategicos = string.Join(", ", p.SectoresEstrategicos.Select(s => s.Nombre)),
+                ContribucionEjesEstrategicos     = string.Join(", ", p.EjesEstrategicos.Select(e => e.Nombre)),
+                FechaInicio                      = p.FechaInicio.ToString("dd/MM/yyyy"),
+                FechaCierre                      = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
+                EntidadEjecutoraPrincipal        = string.Join(", ", p.EntidadesEjecutorasPrincipales.Select(e => e.Nombre)),
+                EntidadEjecutoraParticipante     = string.Join(", ", p.EntidadesEjecutorasParticipantes.Select(e => e.Nombre)),
+                EstadoEjecucion                  = string.Join(", ", p.EstadosDeEjecucion.Select(e => e.Nombre)),
+                PublicacionesDerivadas           = string.Join("; ", p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title)),
             })
-            .ToListAsync(ct);
+            .ToList();
 
-        var nuevasAplicaciones = await _context.Proyectos
+        var nuevasAplicaciones = (await _context.Proyectos
             .OfType<ProyectoEnRevision>()
+            .Include(p => p.JefeUsuario)
+            .Include(p => p.Clasificacion)
+            .Include(p => p.Situaciones)
             .OrderBy(p => p.Titulo)
+            .ToListAsync(ct))
             .Select(p => new ProyectoNuevasAplicacionesRowDto
             {
-                TituloProyecto         = p.Titulo,
-                JefeProyecto           = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
-                CorreoJefeProyecto     = p.JefeUsuario.Email,
-                TipoProyecto           = p.Tipo,
-                TotalMiembros          = p.NumeroMiembros,
-                MiembrosUH             = p.CantidadMiembrosUH,
-                Estudiantes            = p.CantidadEstudiantes,
-                EstudiantesContratados = p.CantidadEstudiantesContratados,
-                Clasificacion          = p.Clasificacion.Nombre,
+                TituloProyecto           = p.Titulo,
+                JefeProyecto             = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
+                CorreoJefeProyecto       = p.JefeUsuario.Email,
+                TipoProyecto             = p.Tipo,
+                TotalMiembros            = p.NumeroMiembros,
+                MiembrosUH               = p.CantidadMiembrosUH,
+                Estudiantes              = p.CantidadEstudiantes,
+                EstudiantesContratados   = p.CantidadEstudiantesContratados,
+                Clasificacion            = p.Clasificacion.Nombre,
                 TributaFormacionDoctoral = p.TributaFormacionDoctoral ? "Sí" : "No",
-                Situacion              = p.Situacion,
+                Situacion                = string.Join(", ", p.Situaciones.Select(s => s.Nombre)),
             })
-            .ToListAsync(ct);
+            .ToList();
 
         // Cada clave debe coincidir exactamente con el Named Range definido en AnexoProyectos.xlsx
         return new Dictionary<string, object>
@@ -220,35 +268,44 @@ public sealed class ProyectosReport : IDocumentReport
 
     // ─── Helper para PAP filtrado por subtipo ──────────────────────────────
     private async Task<List<ProyectoPAPRowDto>> QueryPAP(TipoPAP tipo, CancellationToken ct)
-        => await _context.Proyectos
+        => (await _context.Proyectos
             .OfType<ProyectoApoyoPrograma>()
+            .Include(p => p.JefeUsuario)
+            .Include(p => p.Clasificacion)
+            .Include(p => p.PublicacionesDerivadas)
+            .Include(p => p.EstadosDeEjecucion)
+            .Include(p => p.EntidadesEjecutorasPrincipales)
+            .Include(p => p.EntidadesEjecutorasParticipantes)
+            .Include(p => p.SectoresEstrategicos)
+            .Include(p => p.EjesEstrategicos)
+            .Include(p => p.Programas)
             .Where(p => p.TipoPAP == tipo)
             .OrderBy(p => p.CodigoProyecto)
+            .ToListAsync(ct))
             .Select(p => new ProyectoPAPRowDto
             {
-                CodigoProyecto                  = p.CodigoProyecto,
-                TituloProyecto                  = p.Titulo,
-                NombrePrograma                  = p.NombrePrograma,
-                JefeProyecto                    = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
-                CorreoJefeProyecto              = p.JefeUsuario.Email,
-                TotalMiembros                   = p.NumeroMiembros,
-                MiembrosUH                      = p.CantidadMiembrosUH,
-                Estudiantes                     = p.CantidadEstudiantes,
-                EstudiantesContratados          = p.CantidadEstudiantesContratados,
-                Clasificacion                   = p.Clasificacion.Nombre,
-                TributaFormacionDoctoral        = p.TributaFormacionDoctoral ? "Sí" : "No",
-                TributaDesarrolloLocal          = p.TributaDesarrolloLocal ? "Sí" : "No",
-                ContribucionSectoresEstrategicos = p.ContribucionSectoresEstrategicos ?? "",
-                ContribucionEjesEstrategicos    = p.ContribucionEjesEstrategicos ?? "",
-                FechaInicio                     = p.FechaInicio.ToString("dd/MM/yyyy"),
-                FechaCierre                     = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
-                EntidadEjecutoraPrincipal       = p.EntidadEjecutoraPrincipal,
-                EntidadEjecutoraParticipante    = p.EntidadEjecutoraParticipante ?? "",
-                EstadoEjecucion                 = p.EstadoDeEjecucion,
-                PublicacionesDerivadas          = string.Join("; ", p.PublicacionesDerivadas
-                    .Select(pub => pub.UrlDoi ?? pub.Title)),
+                CodigoProyecto                   = p.CodigoProyecto,
+                TituloProyecto                   = p.Titulo,
+                NombrePrograma                   = string.Join(", ", p.Programas.Select(pr => pr.Nombre)),
+                JefeProyecto                     = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1,
+                CorreoJefeProyecto               = p.JefeUsuario.Email,
+                TotalMiembros                    = p.NumeroMiembros,
+                MiembrosUH                       = p.CantidadMiembrosUH,
+                Estudiantes                      = p.CantidadEstudiantes,
+                EstudiantesContratados           = p.CantidadEstudiantesContratados,
+                Clasificacion                    = p.Clasificacion.Nombre,
+                TributaFormacionDoctoral         = p.TributaFormacionDoctoral ? "Sí" : "No",
+                TributaDesarrolloLocal           = p.TributaDesarrolloLocal ? "Sí" : "No",
+                ContribucionSectoresEstrategicos = string.Join(", ", p.SectoresEstrategicos.Select(s => s.Nombre)),
+                ContribucionEjesEstrategicos     = string.Join(", ", p.EjesEstrategicos.Select(e => e.Nombre)),
+                FechaInicio                      = p.FechaInicio.ToString("dd/MM/yyyy"),
+                FechaCierre                      = p.FechaCierre.HasValue ? p.FechaCierre.Value.ToString("dd/MM/yyyy") : "",
+                EntidadEjecutoraPrincipal        = string.Join(", ", p.EntidadesEjecutorasPrincipales.Select(e => e.Nombre)),
+                EntidadEjecutoraParticipante     = string.Join(", ", p.EntidadesEjecutorasParticipantes.Select(e => e.Nombre)),
+                EstadoEjecucion                  = string.Join(", ", p.EstadosDeEjecucion.Select(e => e.Nombre)),
+                PublicacionesDerivadas           = string.Join("; ", p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title)),
             })
-            .ToListAsync(ct);
+            .ToList();
 }
 
 // ─── DTOs ──────────────────────────────────────────────────────────────────
@@ -304,7 +361,7 @@ public record ProyectoPDLRowDto : ProyectoEnEjecucionRowDto
 
 public record ProyectoPRCIRowDto : ProyectoEnEjecucionRowDto
 {
-    public string FuenteFinanciacion  { get; init; } = default!;
+    public string FuenteFinanciacion   { get; init; } = default!;
     public string ConTerminosReferencia { get; init; } = default!;
 }
 

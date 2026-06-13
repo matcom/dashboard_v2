@@ -23,11 +23,50 @@ async function apiFetch(url, options = {}) {
   return data;
 }
 
-const emptyForm = { titulo: '', tipo: '', institutionId: '' };
+const emptyForm = { titulo: '', tipoNormaId: null, tipoNormaNombre: '', institutionId: '' };
+
+function NuevoTipoNormaInline({ onCreated }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+
+  async function handleCreate() {
+    const nombre = value.trim();
+    if (!nombre) return;
+    setLoading(true); setErr('');
+    try {
+      const created = await apiFetch('/api/Nomencladores/tiposnorma', { method: 'POST', body: JSON.stringify({ nombre }) });
+      onCreated(created);
+      setValue(''); setOpen(false);
+    } catch (e) { setErr(e.message); } finally { setLoading(false); }
+  }
+
+  if (!open) return (
+    <Button type="button" color="secondary" outline size="sm" onClick={() => setOpen(true)}>
+      <i className="bi bi-plus" /> Nuevo tipo
+    </Button>
+  );
+  return (
+    <div className="w-100 mt-1">
+      {err && <Alert color="danger" className="py-1 px-2 small mb-1">{err}</Alert>}
+      <InputGroup size="sm">
+        <Input placeholder="Nombre del tipo..." value={value} autoFocus
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreate(); } }} />
+        <Button type="button" color="primary" onClick={handleCreate} disabled={loading}>
+          {loading ? <Spinner size="sm" /> : 'Crear'}
+        </Button>
+        <Button type="button" color="secondary" outline onClick={() => { setOpen(false); setErr(''); }}>✕</Button>
+      </InputGroup>
+    </div>
+  );
+}
 
 export default function NormasPage() {
   const [items, setItems] = useState([]);
   const [institutions, setInstitutions] = useState([]);
+  const [tiposNorma, setTiposNorma] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -50,12 +89,14 @@ export default function NormasPage() {
     setLoading(true);
     setError('');
     try {
-      const [ns, insts] = await Promise.all([
+      const [ns, insts, tipos] = await Promise.all([
         apiFetch('/api/Normas'),
         apiFetch('/api/Institutions'),
+        apiFetch('/api/Nomencladores/tiposnorma'),
       ]);
       setItems(ns);
       setInstitutions(insts);
+      setTiposNorma(tipos);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -66,12 +107,17 @@ export default function NormasPage() {
   useEffect(() => { load(); }, [load]);
 
   function openCreate() { setEditing(null); setForm(emptyForm); setFormError(''); setModal(true); }
-  function openEdit(item) { setEditing(item); setForm({ titulo: item.titulo, tipo: item.tipo, institutionId: item.institutionId }); setFormError(''); setModal(true); }
+  function openEdit(item) {
+    setEditing(item);
+    setForm({ titulo: item.titulo, tipoNormaId: item.tipoNormaId ?? null, tipoNormaNombre: item.tipoNormaNombre ?? '', institutionId: item.institutionId });
+    setFormError('');
+    setModal(true);
+  }
 
   async function handleSave(e) {
     if (e) e.preventDefault();
     setSaving(true); setFormError('');
-    const body = { titulo: form.titulo, tipo: form.tipo, institutionId: form.institutionId };
+    const body = { titulo: form.titulo, tipoNormaId: form.tipoNormaId, institutionId: form.institutionId };
     try {
       if (editing) await apiFetch(`/api/Normas/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) });
       else await apiFetch('/api/Normas', { method: 'POST', body: JSON.stringify(body) });
@@ -151,15 +197,15 @@ export default function NormasPage() {
             filterConfig={{
               search: { fields: ['titulo'], placeholder: 'Buscar norma...' },
               filters: [
-                { key: 'tipo', label: 'Tipo',
-                  options: [...new Set(items.map(i => i.tipo).filter(Boolean))].sort().map(v => ({ value: v, label: v })) },
+                { key: 'tipoNormaNombre', label: 'Tipo',
+                  options: tiposNorma.map(t => ({ value: t.nombre, label: t.nombre })) },
                 { key: 'institutionNombre', label: 'Institución',
                   options: institutions.map(i => ({ value: i.nombre, label: i.nombre })) },
               ],
             }}
             columns={[
               { key: 'titulo',            label: 'Título',      sortable: true },
-              { key: 'tipo',              label: 'Tipo' },
+              { key: 'tipoNormaNombre',   label: 'Tipo' },
               { key: 'institutionNombre', label: 'Institución' },
             ]}
             data={items}
@@ -183,8 +229,23 @@ export default function NormasPage() {
               <Input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} />
             </FormGroup>
             <FormGroup>
-              <Label>Tipo *</Label>
-              <Input value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} />
+              <Label>Tipo</Label>
+              <Input type="select" value={form.tipoNormaId ?? ''} onChange={e => {
+                const id = e.target.value ? parseInt(e.target.value, 10) : null;
+                const found = tiposNorma.find(t => t.id === id);
+                setForm(f => ({ ...f, tipoNormaId: id, tipoNormaNombre: found?.nombre ?? '' }));
+              }}>
+                <option value="">— Sin tipo —</option>
+                {tiposNorma.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+              </Input>
+              <div className="d-flex gap-2 align-items-center mt-1">
+                <NuevoTipoNormaInline
+                  onCreated={t => {
+                    setTiposNorma(prev => [...prev, t].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+                    setForm(f => ({ ...f, tipoNormaId: t.id, tipoNormaNombre: t.nombre }));
+                  }}
+                />
+              </div>
             </FormGroup>
             <FormGroup>
               <Label>Institución *</Label>

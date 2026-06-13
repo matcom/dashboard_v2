@@ -75,6 +75,8 @@ public sealed class AnexoPublicacionesReport : IDocumentReport
                 .ThenInclude(ap => ap.Author)
             .Include(p => p.JournalPublication)
                 .ThenInclude(jp => jp!.JournalGroup1Publication)
+            .Include(p => p.JournalPublication)
+                .ThenInclude(jp => jp!.BaseDeDatos)
             .Include(p => p.IndexedPublication)
             .Where(p => requestingAreaId != null &&
                 p.AuthorPublications.Any(ap =>
@@ -139,7 +141,7 @@ public sealed class AnexoPublicacionesReport : IDocumentReport
                     Titulo = p.Title,
                     DatosPublicacion = BuildPublicationDetails(p),
                     RelacionAutoria = BuildAuthorsSummary(p),
-                    BaseDeDatos = p.JournalPublication!.DataBase ?? string.Empty,
+                    BaseDeDatos = p.JournalPublication!.BaseDeDatos?.Nombre ?? string.Empty,
                     Cuartil = p.JournalPublication.JournalGroup1Publication?.Cuartil ?? string.Empty,
                 })
                 .ToList(),
@@ -175,7 +177,7 @@ public sealed class AnexoPublicacionesReport : IDocumentReport
             Titulo = publication.Title,
             DatosPublicacion = BuildPublicationDetails(publication),
             RelacionAutoria = BuildAuthorsSummary(publication),
-            BaseDeDatos = publication.JournalPublication!.DataBase ?? string.Empty,
+            BaseDeDatos = publication.JournalPublication!.BaseDeDatos?.Nombre ?? string.Empty,
         };
     }
 

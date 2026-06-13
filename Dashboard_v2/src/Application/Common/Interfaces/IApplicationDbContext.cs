@@ -24,6 +24,7 @@ public interface IApplicationDbContext
     DbSet<IndexedPublication> IndexedPublications { get; }
     DbSet<JournalPublication> JournalPublications { get; }
     DbSet<JournalGroup1Publication> JournalGroup1Publications { get; }
+    DbSet<BaseDeDatosPublicacion> BasesDeDatosPublicacion { get; }
     DbSet<Universidad> Universidades { get; }
     DbSet<Institution> Institutions { get; }
     DbSet<Area> Areas { get; }
@@ -35,6 +36,7 @@ public interface IApplicationDbContext
     DbSet<Proyecto> Proyectos { get; }
     DbSet<Registro> Registros { get; }
     DbSet<Norma> Normas { get; }
+    DbSet<TipoNorma> TiposNorma { get; }
     DbSet<Red> Reds { get; }
     DbSet<RedCoordinada> RedesCoordinadas { get; }
     DbSet<TipoProductoComercializado> TipoProductosComercializados { get; }
@@ -46,6 +48,14 @@ public interface IApplicationDbContext
     DbSet<AuthorProductoComercializado> AuthorProductosComercializados { get; }
     DbSet<AuthorPatente> AuthorPatentes { get; }
     DbSet<ProyectoPatente> ProyectoPatentes { get; }
+    DbSet<Provincia> Provincias { get; }
+    DbSet<Municipio> Municipios { get; }
+    DbSet<SectorEstrategico> SectoresEstrategicos { get; }
+    DbSet<EjeEstrategico> EjesEstrategicos { get; }
+    DbSet<FuenteFinanciacion> FuentesFinanciacion { get; }
+    DbSet<EstadoProyecto> EstadosProyecto { get; }
+    DbSet<SituacionProyecto> SituacionesProyecto { get; }
+    DbSet<Programa> Programas { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

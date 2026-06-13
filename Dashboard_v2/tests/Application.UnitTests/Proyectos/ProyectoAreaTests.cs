@@ -75,7 +75,6 @@ public class ProyectoAreaTests
             TributaFormacionDoctoral = false,
             ClasificacionId = clasificId,
             AreaId = areaId,
-            Situacion = "Pendiente",
             Tipo = "en-revision"
         };
         db.Proyectos.Add(p);
@@ -119,7 +118,6 @@ public class ProyectoAreaTests
             JefeId = "user-jefe-1",
             ClasificacionId = "clasif-basica",
             AreaId = "",         // empty → must fail
-            Situacion = "Pendiente",
             Tipo = "en-revision"
         };
 
@@ -142,7 +140,6 @@ public class ProyectoAreaTests
             JefeId = "user-jefe-1",
             ClasificacionId = "clasif-basica",
             AreaId = "area-que-no-existe",
-            Situacion = "Pendiente",
             Tipo = "en-revision"
         };
 
@@ -167,7 +164,6 @@ public class ProyectoAreaTests
             JefeId = "cualquier-jefe",
             ClasificacionId = clasificId,
             AreaId = areaId,
-            Situacion = "Pendiente",
             Tipo = "en-revision"
         };
 

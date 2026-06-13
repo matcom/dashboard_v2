@@ -165,6 +165,19 @@ public class ApplicationDbContextInitialiser
             await _context.SaveChangesAsync();
         }
 
+        // ── Seed Bases de Datos de Publicaciones ─────────────────────────────────────────────
+        if (!await _context.BasesDeDatosPublicacion.AnyAsync())
+        {
+            _context.BasesDeDatosPublicacion.AddRange(
+                new BaseDeDatosPublicacion { Nombre = "Scopus"           },
+                new BaseDeDatosPublicacion { Nombre = "Web de la Ciencia" },
+                new BaseDeDatosPublicacion { Nombre = "DOAJ"             },
+                new BaseDeDatosPublicacion { Nombre = "SciELO"           },
+                new BaseDeDatosPublicacion { Nombre = "MEDLINE"          }
+            );
+            await _context.SaveChangesAsync();
+        }
+
         // ── Seed Tipos de Producto Comercializado (valores por defecto) ─────────────────────
         if (!await _context.TipoProductosComercializados.AnyAsync())
         {

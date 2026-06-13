@@ -50,12 +50,13 @@ public sealed class AnexoRegistrosReport : IDocumentReport
 
         var normas = await _context.Normas
             .AsNoTracking()
+            .Include(n => n.TipoNorma)
             .Include(n => n.Institution)
             .OrderBy(n => n.Titulo)
             .Select(n => new AnexoNormaRowDto
             {
                 Titulo = n.Titulo,
-                Tipo = n.Tipo,
+                Tipo = n.TipoNorma != null ? n.TipoNorma.Nombre : string.Empty,
                 InstitutionNombre = n.Institution.Nombre,
             })
             .ToListAsync(ct);

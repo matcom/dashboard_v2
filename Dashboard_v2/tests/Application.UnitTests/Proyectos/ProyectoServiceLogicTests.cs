@@ -98,7 +98,6 @@ public class ProyectoServiceLogicTests
         AreaId = areaId,
         NumeroMiembros = 3,
         CantidadMiembrosUH = 2,
-        Situacion = "Pendiente",
         Tipo = "PE"
     };
 
@@ -230,7 +229,6 @@ public class ProyectoServiceLogicTests
             AreaId = area1Id,
             ClasificacionId = clasificId,
             NumeroMiembros = 1,
-            Situacion = "Pendiente",
             Tipo = "PE"
         };
         db.Proyectos.Add(proyecto);
@@ -258,7 +256,6 @@ public class ProyectoServiceLogicTests
             AreaId = area1Id,
             ClasificacionId = clasificId,
             NumeroMiembros = 1,
-            Situacion = "Pendiente",
             Tipo = "PE"
         };
         db.Proyectos.Add(proyecto);
@@ -285,7 +282,6 @@ public class ProyectoServiceLogicTests
             AreaId = area1Id,
             ClasificacionId = clasificId,
             NumeroMiembros = 1,
-            Situacion = "Pendiente",
             Tipo = "PE"
         };
         db.Proyectos.Add(proyecto);

@@ -17,8 +17,6 @@ namespace Dashboard_v2.Application.UnitTests.Proyectos;
 /// </summary>
 public class ProyectoHelperTests
 {
-    // ── DB helper ─────────────────────────────────────────────────────────────
-
     private static ApplicationDbContext CreateDb()
     {
         var opts = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -81,9 +79,7 @@ public class ProyectoHelperTests
         return user;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // SetBase
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── SetBase ───────────────────────────────────────────────────────────────
 
     [Test]
     public void SetBase_AssignsAllFields()
@@ -101,7 +97,7 @@ public class ProyectoHelperTests
             clasificId: "clasif-1",
             areaId: "area-1");
 
-        p.Titulo.ShouldBe("Mi Proyecto");   // trimmed
+        p.Titulo.ShouldBe("Mi Proyecto");
         p.JefeId.ShouldBe("jefe-1");
         p.NumeroMiembros.ShouldBe(5);
         p.CantidadMiembrosUH.ShouldBe(3);
@@ -120,12 +116,10 @@ public class ProyectoHelperTests
         p.Titulo.ShouldBe("Espacios");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // SetEjecucion
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── SetEjecucion ──────────────────────────────────────────────────────────
 
     [Test]
-    public void SetEjecucion_AssignsAllFields()
+    public void SetEjecucion_AssignsScalarFields()
     {
         var pe = new ProyectoEmpresarial();
         var fecha = new DateOnly(2025, 1, 15);
@@ -134,22 +128,12 @@ public class ProyectoHelperTests
         ProyectoHelper.SetEjecucion(pe,
             fechaInicio: fecha,
             fechaCierre: fechaCierre,
-            estadoEjecucion: "  En curso  ",
             codigoProyecto: " P-001 ",
-            entidadPrincipal: " UH ",
-            entidadParticipante: " CUJAE ",
-            contribSectores: " Tecnología ",
-            contribEjes: null,
             tributaDesarrolloLocal: true);
 
         pe.FechaInicio.ShouldBe(fecha);
         pe.FechaCierre.ShouldBe(fechaCierre);
-        pe.EstadoDeEjecucion.ShouldBe("En curso");      // trimmed
-        pe.CodigoProyecto.ShouldBe("P-001");            // trimmed
-        pe.EntidadEjecutoraPrincipal.ShouldBe("UH");    // trimmed
-        pe.EntidadEjecutoraParticipante.ShouldBe("CUJAE"); // trimmed
-        pe.ContribucionSectoresEstrategicos.ShouldBe("Tecnología"); // trimmed
-        pe.ContribucionEjesEstrategicos.ShouldBeNull();
+        pe.CodigoProyecto.ShouldBe("P-001");
         pe.TributaDesarrolloLocal.ShouldBeTrue();
     }
 
@@ -157,15 +141,19 @@ public class ProyectoHelperTests
     public void SetEjecucion_NullFechaCierre_IsPreserved()
     {
         var pe = new ProyectoEmpresarial();
-        ProyectoHelper.SetEjecucion(pe, new DateOnly(2025, 1, 1), null,
-            "estado", "P-002", "entidad", null, null, null, false);
-
+        ProyectoHelper.SetEjecucion(pe, new DateOnly(2025, 1, 1), null, "P-002", false);
         pe.FechaCierre.ShouldBeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // GetOwnerFilter
-    // ══════════════════════════════════════════════════════════════════════════
+    [Test]
+    public void SetEjecucion_TrimsCodigoProyecto()
+    {
+        var pe = new ProyectoEmpresarial();
+        ProyectoHelper.SetEjecucion(pe, new DateOnly(2025, 1, 1), null, "  CODE  ", false);
+        pe.CodigoProyecto.ShouldBe("CODE");
+    }
+
+    // ── GetOwnerFilter ────────────────────────────────────────────────────────
 
     [Test]
     public void GetOwnerFilter_JefeDeProyecto_ReturnsUserId()
@@ -198,9 +186,7 @@ public class ProyectoHelperTests
         ProyectoHelper.GetOwnerFilter(user).ShouldBeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ResolveJefeId
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── ResolveJefeId ─────────────────────────────────────────────────────────
 
     [Test]
     public void ResolveJefeId_JefeDeProyecto_ReturnsCurrentUserId()
@@ -229,9 +215,7 @@ public class ProyectoHelperTests
         resolved.ShouldBe("fallback-id");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ValidateJefeAsync
-    // ══════════════════════════════════════════════════════════════════════════
+    // ── ValidateJefeAsync ─────────────────────────────────────────────────────
 
     [Test]
     public async Task ValidateJefeAsync_EmptyJefeId_ReturnsFailure()

@@ -42,7 +42,6 @@ public sealed partial class PublicationService : IPublicationService
         if (string.IsNullOrWhiteSpace(request.PublishedDate) || !IsValidPartialDate(request.PublishedDate))
             return (Result.Failure(new[] { "La fecha de publicación es obligatoria. Use el formato AAAA, AAAA-MM o AAAA-MM-DD." }), null);
 
-        var dataBase = string.IsNullOrWhiteSpace(request.DataBase) ? null : request.DataBase.Trim();
         var group = request.Group;
         var cuartil = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
 
@@ -83,10 +82,11 @@ public sealed partial class PublicationService : IPublicationService
 
         if (request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario)
         {
+            var baseDeDatosId = await UpsertBaseDeDatosAsync(request.DataBase, ct);
             publication.JournalPublication = new JournalPublication
             {
                 PublicationId = publication.Id,
-                DataBase = dataBase,
+                BaseDeDatosId = baseDeDatosId,
                 Group = group!.Value,
                 JournalGroup1Publication = group == 1
                     ? new JournalGroup1Publication { PublicationId = publication.Id, Cuartil = cuartil }
@@ -147,7 +147,6 @@ public sealed partial class PublicationService : IPublicationService
         publication.RedId = string.IsNullOrWhiteSpace(request.RedId) ? publication.RedId : request.RedId;
         publication.EvidenceFileId = request.EvidenceFileId;
 
-        var dataBase = string.IsNullOrWhiteSpace(request.DataBase) ? null : request.DataBase.Trim();
         var group    = request.Group;
         var cuartil  = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
 
@@ -156,7 +155,7 @@ public sealed partial class PublicationService : IPublicationService
 
         if (isNowJournal)
         {
-            if (string.IsNullOrWhiteSpace(dataBase) || group is null or < 1 or > 4)
+            if (string.IsNullOrWhiteSpace(request.DataBase) || group is null or < 1 or > 4)
                 return Result.Failure(new[] { "Datos de la revista son obligatorios: base de datos y grupo (1–4)." });
         }
         else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
@@ -182,16 +181,17 @@ public sealed partial class PublicationService : IPublicationService
         {
             if (publication.JournalPublication == null)
             {
+                var baseDeDatosId = await UpsertBaseDeDatosAsync(request.DataBase, ct);
                 publication.JournalPublication = new JournalPublication
                 {
                     PublicationId = publication.Id,
-                    DataBase = dataBase,
+                    BaseDeDatosId = baseDeDatosId,
                     Group = group!.Value
                 };
             }
             else
             {
-                publication.JournalPublication.DataBase = dataBase;
+                publication.JournalPublication.BaseDeDatosId = await UpsertBaseDeDatosAsync(request.DataBase, ct);
                 publication.JournalPublication.Group = group!.Value;
             }
 
@@ -593,7 +593,7 @@ public sealed partial class PublicationService : IPublicationService
             },
             JournalPublication = p.JournalPublication == null ? null : new JournalPublicationDto
             {
-                DataBase = p.JournalPublication.DataBase,
+                DataBase = p.JournalPublication.BaseDeDatos != null ? p.JournalPublication.BaseDeDatos.Nombre : null,
                 Group = p.JournalPublication.Group,
                 Cuartil = p.JournalPublication.JournalGroup1Publication != null
                     ? p.JournalPublication.JournalGroup1Publication.Cuartil
@@ -654,5 +654,18 @@ public sealed partial class PublicationService : IPublicationService
         dto.PublicationData = CrossRefToPublicationMapper.BuildPublicationData(dto);
         dto.SuggestedPublicationType = publicationType is null ? null : (int)publicationType.Value;
         return dto;
+    }
+
+    private async Task<int?> UpsertBaseDeDatosAsync(string? nombre, CancellationToken ct)
+    {
+        var trimmed = nombre?.Trim();
+        if (string.IsNullOrEmpty(trimmed)) return null;
+        var existing = await _context.BasesDeDatosPublicacion
+            .FirstOrDefaultAsync(b => b.Nombre.ToLower() == trimmed.ToLower(), ct);
+        if (existing is not null) return existing.Id;
+        var entity = new Domain.Entities.BaseDeDatosPublicacion { Nombre = trimmed };
+        _context.BasesDeDatosPublicacion.Add(entity);
+        await _context.SaveChangesAsync(ct);
+        return entity.Id;
     }
 }

@@ -10,5 +10,5 @@ public class ParticipacionEnEvento
     public int EventId { get; set; }
     public Event Event { get; set; } = null!;
 
-    public DateTime Fecha { get; set; }
+    public DateOnly Fecha { get; set; }
 }

@@ -28,6 +28,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<IndexedPublication> IndexedPublications => Set<IndexedPublication>();
     public DbSet<JournalPublication> JournalPublications => Set<JournalPublication>();
     public DbSet<JournalGroup1Publication> JournalGroup1Publications => Set<JournalGroup1Publication>();
+    public DbSet<BaseDeDatosPublicacion> BasesDeDatosPublicacion => Set<BaseDeDatosPublicacion>();
     public DbSet<Universidad> Universidades => Set<Universidad>();
     public DbSet<Institution> Institutions => Set<Institution>();
     public DbSet<Area> Areas => Set<Area>();
@@ -39,6 +40,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Proyecto> Proyectos => Set<Proyecto>();
     public DbSet<Registro> Registros => Set<Registro>();
     public DbSet<Norma> Normas => Set<Norma>();
+    public DbSet<TipoNorma> TiposNorma => Set<TipoNorma>();
     public DbSet<Red> Reds => Set<Red>();
     public DbSet<RedCoordinada> RedesCoordinadas => Set<RedCoordinada>();
     public DbSet<TipoProductoComercializado> TipoProductosComercializados => Set<TipoProductoComercializado>();
@@ -50,6 +52,14 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AuthorProductoComercializado> AuthorProductosComercializados => Set<AuthorProductoComercializado>();
     public DbSet<AuthorPatente> AuthorPatentes => Set<AuthorPatente>();
     public DbSet<ProyectoPatente> ProyectoPatentes => Set<ProyectoPatente>();
+    public DbSet<Provincia> Provincias => Set<Provincia>();
+    public DbSet<Municipio> Municipios => Set<Municipio>();
+    public DbSet<SectorEstrategico> SectoresEstrategicos => Set<SectorEstrategico>();
+    public DbSet<EjeEstrategico> EjesEstrategicos => Set<EjeEstrategico>();
+    public DbSet<FuenteFinanciacion> FuentesFinanciacion => Set<FuenteFinanciacion>();
+    public DbSet<EstadoProyecto> EstadosProyecto => Set<EstadoProyecto>();
+    public DbSet<SituacionProyecto> SituacionesProyecto => Set<SituacionProyecto>();
+    public DbSet<Programa> Programas => Set<Programa>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
