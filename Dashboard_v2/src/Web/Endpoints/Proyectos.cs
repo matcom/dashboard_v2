@@ -33,6 +33,12 @@ public class Proyectos : EndpointGroupBase
             .WithName("GetProyectosCatalogo")
             .Produces<List<ProyectoCatalogoDto>>(200);
 
+        // ── Proyectos en los que el usuario actual es participante ────────────
+        g.MapGet("participacion", GetMisProyectosParticipacion)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Profesor)))
+            .WithName("GetMisProyectosParticipacion")
+            .Produces<List<ProyectoResumenDto>>(200);
+
         // ── Publicaciones derivadas por proyecto ────────────────────────
         g.MapGet("{id}/publicaciones", GetPublicacionesDelProyecto)
             .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
@@ -74,6 +80,14 @@ public class Proyectos : EndpointGroupBase
             .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
             .WithName("UnlinkPatenteDeProyecto")
             .Produces(204)
+            .ProducesProblem(404);
+
+        // ── Participantes ─────────────────────────────────────────────
+        g.MapPut("{id}/participantes", SetParticipantes)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .WithName("SetParticipantesProyecto")
+            .Produces(200)
+            .ProducesProblem(400)
             .ProducesProblem(404);
 
         // ── Delete compartido ─────────────────────────────────────────
@@ -206,6 +220,9 @@ public class Proyectos : EndpointGroupBase
     private static async Task<IResult> GetCatalogo(IProyectoService proyectoService, CancellationToken ct)
         => Results.Ok(await proyectoService.GetCatalogoAsync(ct));
 
+    private static async Task<IResult> GetMisProyectosParticipacion(IProyectoService proyectoService, CancellationToken ct)
+        => Results.Ok(await proyectoService.GetMisProyectosParticipacionAsync(ct));
+
     private static async Task<IResult> GetPublicacionesDelProyecto(IProyectoService proyectoService, string id, CancellationToken ct)
         => Results.Ok(await proyectoService.GetPublicacionesDelProyectoAsync(id, ct));
 
@@ -232,6 +249,18 @@ public class Proyectos : EndpointGroupBase
         }
 
         return Results.BadRequest(new { errors = result.Errors });
+    }
+
+    private static async Task<IResult> SetParticipantes(IProyectoService proyectoService, string id, SetParticipantesRequest request, CancellationToken ct)
+    {
+        var result = await proyectoService.SetParticipantesAsync(id, request.ParticipantesIds, ct);
+        if (!result.Succeeded)
+        {
+            return HasError(result, "Proyecto no encontrado.")
+                ? Results.NotFound(new { errors = result.Errors })
+                : Results.BadRequest(new { errors = result.Errors });
+        }
+        return Results.Ok(new { message = "Participantes actualizados." });
     }
 
     private static async Task<IResult> DeleteProyecto(IProyectoService proyectoService, string id, CancellationToken ct)

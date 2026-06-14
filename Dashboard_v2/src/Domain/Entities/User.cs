@@ -44,6 +44,9 @@ public class User
     /// <summary>Proyectos de los que este usuario es jefe. Solo aplicable a usuarios con rol Jefe_de_Proyecto.</summary>
     public ICollection<Proyecto> ProyectosComoJefe { get; set; } = new List<Proyecto>();
 
+    /// <summary>Proyectos en los que este usuario participa (M:N, tabla ProyectoParticipantes).</summary>
+    public ICollection<Proyecto> ProyectosParticipante { get; set; } = new List<Proyecto>();
+
     /// <summary>Eventos que este usuario organiza.</summary>
     public ICollection<EventOrganizador> EventosOrganizados { get; set; } = new List<EventOrganizador>();
 

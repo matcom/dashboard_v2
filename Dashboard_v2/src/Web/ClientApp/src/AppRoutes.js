@@ -25,6 +25,7 @@ import RedesPage from "./pages/RedesPage";
 import RedesPublicacionesPage from "./pages/RedesPublicacionesPage";
 import LineasDeInvestigacionPage from "./pages/LineasDeInvestigacionPage";
 import ProyectosPage from "./pages/ProyectosPage";
+import MisProyectosPage from "./pages/MisProyectosPage";
 import ClasificacionesPage from "./pages/ClasificacionesPage";
 import PublicacionesConsultaPage from "./pages/PublicacionesConsultaPage";
 
@@ -115,6 +116,12 @@ const AppRoutes = [
     element: <ProyectosPage />,
     pageTitle: 'Proyectos',
     jefeDeProyectoOrAdminOnly: true,
+  },
+  {
+    path: '/mis-proyectos',
+    element: <MisProyectosPage />,
+    pageTitle: 'Mis Proyectos',
+    profesorOnly: true,
   },
   {
     path: '/publicaciones',

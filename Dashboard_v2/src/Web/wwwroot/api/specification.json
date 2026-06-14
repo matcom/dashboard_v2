@@ -3416,6 +3416,29 @@
         }
       }
     },
+    "/api/Proyectos/participacion": {
+      "get": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "GetMisProyectosParticipacion",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProyectoResumenDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Proyectos/{id}/publicaciones": {
       "get": {
         "tags": [
@@ -3651,6 +3674,62 @@
         "responses": {
           "204": {
             "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Proyectos/{id}/participantes": {
+      "put": {
+        "tags": [
+          "Proyectos"
+        ],
+        "operationId": "SetParticipantesProyecto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetParticipantesRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": "",
@@ -7569,11 +7648,11 @@
           "clasificacionNombre": {
             "type": "string"
           },
-          "areaId": {
-            "type": "string"
-          },
-          "areaNombre": {
-            "type": "string"
+          "participantes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRefDto"
+            }
           },
           "tipo": {
             "type": "string"
@@ -7602,6 +7681,21 @@
           }
         }
       },
+      "UserRefDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombreCompleto": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
       "ProyectoCatalogoDto": {
         "type": "object",
         "additionalProperties": false,
@@ -7611,6 +7705,18 @@
           },
           "titulo": {
             "type": "string"
+          }
+        }
+      },
+      "SetParticipantesRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "participantesIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -7694,11 +7800,11 @@
           "clasificacionNombre": {
             "type": "string"
           },
-          "areaId": {
-            "type": "string"
-          },
-          "areaNombre": {
-            "type": "string"
+          "participantes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRefDto"
+            }
           },
           "publicacionesDerivadas": {
             "type": "array",
@@ -7764,8 +7870,11 @@
           "clasificacionId": {
             "type": "string"
           },
-          "areaId": {
-            "type": "string"
+          "participantesIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

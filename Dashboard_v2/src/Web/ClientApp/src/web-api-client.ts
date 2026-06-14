@@ -4681,6 +4681,48 @@ export class ProyectosClient {
         return Promise.resolve<ProyectoCatalogoDto[]>(null as any);
     }
 
+    getMisProyectosParticipacion(): Promise<ProyectoResumenDto[]> {
+        let url_ = this.baseUrl + "/api/Proyectos/participacion";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMisProyectosParticipacion(_response);
+        });
+    }
+
+    protected processGetMisProyectosParticipacion(response: Response): Promise<ProyectoResumenDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ProyectoResumenDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProyectoResumenDto[]>(null as any);
+    }
+
     getPublicacionesDelProyecto(id: string): Promise<void> {
         let url_ = this.baseUrl + "/api/Proyectos/{id}/publicaciones";
         if (id === undefined || id === null)
@@ -4954,6 +4996,58 @@ export class ProyectosClient {
         if (status === 204) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    setParticipantesProyecto(id: string, request: SetParticipantesRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/Proyectos/{id}/participantes";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSetParticipantesProyecto(_response);
+        });
+    }
+
+    protected processSetParticipantesProyecto(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -11268,8 +11362,7 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
     numeroMiembros?: number;
     clasificacionId?: string;
     clasificacionNombre?: string;
-    areaId?: string;
-    areaNombre?: string;
+    participantes?: UserRefDto[];
     tipo?: string;
     codigoProyecto?: string | undefined;
     estadosDeEjecucion?: string[];
@@ -11295,8 +11388,11 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
             this.numeroMiembros = _data["numeroMiembros"];
             this.clasificacionId = _data["clasificacionId"];
             this.clasificacionNombre = _data["clasificacionNombre"];
-            this.areaId = _data["areaId"];
-            this.areaNombre = _data["areaNombre"];
+            if (Array.isArray(_data["participantes"])) {
+                this.participantes = [] as any;
+                for (let item of _data["participantes"])
+                    this.participantes!.push(UserRefDto.fromJS(item));
+            }
             this.tipo = _data["tipo"];
             this.codigoProyecto = _data["codigoProyecto"];
             if (Array.isArray(_data["estadosDeEjecucion"])) {
@@ -11334,8 +11430,11 @@ export class ProyectoResumenDto implements IProyectoResumenDto {
         data["numeroMiembros"] = this.numeroMiembros;
         data["clasificacionId"] = this.clasificacionId;
         data["clasificacionNombre"] = this.clasificacionNombre;
-        data["areaId"] = this.areaId;
-        data["areaNombre"] = this.areaNombre;
+        if (Array.isArray(this.participantes)) {
+            data["participantes"] = [];
+            for (let item of this.participantes)
+                data["participantes"].push(item ? item.toJSON() : undefined as any);
+        }
         data["tipo"] = this.tipo;
         data["codigoProyecto"] = this.codigoProyecto;
         if (Array.isArray(this.estadosDeEjecucion)) {
@@ -11366,13 +11465,56 @@ export interface IProyectoResumenDto {
     numeroMiembros?: number;
     clasificacionId?: string;
     clasificacionNombre?: string;
-    areaId?: string;
-    areaNombre?: string;
+    participantes?: UserRefDto[];
     tipo?: string;
     codigoProyecto?: string | undefined;
     estadosDeEjecucion?: string[];
     situaciones?: string[];
     publicacionesDerivadas?: string[];
+}
+
+export class UserRefDto implements IUserRefDto {
+    id?: string;
+    nombreCompleto?: string;
+    email?: string;
+
+    constructor(data?: IUserRefDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.nombreCompleto = _data["nombreCompleto"];
+            this.email = _data["email"];
+        }
+    }
+
+    static fromJS(data: any): UserRefDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new UserRefDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["nombreCompleto"] = this.nombreCompleto;
+        data["email"] = this.email;
+        return data;
+    }
+}
+
+export interface IUserRefDto {
+    id?: string;
+    nombreCompleto?: string;
+    email?: string;
 }
 
 export class ProyectoCatalogoDto implements IProyectoCatalogoDto {
@@ -11415,6 +11557,50 @@ export interface IProyectoCatalogoDto {
     titulo?: string;
 }
 
+export class SetParticipantesRequest implements ISetParticipantesRequest {
+    participantesIds?: string[];
+
+    constructor(data?: ISetParticipantesRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["participantesIds"])) {
+                this.participantesIds = [] as any;
+                for (let item of _data["participantesIds"])
+                    this.participantesIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): SetParticipantesRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new SetParticipantesRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.participantesIds)) {
+            data["participantesIds"] = [];
+            for (let item of this.participantesIds)
+                data["participantesIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface ISetParticipantesRequest {
+    participantesIds?: string[];
+}
+
 export abstract class ProyectoBaseDto implements IProyectoBaseDto {
     id?: string;
     titulo?: string;
@@ -11428,8 +11614,7 @@ export abstract class ProyectoBaseDto implements IProyectoBaseDto {
     tributaFormacionDoctoral?: boolean;
     clasificacionId?: string;
     clasificacionNombre?: string;
-    areaId?: string;
-    areaNombre?: string;
+    participantes?: UserRefDto[];
     publicacionesDerivadas?: string[];
 
     constructor(data?: IProyectoBaseDto) {
@@ -11455,8 +11640,11 @@ export abstract class ProyectoBaseDto implements IProyectoBaseDto {
             this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
             this.clasificacionId = _data["clasificacionId"];
             this.clasificacionNombre = _data["clasificacionNombre"];
-            this.areaId = _data["areaId"];
-            this.areaNombre = _data["areaNombre"];
+            if (Array.isArray(_data["participantes"])) {
+                this.participantes = [] as any;
+                for (let item of _data["participantes"])
+                    this.participantes!.push(UserRefDto.fromJS(item));
+            }
             if (Array.isArray(_data["publicacionesDerivadas"])) {
                 this.publicacionesDerivadas = [] as any;
                 for (let item of _data["publicacionesDerivadas"])
@@ -11484,8 +11672,11 @@ export abstract class ProyectoBaseDto implements IProyectoBaseDto {
         data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
         data["clasificacionId"] = this.clasificacionId;
         data["clasificacionNombre"] = this.clasificacionNombre;
-        data["areaId"] = this.areaId;
-        data["areaNombre"] = this.areaNombre;
+        if (Array.isArray(this.participantes)) {
+            data["participantes"] = [];
+            for (let item of this.participantes)
+                data["participantes"].push(item ? item.toJSON() : undefined as any);
+        }
         if (Array.isArray(this.publicacionesDerivadas)) {
             data["publicacionesDerivadas"] = [];
             for (let item of this.publicacionesDerivadas)
@@ -11508,8 +11699,7 @@ export interface IProyectoBaseDto {
     tributaFormacionDoctoral?: boolean;
     clasificacionId?: string;
     clasificacionNombre?: string;
-    areaId?: string;
-    areaNombre?: string;
+    participantes?: UserRefDto[];
     publicacionesDerivadas?: string[];
 }
 
@@ -11607,7 +11797,7 @@ export abstract class ProyectoUpsertRequestBase implements IProyectoUpsertReques
     cantidadEstudiantesContratados?: number;
     tributaFormacionDoctoral?: boolean;
     clasificacionId?: string;
-    areaId?: string;
+    participantesIds?: string[];
 
     constructor(data?: IProyectoUpsertRequestBase) {
         if (data) {
@@ -11628,7 +11818,11 @@ export abstract class ProyectoUpsertRequestBase implements IProyectoUpsertReques
             this.cantidadEstudiantesContratados = _data["cantidadEstudiantesContratados"];
             this.tributaFormacionDoctoral = _data["tributaFormacionDoctoral"];
             this.clasificacionId = _data["clasificacionId"];
-            this.areaId = _data["areaId"];
+            if (Array.isArray(_data["participantesIds"])) {
+                this.participantesIds = [] as any;
+                for (let item of _data["participantesIds"])
+                    this.participantesIds!.push(item);
+            }
         }
     }
 
@@ -11647,7 +11841,11 @@ export abstract class ProyectoUpsertRequestBase implements IProyectoUpsertReques
         data["cantidadEstudiantesContratados"] = this.cantidadEstudiantesContratados;
         data["tributaFormacionDoctoral"] = this.tributaFormacionDoctoral;
         data["clasificacionId"] = this.clasificacionId;
-        data["areaId"] = this.areaId;
+        if (Array.isArray(this.participantesIds)) {
+            data["participantesIds"] = [];
+            for (let item of this.participantesIds)
+                data["participantesIds"].push(item);
+        }
         return data;
     }
 }
@@ -11661,7 +11859,7 @@ export interface IProyectoUpsertRequestBase {
     cantidadEstudiantesContratados?: number;
     tributaFormacionDoctoral?: boolean;
     clasificacionId?: string;
-    areaId?: string;
+    participantesIds?: string[];
 }
 
 export class ProyectoEnRevisionUpsertRequest extends ProyectoUpsertRequestBase implements IProyectoEnRevisionUpsertRequest {

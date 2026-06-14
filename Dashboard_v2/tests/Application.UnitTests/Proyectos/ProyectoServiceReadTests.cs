@@ -41,7 +41,6 @@ public class ProyectoServiceReadTests
             IsActive = true,
             BirthDate = DateTime.UtcNow,
             CreatedAt = DateTimeOffset.UtcNow,
-            AreaId = _areaId,
             UserRoles = new List<UserRole> { new() { UserId = _jefeId, Role = RolesEnum.Jefe_de_Proyecto } }
         };
         _db.Areas.Add(new Area { Id = _areaId, Nombre = "MATCOM", Descripcion = "d", UniversidadId = "uh" });
@@ -148,7 +147,6 @@ public class ProyectoServiceReadTests
             Titulo = "T",
             JefeId = _jefeId,
             ClasificacionId = _clasificId,
-            AreaId = _areaId,
             NumeroMiembros = 1,
             CantidadMiembrosUH = 1,
             Tipo = "PE"
@@ -166,7 +164,6 @@ public class ProyectoServiceReadTests
             Titulo = "T",
             JefeId = _jefeId,
             ClasificacionId = _clasificId,
-            AreaId = _areaId,
             NumeroMiembros = 1,
             CantidadMiembrosUH = 1,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
@@ -190,7 +187,6 @@ public class ProyectoServiceReadTests
             Titulo = "Colab Test",
             JefeId = _jefeId,
             ClasificacionId = _clasificId,
-            AreaId = _areaId,
             NumeroMiembros = 3,
             CantidadMiembrosUH = 2,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
@@ -223,7 +219,6 @@ public class ProyectoServiceReadTests
             Titulo = "Desarrollo Local Test",
             JefeId = _jefeId,
             ClasificacionId = _clasificId,
-            AreaId = _areaId,
             NumeroMiembros = 3,
             CantidadMiembrosUH = 2,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
@@ -253,7 +248,6 @@ public class ProyectoServiceReadTests
             Titulo = "No Empresarial Test",
             JefeId = _jefeId,
             ClasificacionId = _clasificId,
-            AreaId = _areaId,
             NumeroMiembros = 2,
             CantidadMiembrosUH = 1,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),
@@ -281,7 +275,6 @@ public class ProyectoServiceReadTests
             Titulo = "PNAP Test",
             JefeId = _jefeId,
             ClasificacionId = _clasificId,
-            AreaId = _areaId,
             NumeroMiembros = 4,
             CantidadMiembrosUH = 3,
             FechaInicio = DateOnly.FromDateTime(DateTime.Today),

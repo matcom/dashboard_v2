@@ -30,7 +30,8 @@ const investigacionGroups = [
   {
     heading: 'Investigación',
     items: [
-      { to: '/mis-grupos', icon: 'bi-people-fill', label: 'Mis Grupos de Investigación' },
+      { to: '/mis-grupos',     icon: 'bi-people-fill', label: 'Mis Grupos de Investigación' },
+      { to: '/mis-proyectos',  icon: 'bi-kanban',      label: 'Mis Proyectos' },
     ],
   },
 ];

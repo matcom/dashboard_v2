@@ -8,6 +8,8 @@ namespace Dashboard_v2.Application.Proyectos;
 public interface IProyectoService
 {
     Task<List<ProyectoResumenDto>> GetAllAsync(CancellationToken ct = default);
+    Task<List<ProyectoResumenDto>> GetMisProyectosParticipacionAsync(CancellationToken ct = default);
+    Task<Result> SetParticipantesAsync(string proyectoId, IList<string> participantesIds, CancellationToken ct = default);
     Task<IReadOnlyList<string>> GetTiposEjecucionAsync(CancellationToken ct = default);
     Task<List<ProyectoCatalogoDto>> GetCatalogoAsync(CancellationToken ct = default);
     Task<List<ProyectoPublicacionDto>> GetPublicacionesDelProyectoAsync(string proyectoId, CancellationToken ct = default);

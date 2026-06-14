@@ -2,7 +2,6 @@ using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
 using Dashboard_v2.Domain.Constants;
 using Dashboard_v2.Domain.Entities;
-using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Application.Proyectos;
 
@@ -42,8 +41,9 @@ public sealed class ProyectoService : IProyectoService
                 NumeroMiembros = p.NumeroMiembros,
                 ClasificacionId = p.ClasificacionId,
                 ClasificacionNombre = p.Clasificacion.Nombre,
-                AreaId = p.AreaId,
-                AreaNombre = p.Area.Nombre,
+                Participantes = p.Participantes.Select(u => new UserRefDto(u.Id,
+                    u.UserName + " " + u.UserLastName1 + (u.UserLastName2 != null ? " " + u.UserLastName2 : ""),
+                    u.Email)).ToList(),
                 Tipo = "en-revision",
                 Situaciones = p.Situaciones.Select(s => s.Nombre).ToList(),
                 PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList()
@@ -56,6 +56,61 @@ public sealed class ProyectoService : IProyectoService
         var noEmpresariales = await QueryEjecucionAsync(_context.Proyectos.OfType<ProyectoNoEmpresarial>(), ownerFilter, "no-empresariales", ct);
         var colabInternacional = await QueryEjecucionAsync(_context.Proyectos.OfType<ProyectoColabInternacional>(), ownerFilter, "colaboracion-internacional", ct);
         var pnap = await QueryEjecucionAsync(_context.Proyectos.OfType<ProyectoPNAP>(), ownerFilter, "pnap", ct);
+
+        return enRevision
+            .Concat(empresariales)
+            .Concat(apoyoPrograma)
+            .Concat(desarrolloLocal)
+            .Concat(noEmpresariales)
+            .Concat(colabInternacional)
+            .Concat(pnap)
+            .OrderBy(p => p.Titulo)
+            .ToList();
+    }
+
+    public async Task<List<ProyectoResumenDto>> GetMisProyectosParticipacionAsync(CancellationToken ct = default)
+    {
+        var userId = _currentUser.Id ?? string.Empty;
+
+        var enRevision = await _context.Proyectos.OfType<ProyectoEnRevision>()
+            .Where(p => p.Participantes.Any(u => u.Id == userId))
+            .Select(p => new ProyectoResumenDto
+            {
+                Id = p.Id,
+                Titulo = p.Titulo,
+                JefeId = p.JefeId,
+                Jefe = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1 + (p.JefeUsuario.UserLastName2 != null ? " " + p.JefeUsuario.UserLastName2 : ""),
+                CorreoJefe = p.JefeUsuario.Email,
+                NumeroMiembros = p.NumeroMiembros,
+                ClasificacionId = p.ClasificacionId,
+                ClasificacionNombre = p.Clasificacion.Nombre,
+                Participantes = p.Participantes.Select(u => new UserRefDto(u.Id,
+                    u.UserName + " " + u.UserLastName1 + (u.UserLastName2 != null ? " " + u.UserLastName2 : ""),
+                    u.Email)).ToList(),
+                Tipo = "en-revision",
+                Situaciones = p.Situaciones.Select(s => s.Nombre).ToList(),
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList()
+            })
+            .ToListAsync(ct);
+
+        var empresariales = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoEmpresarial>().Where(p => p.Participantes.Any(u => u.Id == userId)),
+            null, "empresariales", ct);
+        var apoyoPrograma = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoApoyoPrograma>().Where(p => p.Participantes.Any(u => u.Id == userId)),
+            null, "apoyo-programa", ct);
+        var desarrolloLocal = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoDesarrolloLocal>().Where(p => p.Participantes.Any(u => u.Id == userId)),
+            null, "desarrollo-local", ct);
+        var noEmpresariales = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoNoEmpresarial>().Where(p => p.Participantes.Any(u => u.Id == userId)),
+            null, "no-empresariales", ct);
+        var colabInternacional = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoColabInternacional>().Where(p => p.Participantes.Any(u => u.Id == userId)),
+            null, "colaboracion-internacional", ct);
+        var pnap = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoPNAP>().Where(p => p.Participantes.Any(u => u.Id == userId)),
+            null, "pnap", ct);
 
         return enRevision
             .Concat(empresariales)
@@ -126,6 +181,30 @@ public sealed class ProyectoService : IProyectoService
             return Result.Failure(["Publicación no encontrada."]);
 
         publication.ProyectoId = null;
+        await _context.SaveChangesAsync(ct);
+        return Result.Success();
+    }
+
+    public async Task<Result> SetParticipantesAsync(string proyectoId, IList<string> participantesIds, CancellationToken ct = default)
+    {
+        var proyecto = await _context.Proyectos
+            .Include(p => p.Participantes)
+            .FirstOrDefaultAsync(p => p.Id == proyectoId, ct);
+
+        if (proyecto is null)
+            return Result.Failure(["Proyecto no encontrado."]);
+
+        var ownerFilter = ProyectoHelper.GetOwnerFilter(_currentUser);
+        if (ownerFilter is not null && proyecto.JefeId != ownerFilter)
+            return Result.Failure(["No tiene permiso para modificar los participantes de este proyecto."]);
+
+        var ids = participantesIds.Contains(proyecto.JefeId)
+            ? participantesIds
+            : [..participantesIds, proyecto.JefeId];
+        proyecto.Participantes = await _context.Users
+            .Where(u => ids.Contains(u.Id))
+            .ToListAsync(ct);
+
         await _context.SaveChangesAsync(ct);
         return Result.Success();
     }
@@ -361,12 +440,11 @@ public sealed class ProyectoService : IProyectoService
         if (jefeValidation is not null)
             return (jefeValidation, null);
 
-        var (areaError, areaId) = await ResolveAreaIdAsync(request.AreaId, ct);
-        if (areaError is not null)
-            return (areaError, null);
-
         var proyecto = new TProyecto();
-        ApplyBase(proyecto, request, jefeId, areaId);
+        ApplyBase(proyecto, request, jefeId);
+        proyecto.Participantes = await _context.Users
+            .Where(u => request.ParticipantesIds.Contains(u.Id) || u.Id == jefeId)
+            .ToListAsync(ct);
         await applySpecificAsync(proyecto, request);
 
         _context.Proyectos.Add(proyecto);
@@ -401,7 +479,8 @@ public sealed class ProyectoService : IProyectoService
     {
         await _validationService.ValidateAndThrowAsync(request, ct);
 
-        IQueryable<TProyecto> query = _context.Proyectos.OfType<TProyecto>();
+        IQueryable<TProyecto> query = _context.Proyectos.OfType<TProyecto>()
+            .Include(p => p.Participantes);
         if (includeBuilder is not null)
             query = includeBuilder(query);
 
@@ -418,11 +497,10 @@ public sealed class ProyectoService : IProyectoService
         if (jefeValidation is not null)
             return jefeValidation;
 
-        var (areaError, areaId) = await ResolveAreaIdAsync(request.AreaId, ct);
-        if (areaError is not null)
-            return areaError;
-
-        ApplyBase(proyecto, request, jefeId, areaId);
+        ApplyBase(proyecto, request, jefeId);
+        proyecto.Participantes = await _context.Users
+            .Where(u => request.ParticipantesIds.Contains(u.Id) || u.Id == jefeId)
+            .ToListAsync(ct);
         await applySpecificAsync(proyecto, request);
 
         await _context.SaveChangesAsync(ct);
@@ -471,7 +549,7 @@ public sealed class ProyectoService : IProyectoService
 
         IQueryable<TProyecto> query = _context.Proyectos.OfType<TProyecto>()
             .Include(x => x.Clasificacion)
-            .Include(x => x.Area)
+            .Include(x => x.Participantes)
             .Include(x => x.JefeUsuario)
             .Include(x => x.PublicacionesDerivadas);
 
@@ -503,8 +581,9 @@ public sealed class ProyectoService : IProyectoService
                 NumeroMiembros = p.NumeroMiembros,
                 ClasificacionId = p.ClasificacionId,
                 ClasificacionNombre = p.Clasificacion.Nombre,
-                AreaId = p.AreaId,
-                AreaNombre = p.Area.Nombre,
+                Participantes = p.Participantes.Select(u => new UserRefDto(u.Id,
+                    u.UserName + " " + u.UserLastName1 + (u.UserLastName2 != null ? " " + u.UserLastName2 : ""),
+                    u.Email)).ToList(),
                 Tipo = tipo,
                 CodigoProyecto = p.CodigoProyecto,
                 EstadosDeEjecucion = p.EstadosDeEjecucion.Select(e => e.Nombre).ToList(),
@@ -554,30 +633,13 @@ public sealed class ProyectoService : IProyectoService
         return (validationResult, jefeId);
     }
 
-    private static void ApplyBase(Proyecto proyecto, IProyectoUpsertRequest request, string jefeId, string areaId)
+    private static void ApplyBase(Proyecto proyecto, IProyectoUpsertRequest request, string jefeId)
     {
         ProyectoHelper.SetBase(
             proyecto, request.Titulo, jefeId, request.NumeroMiembros,
             request.CantidadMiembrosUH, request.CantidadEstudiantes,
             request.CantidadEstudiantesContratados, request.TributaFormacionDoctoral,
-            request.ClasificacionId, areaId);
-    }
-
-    private async Task<(Result? Error, string AreaId)> ResolveAreaIdAsync(string requestAreaId, CancellationToken ct)
-    {
-        var isJefe = _currentUser.Roles?.Contains(nameof(RolesEnum.Jefe_de_Proyecto)) == true;
-        if (!isJefe)
-            return (null, requestAreaId);
-
-        var userAreaId = await _context.Users
-            .Where(u => u.Id == _currentUser.Id)
-            .Select(u => u.AreaId)
-            .FirstOrDefaultAsync(ct);
-
-        if (string.IsNullOrWhiteSpace(userAreaId))
-            return (Result.Failure(["El usuario no tiene un área asignada. Contacte a un administrador."]), string.Empty);
-
-        return (null, userAreaId);
+            request.ClasificacionId);
     }
 
     // ── Mappers ───────────────────────────────────────────────────────────────
@@ -596,8 +658,7 @@ public sealed class ProyectoService : IProyectoService
         TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
         ClasificacionId = proyecto.ClasificacionId,
         ClasificacionNombre = proyecto.Clasificacion.Nombre,
-        AreaId = proyecto.AreaId,
-        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        Participantes = MapParticipantes(proyecto.Participantes),
         Situaciones = proyecto.Situaciones.Select(s => new NomencladorDto(s.Id, s.Nombre)).ToList(),
         Tipo = proyecto.Tipo,
         PublicacionesDerivadas = GetPublicacionesDerivadas(proyecto)
@@ -617,8 +678,7 @@ public sealed class ProyectoService : IProyectoService
         TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
         ClasificacionId = proyecto.ClasificacionId,
         ClasificacionNombre = proyecto.Clasificacion.Nombre,
-        AreaId = proyecto.AreaId,
-        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        Participantes = MapParticipantes(proyecto.Participantes),
         FechaInicio = proyecto.FechaInicio,
         FechaCierre = proyecto.FechaCierre,
         CodigoProyecto = proyecto.CodigoProyecto,
@@ -646,8 +706,7 @@ public sealed class ProyectoService : IProyectoService
         TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
         ClasificacionId = proyecto.ClasificacionId,
         ClasificacionNombre = proyecto.Clasificacion.Nombre,
-        AreaId = proyecto.AreaId,
-        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        Participantes = MapParticipantes(proyecto.Participantes),
         FechaInicio = proyecto.FechaInicio,
         FechaCierre = proyecto.FechaCierre,
         CodigoProyecto = proyecto.CodigoProyecto,
@@ -676,8 +735,7 @@ public sealed class ProyectoService : IProyectoService
         TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
         ClasificacionId = proyecto.ClasificacionId,
         ClasificacionNombre = proyecto.Clasificacion.Nombre,
-        AreaId = proyecto.AreaId,
-        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        Participantes = MapParticipantes(proyecto.Participantes),
         FechaInicio = proyecto.FechaInicio,
         FechaCierre = proyecto.FechaCierre,
         CodigoProyecto = proyecto.CodigoProyecto,
@@ -707,8 +765,7 @@ public sealed class ProyectoService : IProyectoService
         TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
         ClasificacionId = proyecto.ClasificacionId,
         ClasificacionNombre = proyecto.Clasificacion.Nombre,
-        AreaId = proyecto.AreaId,
-        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        Participantes = MapParticipantes(proyecto.Participantes),
         FechaInicio = proyecto.FechaInicio,
         FechaCierre = proyecto.FechaCierre,
         CodigoProyecto = proyecto.CodigoProyecto,
@@ -736,8 +793,7 @@ public sealed class ProyectoService : IProyectoService
         TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
         ClasificacionId = proyecto.ClasificacionId,
         ClasificacionNombre = proyecto.Clasificacion.Nombre,
-        AreaId = proyecto.AreaId,
-        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        Participantes = MapParticipantes(proyecto.Participantes),
         FechaInicio = proyecto.FechaInicio,
         FechaCierre = proyecto.FechaCierre,
         CodigoProyecto = proyecto.CodigoProyecto,
@@ -766,8 +822,7 @@ public sealed class ProyectoService : IProyectoService
         TributaFormacionDoctoral = proyecto.TributaFormacionDoctoral,
         ClasificacionId = proyecto.ClasificacionId,
         ClasificacionNombre = proyecto.Clasificacion.Nombre,
-        AreaId = proyecto.AreaId,
-        AreaNombre = proyecto.Area?.Nombre ?? string.Empty,
+        Participantes = MapParticipantes(proyecto.Participantes),
         FechaInicio = proyecto.FechaInicio,
         FechaCierre = proyecto.FechaCierre,
         CodigoProyecto = proyecto.CodigoProyecto,
@@ -802,6 +857,9 @@ public sealed class ProyectoService : IProyectoService
 
     private static List<InstitutionRefDto> MapInstitutions(ICollection<Institution> items)
         => items.Select(i => new InstitutionRefDto(i.Id, i.Nombre)).ToList();
+
+    private static List<UserRefDto> MapParticipantes(ICollection<User> users)
+        => users.Select(u => new UserRefDto(u.Id, GetNombreCompleto(u), u.Email)).ToList();
 
     private static string GetNombreCompleto(User user)
         => user.UserName + " " + user.UserLastName1 + (user.UserLastName2 != null ? " " + user.UserLastName2 : "");
