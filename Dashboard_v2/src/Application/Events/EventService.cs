@@ -100,6 +100,51 @@ public sealed class EventService : IEventService
         }).ToList();
     }
 
+    public async Task<List<EventDto>> GetAreaEventsAsync(CancellationToken ct = default)
+    {
+        var areaId = await _context.Users
+            .Where(u => u.Id == _currentUser.Id)
+            .Select(u => u.AreaId)
+            .FirstOrDefaultAsync(ct) ?? string.Empty;
+
+        var rawEvents = await _context.Events
+            .AsNoTracking()
+            .Where(e => e.Organizadores.Any(o => o.User != null && o.User.AreaId == areaId)
+                     || e.Participaciones.Any(p => p.User != null && p.User.AreaId == areaId))
+            .OrderBy(e => e.Name)
+            .Select(e => new
+            {
+                e.Id, e.Name, e.CountryId,
+                CountryName = e.Country.Name,
+                e.EventTypeId,
+                EventTypeName = e.EventType.Name,
+                Institutions = e.Institutions.Select(i => i.Nombre).ToList(),
+                e.RedId,
+                RedName = e.Red != null ? e.Red.Nombre : null,
+                OrganizadorIds = e.Organizadores.Select(o => o.UserId).ToList(),
+                e.EvidenceFileId,
+            })
+            .ToListAsync(ct);
+
+        var counts = await GetPresentationCountsAsync(rawEvents.Select(e => e.Id), ct);
+
+        return rawEvents.Select(e => new EventDto
+        {
+            Id = e.Id,
+            Name = e.Name,
+            CountryId = e.CountryId,
+            CountryName = e.CountryName,
+            EventTypeId = e.EventTypeId,
+            EventTypeName = e.EventTypeName,
+            Institutions = e.Institutions,
+            PresentationCount = counts.GetValueOrDefault(e.Id, 0),
+            RedId = e.RedId,
+            RedName = e.RedName,
+            OrganizadorIds = e.OrganizadorIds,
+            EvidenceFileId = e.EvidenceFileId,
+        }).ToList();
+    }
+
     public Task<List<CountryDto>> GetCountriesAsync(CancellationToken ct = default)
         => _context.Countries
             .AsNoTracking()

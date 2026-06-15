@@ -35,11 +35,8 @@ public class User
     // Grupos de investigación a los que pertenece este usuario
     public ICollection<GrupoDeInvestigacion> GruposDeInvestigacion { get; set; } = new List<GrupoDeInvestigacion>();
 
-    // Redes a las que pertenece este usuario
-    public ICollection<Red> Redes { get; set; } = new List<Red>();
-
-    // Redes que este usuario coordina (a través de RedCoordinada)
-    public ICollection<RedCoordinada> RedesCoordinadas { get; set; } = new List<RedCoordinada>();
+    // Redes que este usuario coordina
+    public ICollection<Red> RedesCoordinadas { get; set; } = new List<Red>();
 
     /// <summary>Proyectos de los que este usuario es jefe. Solo aplicable a usuarios con rol Jefe_de_Proyecto.</summary>
     public ICollection<Proyecto> ProyectosComoJefe { get; set; } = new List<Proyecto>();

@@ -22,8 +22,7 @@ public sealed class AnexoRedesNacInterReport : IDocumentReport
         var redes = await _context.Reds
             .AsNoTracking()
             .Include(r => r.Country)
-            .Include(r => r.RedesCoordinadas)
-                .ThenInclude(rc => rc.Area)
+            .Include(r => r.Coordinador).ThenInclude(u => u!.Area)
             .Where(r => r.Tipo == TipoRed.Nacional || r.Tipo == TipoRed.Internacional)
             .OrderBy(r => r.Nombre)
             .ToListAsync(ct);
@@ -32,7 +31,7 @@ public sealed class AnexoRedesNacInterReport : IDocumentReport
             .Where(r => r.Tipo == TipoRed.Nacional)
             .Select(r => new AnexoRedNacionalRowDto
             {
-                Area = r.RedesCoordinadas.FirstOrDefault()?.Area?.Nombre ?? string.Empty,
+                Area = r.Coordinador?.Area?.Nombre ?? string.Empty,
                 Nombre = r.Nombre,
                 CentroCoordina = string.Empty, // pendiente de modelar
                 CantidadProfesores = r.CantidadProfesores,
@@ -43,7 +42,7 @@ public sealed class AnexoRedesNacInterReport : IDocumentReport
             .Where(r => r.Tipo == TipoRed.Internacional)
             .Select(r => new AnexoRedInternacionalRowDto
             {
-                Area = r.RedesCoordinadas.FirstOrDefault()?.Area?.Nombre ?? string.Empty,
+                Area = r.Coordinador?.Area?.Nombre ?? string.Empty,
                 Nombre = r.Nombre,
                 Pais = r.Country?.Name ?? string.Empty,
                 Coordinacion = string.Empty, // pendiente de modelar

@@ -6864,7 +6864,7 @@ export class RedesClient {
         return Promise.resolve<void>(null as any);
     }
 
-    getMisRedes(): Promise<RedConCoordinadoresDto[]> {
+    getMisRedes(): Promise<RedConCoordinadorDto[]> {
         let url_ = this.baseUrl + "/api/Redes/mis-redes";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -6880,7 +6880,7 @@ export class RedesClient {
         });
     }
 
-    protected processGetMisRedes(response: Response): Promise<RedConCoordinadoresDto[]> {
+    protected processGetMisRedes(response: Response): Promise<RedConCoordinadorDto[]> {
         followIfLoginRedirect(response);
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
@@ -6891,7 +6891,7 @@ export class RedesClient {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(RedConCoordinadoresDto.fromJS(item));
+                    result200!.push(RedConCoordinadorDto.fromJS(item));
             }
             else {
                 result200 = null as any;
@@ -6903,17 +6903,14 @@ export class RedesClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<RedConCoordinadoresDto[]>(null as any);
+        return Promise.resolve<RedConCoordinadorDto[]>(null as any);
     }
 
-    asignarCoordinador(id: string, areaId: string, body: AsignarCoordinadorBody): Promise<void> {
-        let url_ = this.baseUrl + "/api/Redes/{id}/coordinadores/{areaId}";
+    setCoordinador(id: string, body: SetCoordinadorBody): Promise<void> {
+        let url_ = this.baseUrl + "/api/Redes/{id}/coordinador";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        if (areaId === undefined || areaId === null)
-            throw new globalThis.Error("The parameter 'areaId' must be defined.");
-        url_ = url_.replace("{areaId}", encodeURIComponent("" + areaId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -6927,11 +6924,11 @@ export class RedesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAsignarCoordinador(_response);
+            return this.processSetCoordinador(_response);
         });
     }
 
-    protected processAsignarCoordinador(response: Response): Promise<void> {
+    protected processSetCoordinador(response: Response): Promise<void> {
         followIfLoginRedirect(response);
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
@@ -6945,6 +6942,153 @@ export class RedesClient {
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getParticipantesRed(id: string): Promise<ParticipanteRedDto[]> {
+        let url_ = this.baseUrl + "/api/Redes/{id}/participantes";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetParticipantesRed(_response);
+        });
+    }
+
+    protected processGetParticipantesRed(response: Response): Promise<ParticipanteRedDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ParticipanteRedDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ParticipanteRedDto[]>(null as any);
+    }
+
+    addParticipanteRed(id: string, authorId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Redes/{id}/participantes/{authorId}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (authorId === undefined || authorId === null)
+            throw new globalThis.Error("The parameter 'authorId' must be defined.");
+        url_ = url_.replace("{authorId}", encodeURIComponent("" + authorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddParticipanteRed(_response);
+        });
+    }
+
+    protected processAddParticipanteRed(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    removeParticipanteRed(id: string, authorId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/Redes/{id}/participantes/{authorId}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (authorId === undefined || authorId === null)
+            throw new globalThis.Error("The parameter 'authorId' must be defined.");
+        url_ = url_.replace("{authorId}", encodeURIComponent("" + authorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveParticipanteRed(_response);
+        });
+    }
+
+    protected processRemoveParticipanteRed(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -13471,15 +13615,18 @@ export interface IRedDto {
     tipo?: number;
 }
 
-export class RedConCoordinadoresDto implements IRedConCoordinadoresDto {
+export class RedConCoordinadorDto implements IRedConCoordinadorDto {
     id?: string;
     nombre?: string;
     tipo?: number;
     countryName?: string | undefined;
     cantidadProfesores?: number;
-    coordinadores?: CoordinadorAreaDto[];
+    coordinadorId?: string | undefined;
+    coordinadorNombre?: string | undefined;
+    coordinadorEmail?: string | undefined;
+    participantes?: ParticipanteRedDto[];
 
-    constructor(data?: IRedConCoordinadoresDto) {
+    constructor(data?: IRedConCoordinadorDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -13495,17 +13642,20 @@ export class RedConCoordinadoresDto implements IRedConCoordinadoresDto {
             this.tipo = _data["tipo"];
             this.countryName = _data["countryName"];
             this.cantidadProfesores = _data["cantidadProfesores"];
-            if (Array.isArray(_data["coordinadores"])) {
-                this.coordinadores = [] as any;
-                for (let item of _data["coordinadores"])
-                    this.coordinadores!.push(CoordinadorAreaDto.fromJS(item));
+            this.coordinadorId = _data["coordinadorId"];
+            this.coordinadorNombre = _data["coordinadorNombre"];
+            this.coordinadorEmail = _data["coordinadorEmail"];
+            if (Array.isArray(_data["participantes"])) {
+                this.participantes = [] as any;
+                for (let item of _data["participantes"])
+                    this.participantes!.push(ParticipanteRedDto.fromJS(item));
             }
         }
     }
 
-    static fromJS(data: any): RedConCoordinadoresDto {
+    static fromJS(data: any): RedConCoordinadorDto {
         data = typeof data === 'object' ? data : {};
-        let result = new RedConCoordinadoresDto();
+        let result = new RedConCoordinadorDto();
         result.init(data);
         return result;
     }
@@ -13517,32 +13667,35 @@ export class RedConCoordinadoresDto implements IRedConCoordinadoresDto {
         data["tipo"] = this.tipo;
         data["countryName"] = this.countryName;
         data["cantidadProfesores"] = this.cantidadProfesores;
-        if (Array.isArray(this.coordinadores)) {
-            data["coordinadores"] = [];
-            for (let item of this.coordinadores)
-                data["coordinadores"].push(item ? item.toJSON() : undefined as any);
+        data["coordinadorId"] = this.coordinadorId;
+        data["coordinadorNombre"] = this.coordinadorNombre;
+        data["coordinadorEmail"] = this.coordinadorEmail;
+        if (Array.isArray(this.participantes)) {
+            data["participantes"] = [];
+            for (let item of this.participantes)
+                data["participantes"].push(item ? item.toJSON() : undefined as any);
         }
         return data;
     }
 }
 
-export interface IRedConCoordinadoresDto {
+export interface IRedConCoordinadorDto {
     id?: string;
     nombre?: string;
     tipo?: number;
     countryName?: string | undefined;
     cantidadProfesores?: number;
-    coordinadores?: CoordinadorAreaDto[];
+    coordinadorId?: string | undefined;
+    coordinadorNombre?: string | undefined;
+    coordinadorEmail?: string | undefined;
+    participantes?: ParticipanteRedDto[];
 }
 
-export class CoordinadorAreaDto implements ICoordinadorAreaDto {
-    areaId?: string;
-    areaNombre?: string;
-    coordinadorId?: string;
-    coordinadorNombre?: string;
-    coordinadorEmail?: string;
+export class ParticipanteRedDto implements IParticipanteRedDto {
+    authorId?: string;
+    authorNombre?: string;
 
-    constructor(data?: ICoordinadorAreaDto) {
+    constructor(data?: IParticipanteRedDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -13553,44 +13706,35 @@ export class CoordinadorAreaDto implements ICoordinadorAreaDto {
 
     init(_data?: any) {
         if (_data) {
-            this.areaId = _data["areaId"];
-            this.areaNombre = _data["areaNombre"];
-            this.coordinadorId = _data["coordinadorId"];
-            this.coordinadorNombre = _data["coordinadorNombre"];
-            this.coordinadorEmail = _data["coordinadorEmail"];
+            this.authorId = _data["authorId"];
+            this.authorNombre = _data["authorNombre"];
         }
     }
 
-    static fromJS(data: any): CoordinadorAreaDto {
+    static fromJS(data: any): ParticipanteRedDto {
         data = typeof data === 'object' ? data : {};
-        let result = new CoordinadorAreaDto();
+        let result = new ParticipanteRedDto();
         result.init(data);
         return result;
     }
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["areaId"] = this.areaId;
-        data["areaNombre"] = this.areaNombre;
-        data["coordinadorId"] = this.coordinadorId;
-        data["coordinadorNombre"] = this.coordinadorNombre;
-        data["coordinadorEmail"] = this.coordinadorEmail;
+        data["authorId"] = this.authorId;
+        data["authorNombre"] = this.authorNombre;
         return data;
     }
 }
 
-export interface ICoordinadorAreaDto {
-    areaId?: string;
-    areaNombre?: string;
-    coordinadorId?: string;
-    coordinadorNombre?: string;
-    coordinadorEmail?: string;
+export interface IParticipanteRedDto {
+    authorId?: string;
+    authorNombre?: string;
 }
 
-export class AsignarCoordinadorBody implements IAsignarCoordinadorBody {
-    coordinadorId?: string;
+export class SetCoordinadorBody implements ISetCoordinadorBody {
+    coordinadorId?: string | undefined;
 
-    constructor(data?: IAsignarCoordinadorBody) {
+    constructor(data?: ISetCoordinadorBody) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -13605,9 +13749,9 @@ export class AsignarCoordinadorBody implements IAsignarCoordinadorBody {
         }
     }
 
-    static fromJS(data: any): AsignarCoordinadorBody {
+    static fromJS(data: any): SetCoordinadorBody {
         data = typeof data === 'object' ? data : {};
-        let result = new AsignarCoordinadorBody();
+        let result = new SetCoordinadorBody();
         result.init(data);
         return result;
     }
@@ -13619,8 +13763,8 @@ export class AsignarCoordinadorBody implements IAsignarCoordinadorBody {
     }
 }
 
-export interface IAsignarCoordinadorBody {
-    coordinadorId?: string;
+export interface ISetCoordinadorBody {
+    coordinadorId?: string | undefined;
 }
 
 export class CreateRedBody implements ICreateRedBody {

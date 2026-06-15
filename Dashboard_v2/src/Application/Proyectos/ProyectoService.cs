@@ -123,6 +123,70 @@ public sealed class ProyectoService : IProyectoService
             .ToList();
     }
 
+    public async Task<List<ProyectoResumenDto>> GetAreaProyectosAsync(CancellationToken ct = default)
+    {
+        var areaId = await _context.Users
+            .Where(u => u.Id == _currentUser.Id)
+            .Select(u => u.AreaId)
+            .FirstOrDefaultAsync(ct) ?? string.Empty;
+
+        var enRevision = await _context.Proyectos.OfType<ProyectoEnRevision>()
+            .Where(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId))
+            .Select(p => new ProyectoResumenDto
+            {
+                Id = p.Id,
+                Titulo = p.Titulo,
+                JefeId = p.JefeId,
+                Jefe = p.JefeUsuario.UserName + " " + p.JefeUsuario.UserLastName1 + (p.JefeUsuario.UserLastName2 != null ? " " + p.JefeUsuario.UserLastName2 : ""),
+                CorreoJefe = p.JefeUsuario.Email,
+                NumeroMiembros = p.NumeroMiembros,
+                ClasificacionId = p.ClasificacionId,
+                ClasificacionNombre = p.Clasificacion.Nombre,
+                Participantes = p.Participantes.Select(u => new UserRefDto(u.Id,
+                    u.UserName + " " + u.UserLastName1 + (u.UserLastName2 != null ? " " + u.UserLastName2 : ""),
+                    u.Email)).ToList(),
+                Tipo = "en-revision",
+                Situaciones = p.Situaciones.Select(s => s.Nombre).ToList(),
+                PublicacionesDerivadas = p.PublicacionesDerivadas.Select(pub => pub.UrlDoi ?? pub.Title).ToList()
+            })
+            .ToListAsync(ct);
+
+        var empresariales = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoEmpresarial>()
+                .Where(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId)),
+            null, "empresariales", ct);
+        var apoyoPrograma = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoApoyoPrograma>()
+                .Where(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId)),
+            null, "apoyo-programa", ct);
+        var desarrolloLocal = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoDesarrolloLocal>()
+                .Where(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId)),
+            null, "desarrollo-local", ct);
+        var noEmpresariales = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoNoEmpresarial>()
+                .Where(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId)),
+            null, "no-empresariales", ct);
+        var colabInternacional = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoColabInternacional>()
+                .Where(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId)),
+            null, "colaboracion-internacional", ct);
+        var pnap = await QueryEjecucionAsync(
+            _context.Proyectos.OfType<ProyectoPNAP>()
+                .Where(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId)),
+            null, "pnap", ct);
+
+        return enRevision
+            .Concat(empresariales)
+            .Concat(apoyoPrograma)
+            .Concat(desarrolloLocal)
+            .Concat(noEmpresariales)
+            .Concat(colabInternacional)
+            .Concat(pnap)
+            .OrderBy(p => p.Titulo)
+            .ToList();
+    }
+
     public Task<IReadOnlyList<string>> GetTiposEjecucionAsync(CancellationToken ct = default)
     {
         IReadOnlyList<string> tipos = TiposProyectoEjecucion.Validos.Order().ToList();

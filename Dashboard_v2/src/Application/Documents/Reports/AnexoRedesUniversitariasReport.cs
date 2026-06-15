@@ -21,8 +21,10 @@ public sealed class AnexoRedesUniversitariasReport : IZipDocumentReport
         var redes = await _context.Reds
             .AsNoTracking()
             .Where(r => r.Tipo == TipoRed.Universitaria)
-            .Include(r => r.RedesCoordinadas)
-                .ThenInclude(rc => rc.Area)
+            .Include(r => r.Participaciones)
+                .ThenInclude(p => p.Author)
+                    .ThenInclude(a => a.User)
+                        .ThenInclude(u => u!.Area)
             .Include(r => r.Events)
                 .ThenInclude(e => e.Organizadores)
                     .ThenInclude(o => o.User)
@@ -55,14 +57,14 @@ public sealed class AnexoRedesUniversitariasReport : IZipDocumentReport
 
     private static IReadOnlyDictionary<string, object> BuildVariables(Domain.Entities.Red red)
     {
-        var areasUH = red.RedesCoordinadas
-            .Select(rc => rc.Area?.Nombre ?? string.Empty)
+        var areasUH = red.Participaciones
+            .Select(p => p.Author.User?.Area?.Nombre ?? string.Empty)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
             .Distinct()
             .OrderBy(a => a)
             .Select(a => new AnexoAreaParticipanteRowDto { AreaUH = a, AreaExterna = string.Empty })
             .ToList();
 
-        // Si no hay áreas pero sí coordinadas, garantizamos al menos una fila vacía para ClosedXML.Report
         if (areasUH.Count == 0)
             areasUH.Add(new AnexoAreaParticipanteRowDto());
 

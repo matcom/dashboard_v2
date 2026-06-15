@@ -42,7 +42,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Norma> Normas => Set<Norma>();
     public DbSet<TipoNorma> TiposNorma => Set<TipoNorma>();
     public DbSet<Red> Reds => Set<Red>();
-    public DbSet<RedCoordinada> RedesCoordinadas => Set<RedCoordinada>();
+    public DbSet<ParticipacionEnRed> ParticipacionesEnRed => Set<ParticipacionEnRed>();
     public DbSet<TipoProductoComercializado> TipoProductosComercializados => Set<TipoProductoComercializado>();
     public DbSet<ProductoComercializado> ProductosComercializados => Set<ProductoComercializado>();
     public DbSet<Patente> Patentes => Set<Patente>();

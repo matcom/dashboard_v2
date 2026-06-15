@@ -10,23 +10,23 @@ public class Normas : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetNormas)
-            .RequireAuthorization()
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser), nameof(RolesEnum.Vicedecano_de_investigacion)))
             .WithName("GetNormas")
             .Produces<List<NormaDto>>(200);
 
         groupBuilder.MapGet("mis", GetMisNormas)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("GetMisNormas")
             .Produces<List<NormaDto>>(200);
 
         groupBuilder.MapPost("", CreateNorma)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("CreateNorma")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", UpdateNorma)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("UpdateNorma")
             .Produces(200)
             .ProducesProblem(400)
@@ -34,16 +34,26 @@ public class Normas : EndpointGroupBase
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", DeleteNorma)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("DeleteNorma")
             .Produces(200)
             .ProducesProblem(403)
             .ProducesProblem(404);
     }
 
-    private static async Task<IResult> GetNormas(IApplicationDbContext db)
+    private static async Task<IResult> GetNormas(IApplicationDbContext db, IUser currentUser, HttpContext http)
     {
-        var list = await db.Normas
+        IQueryable<Norma> query = db.Normas;
+        if (http.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
+        {
+            var areaId = await db.Users.AsNoTracking()
+                .Where(u => u.Id == currentUser.Id)
+                .Select(u => u.AreaId)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrEmpty(areaId))
+                query = query.Where(n => n.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId));
+        }
+        var list = await query
             .Include(n => n.TipoNorma)
             .Include(n => n.Institution)
             .Include(n => n.Creadores).ThenInclude(c => c.Author)
@@ -116,7 +126,7 @@ public class Normas : EndpointGroupBase
             return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
 
         var roles = currentUser.Roles ?? [];
-        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        if (!roles.Contains(nameof(RolesEnum.Superuser)))
         {
             var esCreador = await db.AuthorNormas.AnyAsync(an => an.NormaId == id && an.AuthorId == currentAuthor.Id);
             if (!esCreador)
@@ -152,7 +162,7 @@ public class Normas : EndpointGroupBase
             return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
 
         var roles = currentUser.Roles ?? [];
-        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        if (!roles.Contains(nameof(RolesEnum.Superuser)))
         {
             var esCreador = await db.AuthorNormas.AnyAsync(an => an.NormaId == id && an.AuthorId == currentAuthor.Id);
             if (!esCreador)

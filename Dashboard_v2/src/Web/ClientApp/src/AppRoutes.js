@@ -23,6 +23,9 @@ import ProductosAreaPage from "./pages/ProductosAreaPage";
 import ProductosComercializadosPage from "./pages/ProductosComercializadosPage";
 import RedesPage from "./pages/RedesPage";
 import RedesPublicacionesPage from "./pages/RedesPublicacionesPage";
+import MisRedesPage from "./pages/MisRedesPage";
+import ProyectosAreaPage from "./pages/ProyectosAreaPage";
+import RedesAreaPage from "./pages/RedesAreaPage";
 import LineasDeInvestigacionPage from "./pages/LineasDeInvestigacionPage";
 import ProyectosPage from "./pages/ProyectosPage";
 import MisProyectosPage from "./pages/MisProyectosPage";
@@ -226,6 +229,25 @@ const AppRoutes = [
     element: <RedesPublicacionesPage />,
     pageTitle: 'Publicaciones de mis Redes',
     jefeRedesOrProfesorOnly: true,
+  },
+  {
+    path: '/mis-redes',
+    element: <MisRedesPage />,
+    pageTitle: 'Mis Redes',
+    profesorOnly: true,
+  },
+  // Vicedecano — actividad del área
+  {
+    path: '/proyectos-area',
+    element: <ProyectosAreaPage />,
+    pageTitle: 'Proyectos del Área',
+    vicedecanoOnly: true,
+  },
+  {
+    path: '/redes-area',
+    element: <RedesAreaPage />,
+    pageTitle: 'Redes del Área',
+    vicedecanoOnly: true,
   },
 ];
 

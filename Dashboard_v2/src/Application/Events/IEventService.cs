@@ -9,6 +9,7 @@ public interface IEventService
 {
     Task<List<EventDto>> GetMyEventsAsync(CancellationToken ct = default);
     Task<List<EventDto>> GetAllEventsAsync(CancellationToken ct = default);
+    Task<List<EventDto>> GetAreaEventsAsync(CancellationToken ct = default);
     Task<List<CountryDto>> GetCountriesAsync(CancellationToken ct = default);
     Task<(Result Result, CountryDto? Country)> CreateCountryAsync(CreateCountryRequest request, CancellationToken ct = default);
     Task<List<EventTypeDto>> GetEventTypesAsync(CancellationToken ct = default);

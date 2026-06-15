@@ -71,6 +71,79 @@ public class ProyectoServiceReadTests
         result.ShouldBeEmpty();
     }
 
+    // ── GetAreaProyectosAsync ─────────────────────────────────────────────────
+
+    private ProyectoService MakeServiceForUser(string userId)
+    {
+        var userMock = new Mock<IUser>();
+        userMock.Setup(u => u.Id).Returns(userId);
+        var valMock = new Mock<IRequestValidationService>();
+        valMock.Setup(v => v.ValidateAndThrowAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        return new ProyectoService(_db, userMock.Object, valMock.Object);
+    }
+
+    [Test]
+    public async Task GetAreaProyectosAsync_Empty_ReturnsEmpty()
+    {
+        _db.Users.Add(new User { Id = "vice-1", UserName = "vice1", UserLastName1 = "V", Email = "v1@uh.cu", AreaId = _areaId });
+        await _db.SaveChangesAsync();
+
+        var result = await MakeServiceForUser("vice-1").GetAreaProyectosAsync();
+        result.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task GetAreaProyectosAsync_ReturnsProjectsWhoseJefeIsInSameArea()
+    {
+        var jefe = await _db.Users.FindAsync(_jefeId);
+        jefe!.AreaId = _areaId;
+        _db.Users.Add(new User { Id = "vice-2", UserName = "vice2", UserLastName1 = "V", Email = "v2@uh.cu", AreaId = _areaId });
+        _db.Proyectos.Add(new ProyectoEnRevision { Id = "p-area-1", Titulo = "Proyecto del Área", JefeId = _jefeId, ClasificacionId = _clasificId, Tipo = "PE" });
+        await _db.SaveChangesAsync();
+
+        var result = await MakeServiceForUser("vice-2").GetAreaProyectosAsync();
+
+        result.Count.ShouldBe(1);
+        result[0].Titulo.ShouldBe("Proyecto del Área");
+    }
+
+    [Test]
+    public async Task GetAreaProyectosAsync_ExcludesProjectsFromOtherAreas()
+    {
+        var otherAreaId = "area-other";
+        _db.Areas.Add(new Area { Id = otherAreaId, Nombre = "Otra", Descripcion = "d", UniversidadId = "uh" });
+        var jefe = await _db.Users.FindAsync(_jefeId);
+        jefe!.AreaId = otherAreaId;
+        _db.Users.Add(new User { Id = "vice-3", UserName = "vice3", UserLastName1 = "V", Email = "v3@uh.cu", AreaId = _areaId });
+        _db.Proyectos.Add(new ProyectoEnRevision { Id = "p-other-1", Titulo = "Proyecto de Otra Área", JefeId = _jefeId, ClasificacionId = _clasificId, Tipo = "PE" });
+        await _db.SaveChangesAsync();
+
+        var result = await MakeServiceForUser("vice-3").GetAreaProyectosAsync();
+
+        result.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task GetAreaProyectosAsync_ReturnsProjectsWhereParticipanteIsInSameArea()
+    {
+        _db.Users.Add(new User { Id = "vice-4", UserName = "vice4", UserLastName1 = "V", Email = "v4@uh.cu", AreaId = _areaId });
+        var participante = new User { Id = "part-area-1", UserName = "part", UserLastName1 = "P", Email = "p@uh.cu", AreaId = _areaId };
+        _db.Users.Add(participante);
+        await _db.SaveChangesAsync();
+
+        var proyecto = new ProyectoEnRevision { Id = "p-part-1", Titulo = "Proyecto con Participante", JefeId = _jefeId, ClasificacionId = _clasificId, Tipo = "PE" };
+        _db.Proyectos.Add(proyecto);
+        await _db.SaveChangesAsync();
+        proyecto.Participantes.Add(participante);
+        await _db.SaveChangesAsync();
+
+        var result = await MakeServiceForUser("vice-4").GetAreaProyectosAsync();
+
+        result.Count.ShouldBe(1);
+        result[0].Titulo.ShouldBe("Proyecto con Participante");
+    }
+
     // ── GetCatalogoAsync ──────────────────────────────────────────────────────
 
     [Test]

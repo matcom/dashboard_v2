@@ -1,4 +1,5 @@
 using Dashboard_v2.Application.Common.Interfaces;
+using Dashboard_v2.Domain.Entities;
 using Dashboard_v2.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,20 +14,35 @@ public class Redes : EndpointGroupBase
             .WithName("GetRedes")
             .Produces<List<RedDto>>(200);
 
-        // GET /api/Redes/mis-redes
-        // Jefe_de_Redes → todas las redes con info de coordinadores.
-        // Profesor       → solo las redes que coordina.
         groupBuilder.MapGet("mis-redes", GetMisRedes)
             .RequireAuthorization(p => p.RequireRole("Jefe_de_Redes", "Profesor", "Superuser"))
             .WithName("GetMisRedes")
-            .Produces<List<RedConCoordinadoresDto>>(200);
+            .Produces<List<RedConCoordinadorDto>>(200);
 
-        // PUT /api/Redes/{id}/coordinadores/{areaId} — Jefe_de_Redes asigna coordinador a un área de una red
-        groupBuilder.MapPut("{id}/coordinadores/{areaId}", AsignarCoordinador)
+        groupBuilder.MapPut("{id}/coordinador", SetCoordinador)
             .RequireAuthorization(p => p.RequireRole("Jefe_de_Redes", "Superuser"))
-            .WithName("AsignarCoordinador")
+            .WithName("SetCoordinador")
             .Produces(200)
             .ProducesProblem(400)
+            .ProducesProblem(404);
+
+        groupBuilder.MapGet("{id}/participantes", GetParticipantes)
+            .RequireAuthorization(p => p.RequireRole("Jefe_de_Redes", "Superuser"))
+            .WithName("GetParticipantesRed")
+            .Produces<List<ParticipanteRedDto>>(200)
+            .ProducesProblem(404);
+
+        groupBuilder.MapPost("{id}/participantes/{authorId}", AddParticipante)
+            .RequireAuthorization(p => p.RequireRole("Jefe_de_Redes", "Superuser"))
+            .WithName("AddParticipanteRed")
+            .Produces(204)
+            .ProducesProblem(400)
+            .ProducesProblem(404);
+
+        groupBuilder.MapDelete("{id}/participantes/{authorId}", RemoveParticipante)
+            .RequireAuthorization(p => p.RequireRole("Jefe_de_Redes", "Superuser"))
+            .WithName("RemoveParticipanteRed")
+            .Produces(204)
             .ProducesProblem(404);
 
         groupBuilder.MapPost("", CreateRed)
@@ -48,7 +64,6 @@ public class Redes : EndpointGroupBase
             .Produces(200)
             .ProducesProblem(404);
 
-        // List events and assign/unassign events for a red
         groupBuilder.MapGet("{id}/events", GetEventsForRed)
             .RequireAuthorization(p => p.RequireRole("Superuser", "Jefe_de_Redes"))
             .WithName("GetEventsForRed")
@@ -64,101 +79,134 @@ public class Redes : EndpointGroupBase
 
     private async Task<IResult> GetMisRedes(IApplicationDbContext db, IUser currentUser, HttpContext http)
     {
-        var isJefe = http.User.IsInRole("Jefe_de_Redes") || http.User.IsInRole("Superuser");
+        IQueryable<Red> query;
 
-        IQueryable<Dashboard_v2.Domain.Entities.Red> query;
-
-        if (isJefe)
+        if (http.User.IsInRole("Superuser"))
         {
-            // El Jefe ve TODAS las redes
             query = db.Reds.AsNoTracking();
+        }
+        else if (http.User.IsInRole("Jefe_de_Redes"))
+        {
+            var dbUser = await db.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == currentUser.Id);
+            if (dbUser?.AreaId == null)
+                return Results.Ok(new List<RedConCoordinadorDto>());
+
+            var jefeAreaId = dbUser.AreaId;
+            query = db.Reds.AsNoTracking()
+                .Where(r =>
+                    (r.Coordinador != null && r.Coordinador.AreaId == jefeAreaId) ||
+                    r.Participaciones.Any(p => p.Author.User != null && p.Author.User.AreaId == jefeAreaId));
         }
         else
         {
-            // El coordinador (Profesor) ve solo las redes que coordina
-            var coordinatedRedIds = await db.RedesCoordinadas
-                .AsNoTracking()
-                .Where(rc => rc.CoordinadorId == currentUser.Id)
-                .Select(rc => rc.RedId)
-                .Distinct()
-                .ToListAsync();
-
-            if (coordinatedRedIds.Count == 0)
-                return Results.Ok(new List<RedConCoordinadoresDto>());
-
-            query = db.Reds.AsNoTracking().Where(r => coordinatedRedIds.Contains(r.Id));
+            // Profesor: reds they coordinate OR participate in
+            query = db.Reds.AsNoTracking().Where(r =>
+                r.CoordinadorId == currentUser.Id ||
+                r.Participaciones.Any(p => p.Author.UserId == currentUser.Id));
         }
 
         var reds = await query
-            .Include(r => r.RedesCoordinadas)
-                .ThenInclude(rc => rc.Area)
-            .Include(r => r.RedesCoordinadas)
-                .ThenInclude(rc => rc.Coordinador)
+            .Include(r => r.Coordinador)
+            .Include(r => r.Participaciones).ThenInclude(p => p.Author)
             .Include(r => r.Country)
             .OrderBy(r => r.Nombre)
             .ToListAsync();
 
-        var result = reds.Select(r => new RedConCoordinadoresDto(
+        var result = reds.Select(r => new RedConCoordinadorDto(
             r.Id,
             r.Nombre,
             (int)r.Tipo,
             r.Country?.Name,
             r.CantidadProfesores,
-            r.RedesCoordinadas.Select(rc => new CoordinadorAreaDto(
-                rc.AreaId,
-                rc.Area?.Nombre ?? string.Empty,
-                rc.CoordinadorId,
-                rc.Coordinador != null
-                    ? $"{rc.Coordinador.UserName} {rc.Coordinador.UserLastName1}"
-                    : string.Empty,
-                rc.Coordinador?.Email ?? string.Empty
-            )).ToList()
+            r.CoordinadorId,
+            r.Coordinador != null ? $"{r.Coordinador.UserName} {r.Coordinador.UserLastName1}" : null,
+            r.Coordinador?.Email,
+            r.Participaciones.Select(p => new ParticipanteRedDto(p.AuthorId, p.Author.Name)).ToList()
         )).ToList();
 
         return Results.Ok(result);
     }
 
-    private async Task<IResult> AsignarCoordinador(
-        IApplicationDbContext db,
-        string id,
-        string areaId,
-        AsignarCoordinadorBody body)
+    private async Task<IResult> SetCoordinador(IApplicationDbContext db, string id, SetCoordinadorBody body)
     {
         var red = await db.Reds.FindAsync(new object[] { id }, CancellationToken.None);
         if (red == null)
             return Results.NotFound(new { errors = new[] { "Red no encontrada." } });
 
-        // Verificar que el usuario coordinador existe
-        var coordinador = await db.Users.FindAsync(new object[] { body.CoordinadorId }, CancellationToken.None);
-        if (coordinador == null)
-            return Results.BadRequest(new { errors = new[] { "Usuario coordinador no encontrado." } });
-
-        // Buscar o crear el registro RedCoordinada
-        var rc = await db.RedesCoordinadas
-            .FirstOrDefaultAsync(x => x.RedId == id && x.AreaId == areaId, CancellationToken.None);
-
-        if (rc == null)
+        if (body.CoordinadorId != null)
         {
-            rc = new Dashboard_v2.Domain.Entities.RedCoordinada
-            {
-                RedId = id,
-                AreaId = areaId,
-                CoordinadorId = body.CoordinadorId,
-            };
-            db.RedesCoordinadas.Add(rc);
-        }
-        else
-        {
-            rc.CoordinadorId = body.CoordinadorId;
+            var existe = await db.Users.AnyAsync(u => u.Id == body.CoordinadorId);
+            if (!existe)
+                return Results.BadRequest(new { errors = new[] { "Usuario coordinador no encontrado." } });
         }
 
+        red.CoordinadorId = body.CoordinadorId;
         await db.SaveChangesAsync(CancellationToken.None);
-        return Results.Ok(new { message = "Coordinador asignado correctamente." });
+        return Results.Ok(new { message = "Coordinador actualizado." });
     }
 
-    private async Task<IResult> GetRedes(IApplicationDbContext db)
+    private async Task<IResult> GetParticipantes(IApplicationDbContext db, string id)
     {
-        var list = await db.Reds
+        if (!await db.Reds.AnyAsync(r => r.Id == id))
+            return Results.NotFound(new { errors = new[] { "Red no encontrada." } });
+
+        var list = await db.ParticipacionesEnRed
+            .AsNoTracking()
+            .Where(p => p.RedId == id)
+            .Include(p => p.Author)
+            .Select(p => new ParticipanteRedDto(p.AuthorId, p.Author.Name))
+            .ToListAsync();
+
+        return Results.Ok(list);
+    }
+
+    private async Task<IResult> AddParticipante(IApplicationDbContext db, string id, string authorId)
+    {
+        if (!await db.Reds.AnyAsync(r => r.Id == id))
+            return Results.NotFound(new { errors = new[] { "Red no encontrada." } });
+        if (!await db.Authors.AnyAsync(a => a.Id == authorId))
+            return Results.NotFound(new { errors = new[] { "Autor no encontrado." } });
+        if (await db.ParticipacionesEnRed.AnyAsync(p => p.RedId == id && p.AuthorId == authorId))
+            return Results.BadRequest(new { errors = new[] { "El autor ya es participante de esta red." } });
+
+        db.ParticipacionesEnRed.Add(new ParticipacionEnRed { RedId = id, AuthorId = authorId });
+        await db.SaveChangesAsync(CancellationToken.None);
+        return Results.NoContent();
+    }
+
+    private async Task<IResult> RemoveParticipante(IApplicationDbContext db, string id, string authorId)
+    {
+        var p = await db.ParticipacionesEnRed
+            .FirstOrDefaultAsync(x => x.RedId == id && x.AuthorId == authorId);
+        if (p == null)
+            return Results.NotFound(new { errors = new[] { "El autor no es participante de esta red." } });
+
+        db.ParticipacionesEnRed.Remove(p);
+        await db.SaveChangesAsync(CancellationToken.None);
+        return Results.NoContent();
+    }
+
+    private async Task<IResult> GetRedes(IApplicationDbContext db, IUser currentUser, HttpContext http)
+    {
+        IQueryable<Red> query = db.Reds.AsNoTracking();
+
+        if (http.User.IsInRole("Vicedecano_de_investigacion"))
+        {
+            var areaId = await db.Users.AsNoTracking()
+                .Where(u => u.Id == currentUser.Id)
+                .Select(u => u.AreaId)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrEmpty(areaId))
+            {
+                query = query.Where(r =>
+                    (r.CoordinadorId != null && r.Coordinador!.AreaId == areaId) ||
+                    r.Participaciones.Any(p => p.Author.User != null && p.Author.User.AreaId == areaId));
+            }
+        }
+
+        var list = await query
             .Select(r => new RedDto(r.Id, r.Nombre, r.CountryId, r.Country != null ? r.Country.Name : null, r.CantidadProfesores, (int)r.Tipo))
             .ToListAsync();
 
@@ -170,7 +218,7 @@ public class Redes : EndpointGroupBase
         if (!Enum.IsDefined(typeof(TipoRed), body.Tipo))
             return Results.BadRequest(new { errors = new[] { "Tipo de red no válido." } });
 
-        var entity = new Dashboard_v2.Domain.Entities.Red
+        var entity = new Red
         {
             Nombre = body.Nombre,
             CountryId = body.CountryId,
@@ -215,7 +263,6 @@ public class Redes : EndpointGroupBase
 
     private async Task<IResult> GetEventsForRed(IApplicationDbContext db, string id)
     {
-        // return all events with a flag indicating whether they are coordinated by this red
         var list = await db.Events
             .AsNoTracking()
             .OrderBy(e => e.Name)
@@ -233,17 +280,13 @@ public class Redes : EndpointGroupBase
 
         var eventIds = (body?.EventIds ?? new List<int>()).Distinct().ToList();
 
-        // Validate provided event ids exist
         var events = await db.Events.Where(e => eventIds.Contains(e.Id)).ToListAsync();
         if (events.Count != eventIds.Count)
             return Results.BadRequest(new { errors = new[] { "Uno o más eventos no existen." } });
 
-        // Unassign events that were previously assigned to this red but are not in the new list
         var currentlyAssigned = await db.Events.Where(e => e.RedId == id).ToListAsync();
         var toUnassign = currentlyAssigned.Where(e => !eventIds.Contains(e.Id)).ToList();
         foreach (var e in toUnassign) e.RedId = null;
-
-        // Assign selected events to this red (this will overwrite any previous red assignment)
         foreach (var e in events) e.RedId = id;
 
         await db.SaveChangesAsync(CancellationToken.None);
@@ -252,11 +295,19 @@ public class Redes : EndpointGroupBase
 }
 
 public record RedDto(string Id, string Nombre, int? CountryId, string? CountryName, int CantidadProfesores, int Tipo);
-public record RedConCoordinadoresDto(string Id, string Nombre, int Tipo, string? CountryName, int CantidadProfesores, List<CoordinadorAreaDto> Coordinadores);
-public record CoordinadorAreaDto(string AreaId, string AreaNombre, string CoordinadorId, string CoordinadorNombre, string CoordinadorEmail);
+public record RedConCoordinadorDto(
+    string Id,
+    string Nombre,
+    int Tipo,
+    string? CountryName,
+    int CantidadProfesores,
+    string? CoordinadorId,
+    string? CoordinadorNombre,
+    string? CoordinadorEmail,
+    List<ParticipanteRedDto> Participantes);
+public record ParticipanteRedDto(string AuthorId, string AuthorNombre);
+public record SetCoordinadorBody(string? CoordinadorId);
 public record CreateRedBody(string Nombre, int CountryId, int CantidadProfesores, int Tipo);
 public record UpdateRedBody(string Nombre, int CountryId, int CantidadProfesores, int Tipo);
-
 public record EventForRedDto(int Id, string Name, bool Assigned);
 public record SetEventsBody(List<int> EventIds);
-public record AsignarCoordinadorBody(string CoordinadorId);

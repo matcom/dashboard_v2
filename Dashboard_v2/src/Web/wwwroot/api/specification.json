@@ -5334,7 +5334,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/RedConCoordinadoresDto"
+                    "$ref": "#/components/schemas/RedConCoordinadorDto"
                   }
                 }
               }
@@ -5343,12 +5343,12 @@
         }
       }
     },
-    "/api/Redes/{id}/coordinadores/{areaId}": {
+    "/api/Redes/{id}/coordinador": {
       "put": {
         "tags": [
           "Redes"
         ],
-        "operationId": "AsignarCoordinador",
+        "operationId": "SetCoordinador",
         "parameters": [
           {
             "name": "id",
@@ -5358,15 +5358,6 @@
               "type": "string"
             },
             "x-position": 1
-          },
-          {
-            "name": "areaId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
           }
         ],
         "requestBody": {
@@ -5374,12 +5365,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AsignarCoordinadorBody"
+                "$ref": "#/components/schemas/SetCoordinadorBody"
               }
             }
           },
           "required": true,
-          "x-position": 3
+          "x-position": 2
         },
         "responses": {
           "200": {
@@ -5394,6 +5385,144 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Redes/{id}/participantes": {
+      "get": {
+        "tags": [
+          "Redes"
+        ],
+        "operationId": "GetParticipantesRed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ParticipanteRedDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Redes/{id}/participantes/{authorId}": {
+      "post": {
+        "tags": [
+          "Redes"
+        ],
+        "operationId": "AddParticipanteRed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "authorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Redes"
+        ],
+        "operationId": "RemoveParticipanteRed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "authorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
           },
           "404": {
             "description": "",
@@ -8746,7 +8875,7 @@
           }
         }
       },
-      "RedConCoordinadoresDto": {
+      "RedConCoordinadorDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -8768,41 +8897,45 @@
             "type": "integer",
             "format": "int32"
           },
-          "coordinadores": {
+          "coordinadorId": {
+            "type": "string",
+            "nullable": true
+          },
+          "coordinadorNombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "coordinadorEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "participantes": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CoordinadorAreaDto"
+              "$ref": "#/components/schemas/ParticipanteRedDto"
             }
           }
         }
       },
-      "CoordinadorAreaDto": {
+      "ParticipanteRedDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "areaId": {
+          "authorId": {
             "type": "string"
           },
-          "areaNombre": {
-            "type": "string"
-          },
-          "coordinadorId": {
-            "type": "string"
-          },
-          "coordinadorNombre": {
-            "type": "string"
-          },
-          "coordinadorEmail": {
+          "authorNombre": {
             "type": "string"
           }
         }
       },
-      "AsignarCoordinadorBody": {
+      "SetCoordinadorBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "coordinadorId": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },

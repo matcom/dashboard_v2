@@ -41,13 +41,13 @@ public class Patentes : EndpointGroupBase
             .ProducesProblem(404);
 
         groupBuilder.MapPost("", CreatePatente)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("CreatePatente")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", UpdatePatente)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("UpdatePatente")
             .Produces(200)
             .ProducesProblem(400)
@@ -55,22 +55,29 @@ public class Patentes : EndpointGroupBase
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", DeletePatente)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("DeletePatente")
             .Produces(200)
             .ProducesProblem(403)
             .ProducesProblem(404);
     }
 
-    private static async Task<IResult> GetPatentes(IApplicationDbContext db)
+    private static async Task<IResult> GetPatentes(IApplicationDbContext db, IUser currentUser, HttpContext http)
     {
-        var list = await db.Patentes
+        IQueryable<Patente> query = db.Patentes;
+        if (http.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
+        {
+            var areaId = await db.Users.AsNoTracking()
+                .Where(u => u.Id == currentUser.Id)
+                .Select(u => u.AreaId)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrEmpty(areaId))
+                query = query.Where(p => p.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId));
+        }
+        var list = await query
             .Include(p => p.Creadores).ThenInclude(c => c.Author)
             .Select(p => new PatenteDto(
-                p.Id,
-                p.Titulo,
-                p.NumeroSolicitudConcesion,
-                p.EsNacional,
+                p.Id, p.Titulo, p.NumeroSolicitudConcesion, p.EsNacional,
                 p.Creadores.Select(c => c.Author.Name).ToList(),
                 p.Creadores.Select(c => new CreatorDto(c.Author.Id, c.Author.Name, c.Author.UserId)).ToList()))
             .ToListAsync();
@@ -217,7 +224,7 @@ public class Patentes : EndpointGroupBase
             return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
 
         var roles = currentUser.Roles ?? [];
-        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        if (!roles.Contains(nameof(RolesEnum.Superuser)))
         {
             var esCreador = await db.AuthorPatentes.AnyAsync(ap => ap.PatenteId == id && ap.AuthorId == currentAuthor.Id);
             if (!esCreador)
@@ -253,7 +260,7 @@ public class Patentes : EndpointGroupBase
             return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
 
         var roles = currentUser.Roles ?? [];
-        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        if (!roles.Contains(nameof(RolesEnum.Superuser)))
         {
             var esCreador = await db.AuthorPatentes.AnyAsync(ap => ap.PatenteId == id && ap.AuthorId == currentAuthor.Id);
             if (!esCreador)

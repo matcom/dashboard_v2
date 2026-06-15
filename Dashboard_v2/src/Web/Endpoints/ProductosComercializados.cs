@@ -10,23 +10,23 @@ public class ProductosComercializados : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetAll)
-            .RequireAuthorization()
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser), nameof(RolesEnum.Vicedecano_de_investigacion)))
             .WithName("GetProductosComercializados")
             .Produces<List<ProductoDto>>(200);
 
         groupBuilder.MapGet("mis", GetMis)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("GetMisProductosComercializados")
             .Produces<List<ProductoDto>>(200);
 
         groupBuilder.MapPost("", Create)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("CreateProductoComercializado")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", Update)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("UpdateProductoComercializado")
             .Produces(200)
             .ProducesProblem(400)
@@ -34,16 +34,26 @@ public class ProductosComercializados : EndpointGroupBase
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", Delete)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("DeleteProductoComercializado")
             .Produces(200)
             .ProducesProblem(403)
             .ProducesProblem(404);
     }
 
-    private static async Task<IResult> GetAll(IApplicationDbContext db)
+    private static async Task<IResult> GetAll(IApplicationDbContext db, IUser currentUser, HttpContext http)
     {
-        var list = await db.ProductosComercializados
+        IQueryable<ProductoComercializado> query = db.ProductosComercializados;
+        if (http.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
+        {
+            var areaId = await db.Users.AsNoTracking()
+                .Where(u => u.Id == currentUser.Id)
+                .Select(u => u.AreaId)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrEmpty(areaId))
+                query = query.Where(p => p.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId));
+        }
+        var list = await query
             .Include(p => p.TipoProductoComercializado)
             .Include(p => p.Institution)
             .Include(p => p.Creadores).ThenInclude(c => c.Author)
@@ -117,7 +127,7 @@ public class ProductosComercializados : EndpointGroupBase
             return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
 
         var roles = currentUser.Roles ?? [];
-        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        if (!roles.Contains(nameof(RolesEnum.Superuser)))
         {
             var esCreador = await db.AuthorProductosComercializados.AnyAsync(ap => ap.ProductoComercializadoId == id && ap.AuthorId == currentAuthor.Id);
             if (!esCreador)
@@ -153,7 +163,7 @@ public class ProductosComercializados : EndpointGroupBase
             return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
 
         var roles = currentUser.Roles ?? [];
-        if (!roles.Contains(nameof(RolesEnum.Superuser)) && !roles.Contains(nameof(RolesEnum.Jefe_de_Proyecto)))
+        if (!roles.Contains(nameof(RolesEnum.Superuser)))
         {
             var esCreador = await db.AuthorProductosComercializados.AnyAsync(ap => ap.ProductoComercializadoId == id && ap.AuthorId == currentAuthor.Id);
             if (!esCreador)

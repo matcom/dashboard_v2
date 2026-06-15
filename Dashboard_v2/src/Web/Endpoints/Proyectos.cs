@@ -18,7 +18,7 @@ public class Proyectos : EndpointGroupBase
     {
         // ── Listado general ───────────────────────────────────────────
         g.MapGet("", GetProyectos)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Profesor)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto), nameof(RolesEnum.Profesor), nameof(RolesEnum.Vicedecano_de_investigacion)))
             .WithName("GetProyectos")
             .Produces<List<ProyectoResumenDto>>(200);
         // ── Tipos de ejecución disponibles para ProyectoEnRevision.Tipo ────────
@@ -211,8 +211,12 @@ public class Proyectos : EndpointGroupBase
     }
 
     // ── Listado / Delete ───────────────────────────────────────────────
-    private static async Task<IResult> GetProyectos(IProyectoService proyectoService, CancellationToken ct)
-        => Results.Ok(await proyectoService.GetAllAsync(ct));
+    private static async Task<IResult> GetProyectos(IProyectoService proyectoService, HttpContext http, CancellationToken ct)
+    {
+        if (http.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
+            return Results.Ok(await proyectoService.GetAreaProyectosAsync(ct));
+        return Results.Ok(await proyectoService.GetAllAsync(ct));
+    }
 
     private static async Task<IResult> GetTiposEjecucion(IProyectoService proyectoService, CancellationToken ct)
         => Results.Ok(await proyectoService.GetTiposEjecucionAsync(ct));
