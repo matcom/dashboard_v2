@@ -50,7 +50,8 @@ public class Documents : EndpointGroupBase
         }
 
         if (reportName.Equals("anexo-premios", StringComparison.OrdinalIgnoreCase) &&
-            !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)))
+            !httpContext.User.IsInRole(nameof(RolesEnum.Superuser)) &&
+            !httpContext.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
         {
             return Results.Forbid();
         }
