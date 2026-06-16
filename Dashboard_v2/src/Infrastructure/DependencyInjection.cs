@@ -145,6 +145,11 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.Authors.IAuthorService, Dashboard_v2.Application.Authors.AuthorService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Roles.IRoleService, Dashboard_v2.Application.Roles.RoleService>();
         builder.Services.AddScoped<IProyectoService, ProyectoService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Redes.IRedService, Dashboard_v2.Application.Redes.RedService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Patentes.IPatenteService, Dashboard_v2.Application.Patentes.PatenteService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Normas.INormaService, Dashboard_v2.Application.Normas.NormaService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Registros.IRegistroService, Dashboard_v2.Application.Registros.RegistroService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.ProductosComercializados.IProductoComercializadoService, Dashboard_v2.Application.ProductosComercializados.ProductoComercializadoService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Documents.IDocumentService, Dashboard_v2.Application.Documents.DocumentService>();
         // Para agregar un nuevo reporte, agrega otra línea aquí:

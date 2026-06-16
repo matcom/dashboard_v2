@@ -1,6 +1,7 @@
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Application.Documents.Reports;
 
@@ -15,6 +16,10 @@ public sealed class AnexoRedesNacInterReport : IDocumentReport
 
     public string ReportName => "anexo-redes-nac-inter";
     public string TemplateName => "AnexoRedesNacInter";
+
+    public IReadOnlyCollection<string> AllowedRoles =>
+        [nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Grupo_de_investigacion),
+         nameof(RolesEnum.Vicedecano_de_investigacion), nameof(RolesEnum.Jefe_de_Redes)];
 
     public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(
         IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)

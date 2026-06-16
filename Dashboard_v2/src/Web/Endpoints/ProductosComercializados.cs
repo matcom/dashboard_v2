@@ -1,6 +1,5 @@
-using Dashboard_v2.Application.Common.Interfaces;
-using Dashboard_v2.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+using Dashboard_v2.Application.Common.Models;
+using Dashboard_v2.Application.ProductosComercializados;
 using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Web.Endpoints;
@@ -41,161 +40,45 @@ public class ProductosComercializados : EndpointGroupBase
             .ProducesProblem(404);
     }
 
-    private static async Task<IResult> GetAll(IApplicationDbContext db, IUser currentUser, HttpContext http)
+    private static async Task<IResult> GetAll(IProductoComercializadoService service, CancellationToken ct)
+        => Results.Ok(await service.GetAllAsync(ct));
+
+    private static async Task<IResult> GetMis(IProductoComercializadoService service, CancellationToken ct)
+        => Results.Ok(await service.GetMisAsync(ct));
+
+    private static async Task<IResult> Create(IProductoComercializadoService service, CreateProductoBody body, CancellationToken ct)
     {
-        IQueryable<ProductoComercializado> query = db.ProductosComercializados;
-        if (http.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
-        {
-            var areaId = await db.Users.AsNoTracking()
-                .Where(u => u.Id == currentUser.Id)
-                .Select(u => u.AreaId)
-                .FirstOrDefaultAsync();
-            if (!string.IsNullOrEmpty(areaId))
-                query = query.Where(p => p.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId));
-        }
-        var list = await query
-            .Include(p => p.TipoProductoComercializado)
-            .Include(p => p.Institution)
-            .Include(p => p.Creadores).ThenInclude(c => c.Author)
-            .Select(p => new ProductoDto(
-                p.Id, p.Titulo,
-                p.TipoProductoComercializadoId, p.TipoProductoComercializado.Nombre,
-                p.InstitutionId, p.Institution.Nombre,
-                p.Creadores.Select(c => c.Author.Name).ToList(),
-                p.Creadores.Select(c => new CreatorDto(c.Author.Id, c.Author.Name, c.Author.UserId)).ToList()))
-            .ToListAsync();
-        return Results.Ok(list);
+        var (result, id) = await service.CreateAsync(body, ct);
+        if (!result.Succeeded)
+            return Results.BadRequest(new { errors = result.Errors });
+
+        return Results.Created($"/api/ProductosComercializados/{id}", new { id });
     }
 
-    private static async Task<IResult> GetMis(IApplicationDbContext db, IUser currentUser, IAuthorResolutionService authorResolution)
+    private static async Task<IResult> Update(IProductoComercializadoService service, string id, UpdateProductoBody body, CancellationToken ct)
     {
-        var currentAuthor = await authorResolution.GetOrCreateForUserAsync(currentUser.Id!, CancellationToken.None);
-        if (currentAuthor == null)
-            return Results.Ok(new List<ProductoDto>());
-
-        var list = await db.AuthorProductosComercializados
-            .Where(ap => ap.AuthorId == currentAuthor.Id)
-            .Include(ap => ap.ProductoComercializado).ThenInclude(p => p.TipoProductoComercializado)
-            .Include(ap => ap.ProductoComercializado).ThenInclude(p => p.Institution)
-            .Include(ap => ap.ProductoComercializado).ThenInclude(p => p.Creadores).ThenInclude(c => c.Author)
-            .Select(ap => new ProductoDto(
-                ap.ProductoComercializado.Id, ap.ProductoComercializado.Titulo,
-                ap.ProductoComercializado.TipoProductoComercializadoId,
-                ap.ProductoComercializado.TipoProductoComercializado.Nombre,
-                ap.ProductoComercializado.InstitutionId, ap.ProductoComercializado.Institution.Nombre,
-                ap.ProductoComercializado.Creadores.Select(c => c.Author.Name).ToList(),
-                ap.ProductoComercializado.Creadores.Select(c => new CreatorDto(c.Author.Id, c.Author.Name, c.Author.UserId)).ToList()))
-            .ToListAsync();
-        return Results.Ok(list);
+        var result = await service.UpdateAsync(id, body, ct);
+        return ToUpdateOrDeleteResult(result, "Producto actualizado.");
     }
 
-    private static async Task<IResult> Create(IApplicationDbContext db, IUser currentUser, IAuthorResolutionService authorResolution, IProductionCreatorService creatorService, CreateProductoBody body)
+    private static async Task<IResult> Delete(IProductoComercializadoService service, string id, CancellationToken ct)
     {
-        var currentAuthor = await authorResolution.GetOrCreateForUserAsync(currentUser.Id!, CancellationToken.None);
-        if (currentAuthor == null)
-            return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
-
-        var item = new ProductoComercializado
-        {
-            Titulo = body.Titulo,
-            TipoProductoComercializadoId = body.TipoProductoComercializadoId,
-            InstitutionId = body.InstitutionId
-        };
-        db.ProductosComercializados.Add(item);
-
-        item.Creadores.Add(new AuthorProductoComercializado { AuthorId = currentAuthor.Id, ProductoComercializadoId = item.Id });
-        await creatorService.AddAdditionalCreatorsAsync(
-            item.Creadores, currentAuthor.Id,
-            authorId => new AuthorProductoComercializado { AuthorId = authorId, ProductoComercializadoId = item.Id },
-            c => c.AuthorId,
-            body.AdditionalAuthorIds, body.AdditionalAuthorNames, body.AdditionalUserIds);
-
-        await db.SaveChangesAsync(CancellationToken.None);
-        return Results.Created($"/api/ProductosComercializados/{item.Id}", new { id = item.Id });
+        var result = await service.DeleteAsync(id, ct);
+        return ToUpdateOrDeleteResult(result, "Producto eliminado.");
     }
 
-    private static async Task<IResult> Update(IApplicationDbContext db, IUser currentUser, IAuthorResolutionService authorResolution, IProductionCreatorService creatorService, string id, UpdateProductoBody body)
+    private static IResult ToUpdateOrDeleteResult(Result result, string successMessage)
     {
-        var item = await db.ProductosComercializados
-            .Include(p => p.Creadores)
-            .FirstOrDefaultAsync(p => p.Id == id, CancellationToken.None);
-        if (item == null)
-            return Results.NotFound(new { errors = new[] { "Producto no encontrado." } });
+        if (result.Succeeded)
+            return Results.Ok(new { message = successMessage });
+        if (HasError(result, "Producto no encontrado."))
+            return Results.NotFound(new { errors = result.Errors });
+        if (HasError(result, "No tiene permisos sobre este producto."))
+            return Results.Forbid();
 
-        var currentAuthor = await authorResolution.GetOrCreateForUserAsync(currentUser.Id!, CancellationToken.None);
-        if (currentAuthor == null)
-            return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
-
-        var roles = currentUser.Roles ?? [];
-        if (!roles.Contains(nameof(RolesEnum.Superuser)))
-        {
-            var esCreador = await db.AuthorProductosComercializados.AnyAsync(ap => ap.ProductoComercializadoId == id && ap.AuthorId == currentAuthor.Id);
-            if (!esCreador)
-                return Results.Forbid();
-        }
-
-        item.Titulo = body.Titulo;
-        item.TipoProductoComercializadoId = body.TipoProductoComercializadoId;
-        item.InstitutionId = body.InstitutionId;
-
-        var toRemove = item.Creadores.Where(c => c.AuthorId != currentAuthor.Id).ToList();
-        foreach (var creator in toRemove)
-            item.Creadores.Remove(creator);
-
-        await creatorService.AddAdditionalCreatorsAsync(
-            item.Creadores, currentAuthor.Id,
-            authorId => new AuthorProductoComercializado { AuthorId = authorId, ProductoComercializadoId = item.Id },
-            c => c.AuthorId,
-            body.AdditionalAuthorIds, body.AdditionalAuthorNames, body.AdditionalUserIds);
-
-        await db.SaveChangesAsync(CancellationToken.None);
-        return Results.Ok(new { message = "Producto actualizado." });
+        return Results.BadRequest(new { errors = result.Errors });
     }
 
-    private static async Task<IResult> Delete(IApplicationDbContext db, IUser currentUser, IAuthorResolutionService authorResolution, string id)
-    {
-        var item = await db.ProductosComercializados.FindAsync(new object[] { id }, CancellationToken.None);
-        if (item == null)
-            return Results.NotFound(new { errors = new[] { "Producto no encontrado." } });
-
-        var currentAuthor = await authorResolution.GetOrCreateForUserAsync(currentUser.Id!, CancellationToken.None);
-        if (currentAuthor == null)
-            return Results.BadRequest(new { errors = new[] { "Usuario actual no valido." } });
-
-        var roles = currentUser.Roles ?? [];
-        if (!roles.Contains(nameof(RolesEnum.Superuser)))
-        {
-            var esCreador = await db.AuthorProductosComercializados.AnyAsync(ap => ap.ProductoComercializadoId == id && ap.AuthorId == currentAuthor.Id);
-            if (!esCreador)
-                return Results.Forbid();
-        }
-
-        db.ProductosComercializados.Remove(item);
-        await db.SaveChangesAsync(CancellationToken.None);
-        return Results.Ok(new { message = "Producto eliminado." });
-    }
+    private static bool HasError(Result result, string error)
+        => result.Errors.Contains(error, StringComparer.Ordinal);
 }
-
-public record ProductoDto(
-    string Id,
-    string Titulo,
-    string TipoProductoComercializadoId,
-    string TipoProductoComercializadoNombre,
-    string InstitutionId,
-    string InstitutionNombre,
-    List<string> Creadores,
-    List<CreatorDto> CreadoresDetalle);
-public record CreateProductoBody(
-    string Titulo,
-    string TipoProductoComercializadoId,
-    string InstitutionId,
-    List<string>? AdditionalAuthorIds = null,
-    List<string>? AdditionalAuthorNames = null,
-    List<string>? AdditionalUserIds = null);
-public record UpdateProductoBody(
-    string Titulo,
-    string TipoProductoComercializadoId,
-    string InstitutionId,
-    List<string>? AdditionalAuthorIds = null,
-    List<string>? AdditionalAuthorNames = null,
-    List<string>? AdditionalUserIds = null);

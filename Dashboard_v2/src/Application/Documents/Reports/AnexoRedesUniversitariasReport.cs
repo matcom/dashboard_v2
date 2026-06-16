@@ -2,6 +2,7 @@ using System.IO.Compression;
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Application.Documents.Reports;
 
@@ -15,6 +16,10 @@ public sealed class AnexoRedesUniversitariasReport : IZipDocumentReport
     }
 
     public string ReportName => "anexo-redes-universitarias";
+
+    public IReadOnlyCollection<string> AllowedRoles =>
+        [nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Grupo_de_investigacion),
+         nameof(RolesEnum.Vicedecano_de_investigacion), nameof(RolesEnum.Jefe_de_Redes)];
 
     public async Task<byte[]> GenerateAsync(IDocumentRenderer renderer, CancellationToken ct = default)
     {
