@@ -6,7 +6,6 @@ import {
   Form, FormGroup, Label, Input,
   Table,
 } from 'reactstrap';
-import DataTable from '../components/DataTable';
 import FilterableDataTable from '../components/FilterableDataTable';
 import UserCard from '../components/UserCard';
 
@@ -104,7 +103,6 @@ export default function RedesPage() {
     const redId = it.id ?? it.Id;
     const redInfo = misRedes.find(r => r.id === redId);
     if (redInfo?.coordinadorId) {
-      setCoordAreaId('');
       setCoordUserId(redInfo.coordinadorId);
       setCoordUserSearch('');
     } else {
@@ -298,6 +296,7 @@ export default function RedesPage() {
               { key: 'delete', label: 'Eliminar',        color: 'outline-danger',    onClick: i => handleDelete(i.id) },
             ]}
             emptyMessage="No hay redes."
+            detailConfig
           />
         </CardBody>
       </Card>
@@ -437,7 +436,6 @@ export default function RedesPage() {
                   {availableEvents.map(ev => {
                     const id = ev.id ?? ev.Id;
                     const name = ev.name ?? ev.Name;
-                    const assigned = ev.assigned ?? ev.Assigned;
                     return (
                       <tr key={id}>
                         <td>

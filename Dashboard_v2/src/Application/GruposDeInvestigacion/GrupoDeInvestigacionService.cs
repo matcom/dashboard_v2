@@ -56,6 +56,25 @@ public sealed class GrupoDeInvestigacionService : IGrupoDeInvestigacionService
             .ToListAsync(ct);
     }
 
+    public async Task<List<GrupoDeInvestigacionDto>> GetAreaAsync(CancellationToken ct = default)
+    {
+        var areaId = await _context.GetUserAreaIdAsync(_currentUser.Id, ct) ?? string.Empty;
+        return await _context.GruposDeInvestigacion
+            .Where(g => g.AreaId == areaId)
+            .OrderBy(g => g.Nombre)
+            .Select(g => new GrupoDeInvestigacionDto
+            {
+                Id = g.Id,
+                Nombre = g.Nombre,
+                AreaId = g.AreaId,
+                AreaNombre = g.Area.Nombre,
+                LineasDeInvestigacionIds = g.LineasDeInvestigacion.Select(l => l.Id).ToList(),
+                UsuariosIds = g.Usuarios.Select(u => u.Id).ToList(),
+                CreadorId = g.CreadorId
+            })
+            .ToListAsync(ct);
+    }
+
     public async Task<(Result Result, string? Id)> CreateAsync(CreateGrupoDeInvestigacionRequest request, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(request.Nombre))

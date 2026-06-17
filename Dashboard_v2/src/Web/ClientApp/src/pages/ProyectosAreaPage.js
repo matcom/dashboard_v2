@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardBody, CardHeader, Spinner, Alert, Badge } from 'reactstrap';
+import { Card, CardBody, CardHeader, Spinner, Alert, Button } from 'reactstrap';
 import FilterableDataTable from '../components/FilterableDataTable';
 
 const TIPOS = [
@@ -12,6 +12,10 @@ const TIPOS = [
   { value: 'pnap',                       label: 'PNAP'                               },
 ];
 
+const ANEXOS = [
+  { reportName: 'anexo-proyectos', label: 'Anexo 4 — Proyectos', ext: 'xlsx' },
+];
+
 async function apiFetch(url) {
   const res = await fetch(url, { credentials: 'include' });
   const data = await res.json().catch(() => null);
@@ -19,10 +23,28 @@ async function apiFetch(url) {
   return data;
 }
 
+async function downloadReport(reportName, ext) {
+  const response = await fetch(`/api/Documents/${reportName}`, { credentials: 'include' });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.error ?? 'Error al generar el anexo.');
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  a.download = `${reportName}_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}.${ext}`;
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function ProyectosAreaPage() {
-  const [items, setItems]     = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
+  const [items, setItems]             = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState('');
+  const [generatingAnexo, setGeneratingAnexo] = useState(null);
+  const [anexoError, setAnexoError]   = useState('');
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -33,12 +55,34 @@ export default function ProyectosAreaPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  async function handleGenerarAnexo(reportName, ext) {
+    setGeneratingAnexo(reportName); setAnexoError('');
+    try { await downloadReport(reportName, ext); }
+    catch (e) { setAnexoError(e.message); }
+    finally { setGeneratingAnexo(null); }
+  }
+
   if (loading) return <div className="d-flex justify-content-center mt-5"><Spinner color="primary" /></div>;
 
   return (
     <>
       <h2 className="mb-4">Proyectos del Área</h2>
       {error && <Alert color="danger">{error}</Alert>}
+      {anexoError && <Alert color="danger">{anexoError}</Alert>}
+
+      <div className="d-flex flex-wrap gap-2 mb-3">
+        {ANEXOS.map(({ reportName, label, ext }) => (
+          <Button
+            key={reportName}
+            color="success"
+            size="sm"
+            onClick={() => handleGenerarAnexo(reportName, ext)}
+            disabled={generatingAnexo !== null}
+          >
+            {generatingAnexo === reportName ? <Spinner size="sm" /> : `⬇ ${label}`}
+          </Button>
+        ))}
+      </div>
 
       <Card>
         <CardHeader>
@@ -67,6 +111,7 @@ export default function ProyectosAreaPage() {
             data={items}
             keyExtractor={i => i.id}
             emptyMessage="No hay proyectos en el área."
+            detailConfig
           />
         </CardBody>
       </Card>

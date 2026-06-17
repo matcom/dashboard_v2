@@ -335,6 +335,44 @@ public sealed class EventService : IEventService
             .ThenBy(p => p.Name)
             .ToListAsync(ct);
 
+    public async Task<List<PresentationDto>> GetAreaPresentationsAsync(CancellationToken ct = default)
+    {
+        var areaId = await _context.GetUserAreaIdAsync(_currentUser.Id, ct) ?? string.Empty;
+        return await _context.Presentations
+            .AsNoTracking()
+            .Where(p => p.Event.Organizadores.Any(o => o.User != null && o.User.AreaId == areaId)
+                     || p.Event.Participaciones.Any(part => part.User != null && part.User.AreaId == areaId))
+            .Select(p => new PresentationDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                EventId = p.EventId,
+                EventName = p.Event.Name,
+                Fecha = p.Fecha,
+                UserId = p.UserId,
+                User = new LinkedUserSummaryDto
+                {
+                    Id = p.User.Id,
+                    UserName = p.User.UserName,
+                    UserLastName1 = p.User.UserLastName1,
+                    UserLastName2 = p.User.UserLastName2,
+                    Email = p.User.Email,
+                    IsTrained = p.User.IsTrained,
+                    ScientificCategory = (int)p.User.ScientificCategory,
+                    TeachingCategory = (int)p.User.TeachingCategory,
+                    InvestigationCategory = (int)p.User.InvestigationCategory,
+                    AreaId = p.User.AreaId,
+                    AreaNombre = p.User.Area != null ? p.User.Area.Nombre : null,
+                    UniversidadId = p.User.Area != null ? p.User.Area.UniversidadId : null,
+                    UniversidadNombre = p.User.Area != null && p.User.Area.Universidad != null
+                        ? p.User.Area.Universidad.Nombre : null,
+                },
+            })
+            .OrderBy(p => p.EventName)
+            .ThenBy(p => p.Name)
+            .ToListAsync(ct);
+    }
+
     public async Task<(Result Result, int? PresentationId)> CreatePresentationAsync(CreatePresentationRequest request, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(request.Name))

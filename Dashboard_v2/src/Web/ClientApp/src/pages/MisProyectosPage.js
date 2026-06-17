@@ -101,6 +101,7 @@ export default function MisProyectosPage() {
             data={items}
             keyExtractor={item => item.id}
             emptyMessage="No participas en ningún proyecto."
+            detailConfig
           />
         </CardBody>
       </Card>

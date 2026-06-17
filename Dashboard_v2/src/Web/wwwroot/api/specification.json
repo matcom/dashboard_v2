@@ -666,6 +666,29 @@
         }
       }
     },
+    "/api/Awards/area": {
+      "get": {
+        "tags": [
+          "Awards"
+        ],
+        "operationId": "GetAreaAwards",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AwardWithGrantingsDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Awards/{id}": {
       "put": {
         "tags": [
@@ -1631,6 +1654,29 @@
         }
       }
     },
+    "/api/GruposDeInvestigacion/area": {
+      "get": {
+        "tags": [
+          "GruposDeInvestigacion"
+        ],
+        "operationId": "GetAreaGruposDeInvestigacion",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GrupoDeInvestigacionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/GruposDeInvestigacion/{id}": {
       "put": {
         "tags": [
@@ -1824,6 +1870,29 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/GruposEstudiantiles/area": {
+      "get": {
+        "tags": [
+          "GruposEstudiantiles"
+        ],
+        "operationId": "GetAreaGruposEstudiantiles",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GrupoEstudiantilDto"
+                  }
                 }
               }
             }
@@ -3063,6 +3132,29 @@
           "Presentations"
         ],
         "operationId": "GetAllPresentations",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PresentationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Presentations/area": {
+      "get": {
+        "tags": [
+          "Presentations"
+        ],
+        "operationId": "GetAreaPresentations",
         "responses": {
           "200": {
             "description": "",

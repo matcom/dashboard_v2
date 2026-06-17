@@ -952,6 +952,48 @@ export class AwardsClient {
         return Promise.resolve<AwardWithGrantingsDto[]>(null as any);
     }
 
+    getAreaAwards(): Promise<AwardWithGrantingsDto[]> {
+        let url_ = this.baseUrl + "/api/Awards/area";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAreaAwards(_response);
+        });
+    }
+
+    protected processGetAreaAwards(response: Response): Promise<AwardWithGrantingsDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AwardWithGrantingsDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AwardWithGrantingsDto[]>(null as any);
+    }
+
     updateAward(id: number, body: UpdateAwardRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Awards/{id}";
         if (id === undefined || id === null)
@@ -2145,6 +2187,48 @@ export class GruposDeInvestigacionClient {
         return Promise.resolve<GrupoDeInvestigacionDto[]>(null as any);
     }
 
+    getAreaGruposDeInvestigacion(): Promise<GrupoDeInvestigacionDto[]> {
+        let url_ = this.baseUrl + "/api/GruposDeInvestigacion/area";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAreaGruposDeInvestigacion(_response);
+        });
+    }
+
+    protected processGetAreaGruposDeInvestigacion(response: Response): Promise<GrupoDeInvestigacionDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GrupoDeInvestigacionDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrupoDeInvestigacionDto[]>(null as any);
+    }
+
     updateGrupoDeInvestigacion(id: string, body: UpdateGrupoDeInvestigacionRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/GruposDeInvestigacion/{id}";
         if (id === undefined || id === null)
@@ -2383,6 +2467,48 @@ export class GruposEstudiantilesClient {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    getAreaGruposEstudiantiles(): Promise<GrupoEstudiantilDto[]> {
+        let url_ = this.baseUrl + "/api/GruposEstudiantiles/area";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAreaGruposEstudiantiles(_response);
+        });
+    }
+
+    protected processGetAreaGruposEstudiantiles(response: Response): Promise<GrupoEstudiantilDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GrupoEstudiantilDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrupoEstudiantilDto[]>(null as any);
     }
 
     updateGrupoEstudiantil(id: string, body: UpdateGrupoEstudiantilRequest): Promise<void> {
@@ -4189,6 +4315,48 @@ export class PresentationsClient {
     }
 
     protected processGetAllPresentations(response: Response): Promise<PresentationDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PresentationDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PresentationDto[]>(null as any);
+    }
+
+    getAreaPresentations(): Promise<PresentationDto[]> {
+        let url_ = this.baseUrl + "/api/Presentations/area";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAreaPresentations(_response);
+        });
+    }
+
+    protected processGetAreaPresentations(response: Response): Promise<PresentationDto[]> {
         followIfLoginRedirect(response);
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };

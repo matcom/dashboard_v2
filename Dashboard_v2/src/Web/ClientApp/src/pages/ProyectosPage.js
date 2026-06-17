@@ -708,6 +708,7 @@ export default function ProyectosPage() {
                 { key: 'delete', label: 'Eliminar', icon: 'bi-trash',  color: 'outline-danger',    onClick: item => setDeleteTarget(item) },
               ]}
               emptyMessage="No hay proyectos registrados."
+              detailConfig
             />
           )}
         </CardBody>
