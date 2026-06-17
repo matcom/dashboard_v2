@@ -34,7 +34,6 @@ public static class DependencyInjection
         Guard.Against.Null(connectionString, message: "Connection string 'Dashboard_v2Db' not found.");
 
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
@@ -57,7 +56,6 @@ public static class DependencyInjection
             builder.Services.AddTransient<IIdentityService, LocalAuthService>();
 
         builder.Services.AddSingleton<IJwtService, JwtService>();
-        builder.Services.AddScoped<IPermissionService, PermissionService>();
         builder.Services.AddScoped<IAuthorCleanupService, AuthorCleanupService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IAuthorResolutionService, Dashboard_v2.Application.Common.AuthorResolutionService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IProductionCreatorService, Dashboard_v2.Application.Common.ProductionCreatorService>();

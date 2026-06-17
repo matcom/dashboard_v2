@@ -27,7 +27,6 @@ public class User
 
     // Navegación
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-    public ICollection<Resource> OwnedResources { get; set; } = new List<Resource>();
 
     // Si el usuario es también un autor académico registrado, este es su perfil.
     public Author? AuthorProfile { get; set; }
