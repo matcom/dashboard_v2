@@ -7,13 +7,16 @@ applyTo: '**/*.cs' # Se aplica a todos los archivos C# del proyecto
 
 **Basado en**: [Clean Architecture Template de Jason Taylor](https://github.com/jasontaylordev/CleanArchitecture)
 
+⚠️ **NOTA IMPORTANTE**: Los features `TodoItems`, `TodoLists` y `WeatherForecasts` son **ejemplos de la template** y fueron eliminados. NO uses estos como referencia para nuevas funcionalidades.
+
 ## Stack Tecnológico
 
 ### Backend
 - **.NET 10**: Framework principal (C#)
 - **Entity Framework Core**: ORM para PostgreSQL
 - **PostgreSQL**: Base de datos relacional
-- **FluentValidation**: Validación de DTOs/requests
+- **MediatR**: Implementación de CQRS
+- **FluentValidation**: Validación de comandos/queries
 - **NSwag**: Generación de clientes API TypeScript para React
 
 ### Frontend
@@ -41,13 +44,13 @@ Este proyecto sigue **Clean Architecture** con las siguientes capas:
 
 ### 2. **Application** (`src/Application/`)
 - **Propósito**: Casos de uso y lógica de aplicación
-- **Contenido**: Servicios de aplicación (interfaces y/o implementaciones), DTOs, Interfaces, Validators
+- **Contenido**: Commands, Queries, DTOs, Interfaces, Validators
 - **Reglas**:
   - Solo depende de Domain
-  - Expone casos de uso a través de servicios de aplicación (p. ej. `IEventService`); evita introducir nuevos handlers MediatR para Commands/Queries.
-  - Los casos de uso se implementan como métodos en servicios y retornan DTOs/Resultados
+  - Usa MediatR para CQRS (Commands y Queries)
+  - Los handlers implementan `IRequestHandler<TRequest, TResponse>`
   - Validadores con FluentValidation
-  - Define interfaces de repositorios/servicios (implementados en Infrastructure o Application según convención)
+  - Define interfaces de repositorios/servicios (implementados en Infrastructure)
 
 ### 3. **Infrastructure** (`src/Infrastructure/`)
 - **Propósito**: Implementaciones técnicas (BD, servicios externos, etc.)
@@ -65,7 +68,7 @@ Este proyecto sigue **Clean Architecture** con las siguientes capas:
 - **Reglas**:
   - Endpoints usan Minimal APIs o Controllers
   - NO debe contener lógica de negocio
-  - Consume servicios de Application (interfaces como `IEventService`) vía inyección de dependencias
+  - Usa MediatR para invocar Commands/Queries
   - Validación en la capa de Application, no aquí
 
 ## Convenciones de Código
@@ -75,22 +78,22 @@ Organizar por feature vertical (no por tipo):
 ```
 Application/
   [NombreFeature]/           # Reemplazar con el nombre real de tu feature
-    Services/
-      I[Feature]Service.cs
-      [Feature]Service.cs
-    DTOs/
-      Create[Entity]Request.cs
-      [Entity]Dto.cs
-    Validators/
-      Create[Entity]RequestValidator.cs
+    Commands/
+      Create[Entity]/
+        Create[Entity]Command.cs
+        Create[Entity]CommandHandler.cs
+        Create[Entity]CommandValidator.cs
+    Queries/
+      Get[Entity]/
+        Get[Entity]Query.cs
+        Get[Entity]QueryHandler.cs
 ```
 
 ### Patrones a Seguir
 
-1. **Servicios de Aplicación (Application Services)**
-  - Services: encapsulan casos de uso y exponen métodos asincrónicos que retornan DTOs/Resultados
-  - Web invoca las interfaces de Application; evita lógica de dominio en Web
-  - MediatR se utiliza únicamente para publicación de eventos de dominio
+1. **CQRS con MediatR**
+   - Commands: modifican estado, no retornan datos
+   - Queries: solo lectura, retornan datos
 
 2. **Repository Pattern**
    - Interfaces en Application
@@ -179,10 +182,11 @@ dotnet ef migrations remove --project src/Infrastructure --startup-project src/W
    - Generar migración: `dotnet ef migrations add NombreFeature`
    - Aplicar migración: `dotnet ef database update`
 3. **Application**: 
-  - Definir interfaz de servicio y métodos (p.ej. `I[Feature]Service`)
-  - Implementar el servicio (en Application o Infrastructure según convención)
-  - Crear DTOs y Validators
-4. **Web**: Crear endpoint que llame al servicio de Application vía inyección de dependencias
+   - Crear Command o Query
+   - Crear Handler
+   - Crear Validator
+   - Crear DTO de respuesta
+4. **Web**: Crear endpoint que llame al Command/Query vía MediatR
 5. **Tests**: Crear tests en cada capa según corresponda
 
 ## Reglas Importantes
@@ -197,7 +201,7 @@ dotnet ef migrations remove --project src/Infrastructure --startup-project src/W
 
 ✅ **SIEMPRE hacer:**
 - Respetar las dependencias entre capas (Domain ← Application ← Infrastructure/Web)
-- Usar servicios de Application (interfaces) para separar concerns; MediatR sólo para publicación de eventos de dominio
+- Usar MediatR para separar concerns
 - Validar en Application con FluentValidation
 - Escribir tests para cada capa
 - Seguir la estructura de carpetas por feature
@@ -205,7 +209,6 @@ dotnet ef migrations remove --project src/Infrastructure --startup-project src/W
 - **Versionar las migraciones en Git**
 - **Revisar el código de migración generado antes de aplicarlo**
 - **Cumplir los principios SOLID en toda implementación** (ver sección abajo)
-- **Por cada nueva implementación o modificación de lógica existente, crear o actualizar los unit tests correspondientes** en `tests/Application.UnitTests/`. Los tests deben cubrir los casos principales (happy path) y los casos borde relevantes. No entregar una implementación sin sus tests.
 
 ## Principios SOLID — Obligatorios en toda implementación
 
@@ -231,14 +234,14 @@ Las implementaciones son **sustituibles por su interfaz** sin alterar el comport
 ### I — Interface Segregation Principle
 Las interfaces son **específicas al cliente que las usa**, no monolíticas.
 - Preferir varias interfaces pequeñas y cohesivas sobre una grande.
-- `IApplicationDbContext` es una excepción aceptada (patrón EF Core + Application Services), pero los servicios de dominio deben tener interfaces granulares.
+- `IApplicationDbContext` es una excepción aceptada (patrón EF Core + CQRS), pero los servicios de dominio deben tener interfaces granulares.
 - No inyectar `IApplicationDbContext` completo en código que solo necesita uno o dos `DbSet`.
 
 ### D — Dependency Inversion Principle
 Los módulos de alto nivel dependen de **abstracciones**, no de implementaciones concretas.
 - Toda dependencia en Application debe ser una interfaz definida en `Application/Common/Interfaces/`.
 - Infrastructure implementa las interfaces; nunca al revés.
--- Web solo depende de los contratos de Application (interfaces de servicios) y no de implementaciones concretas.
+- Web solo depende de `ISender` (MediatR) y los contratos de Application.
 
 ## Comandos Útiles
 
@@ -282,50 +285,6 @@ npm run build                                     # Build de producción
 ---
 
 **Al implementar cualquier funcionalidad, siempre verifica que respete esta arquitectura y estructura.**
-
-## Architecture Decision Records (ADRs) — Obligatorio
-
-Después de implementar cada sección, feature o decisión técnica relevante del proyecto, **debes crear un ADR** en `Dashboard_v2/docs/decisions/`.
-
-### Cuándo crear un ADR
-
-Crea un ADR cuando tomes una decisión que afecte:
-- La arquitectura de una capa o módulo nuevo (e.g., cómo modelar una jerarquía de entidades).
-- El esquema de base de datos de una entidad relevante (estrategia de herencia, relaciones N:N, etc.).
-- Una tecnología, patrón o enfoque elegido entre varias alternativas (e.g., TPH vs. TPT, Application Services vs. CQRS).
-- Una convención de seguridad o autenticación.
-
-### Formato obligatorio (seguir el de los ADRs existentes)
-
-```markdown
-# 000N — Título conciso
-
-## Status
-Accepted | Proposed | Deprecated
-
-## Fecha
-YYYY-MM-DD
-
-## Contexto
-Describe el problema, las opciones consideradas y por qué era necesario tomar una decisión.
-
-## Decisión
-Explica qué se decidió y por qué. Sé específico sobre implementación si es relevante.
-
-## Consecuencias
-
-**Positivas:**
-- ...
-
-**Negativas / deuda técnica:**
-- ...
-```
-
-### Reglas
-
-- El número de ADR es secuencial (`0001`, `0002`, ...). Consulta el `README.md` del directorio para el siguiente número.
-- **Actualiza el índice** `Dashboard_v2/docs/decisions/README.md` cada vez que añadas un ADR.
-- Los ADRs existentes NO se modifican si son `Accepted`; crea uno nuevo que los deprecate si cambias la decisión.
 
 **Recursos**: 
 - [Template Original](https://github.com/jasontaylordev/CleanArchitecture)

@@ -1,6 +1,9 @@
 using Dashboard_v2.Application.Universidades;
+using Dashboard_v2.Application.Universidades.Commands.CreateUniversidad;
+using Dashboard_v2.Application.Universidades.Commands.DeleteUniversidad;
+using Dashboard_v2.Application.Universidades.Commands.UpdateUniversidad;
+using Dashboard_v2.Application.Universidades.Queries.GetUniversidades;
 using Dashboard_v2.Web.Infrastructure;
-using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Web.Endpoints;
 
@@ -12,39 +15,39 @@ public class Universidades : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetUniversidades)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
             .WithName("GetUniversidades")
             .Produces<List<UniversidadDto>>(200);
 
         groupBuilder.MapPost("", CreateUniversidad)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
             .WithName("CreateUniversidad")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", UpdateUniversidad)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
             .WithName("UpdateUniversidad")
             .Produces(200)
             .ProducesProblem(400)
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", DeleteUniversidad)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
             .WithName("DeleteUniversidad")
             .Produces(200)
             .ProducesProblem(404);
     }
 
-    private async Task<IResult> GetUniversidades(IUniversidadService svc)
+    private async Task<IResult> GetUniversidades(ISender sender)
     {
-        var list = await svc.GetAllAsync();
+        var list = await sender.Send(new GetUniversidadesQuery());
         return Results.Ok(list);
     }
 
-    private async Task<IResult> CreateUniversidad(IUniversidadService svc, CreateUniversidadBody body)
+    private async Task<IResult> CreateUniversidad(ISender sender, CreateUniversidadBody body)
     {
-        var (result, id) = await svc.CreateAsync(body.Nombre);
+        var (result, id) = await sender.Send(new CreateUniversidadCommand { Nombre = body.Nombre });
 
         if (!result.Succeeded)
             return Results.BadRequest(new { errors = result.Errors });
@@ -52,9 +55,9 @@ public class Universidades : EndpointGroupBase
         return Results.Created($"/api/Universidades/{id}", new { id });
     }
 
-    private async Task<IResult> UpdateUniversidad(IUniversidadService svc, string id, UpdateUniversidadBody body)
+    private async Task<IResult> UpdateUniversidad(ISender sender, string id, UpdateUniversidadBody body)
     {
-        var result = await svc.UpdateAsync(id, body.Nombre);
+        var result = await sender.Send(new UpdateUniversidadCommand { Id = id, Nombre = body.Nombre });
 
         if (!result.Succeeded)
             return result.Errors.Contains("Universidad no encontrada.")
@@ -64,9 +67,9 @@ public class Universidades : EndpointGroupBase
         return Results.Ok(new { message = "Universidad actualizada." });
     }
 
-    private async Task<IResult> DeleteUniversidad(IUniversidadService svc, string id)
+    private async Task<IResult> DeleteUniversidad(ISender sender, string id)
     {
-        var result = await svc.DeleteAsync(id);
+        var result = await sender.Send(new DeleteUniversidadCommand(id));
 
         if (!result.Succeeded)
             return Results.NotFound(new { errors = result.Errors });

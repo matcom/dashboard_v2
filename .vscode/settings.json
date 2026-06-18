@@ -10,8 +10,5 @@
             "database": "Dashboard_v2Db",
             "username": "admin"
         }
-    ],
-    "chat.tools.terminal.autoApprove": {
-        "dotnet build": true
-    }
+    ]
 }

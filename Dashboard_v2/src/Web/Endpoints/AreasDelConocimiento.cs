@@ -1,6 +1,9 @@
 using Dashboard_v2.Application.AreasDelConocimiento;
+using Dashboard_v2.Application.AreasDelConocimiento.Commands.CreateAreaDelConocimiento;
+using Dashboard_v2.Application.AreasDelConocimiento.Commands.DeleteAreaDelConocimiento;
+using Dashboard_v2.Application.AreasDelConocimiento.Commands.UpdateAreaDelConocimiento;
+using Dashboard_v2.Application.AreasDelConocimiento.Queries.GetAreasDelConocimiento;
 using Dashboard_v2.Web.Infrastructure;
-using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Web.Endpoints;
 
@@ -17,43 +20,56 @@ public class AreasDelConocimiento : EndpointGroupBase
             .Produces<List<AreaDelConocimientoDto>>(200);
 
         groupBuilder.MapPost("", CreateAreaDelConocimiento)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
             .WithName("CreateAreaDelConocimiento")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", UpdateAreaDelConocimiento)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
             .WithName("UpdateAreaDelConocimiento")
             .Produces(200)
             .ProducesProblem(400)
             .ProducesProblem(404);
 
         groupBuilder.MapDelete("{id}", DeleteAreaDelConocimiento)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser)))
+            .RequireAuthorization(p => p.RequireRole("Superuser"))
             .WithName("DeleteAreaDelConocimiento")
             .Produces(200)
             .ProducesProblem(404);
     }
 
-    private async Task<IResult> GetAreasDelConocimiento(IAreaDelConocimientoService svc)
+    private async Task<IResult> GetAreasDelConocimiento(ISender sender)
     {
-        var list = await svc.GetAllAsync();
+        var list = await sender.Send(new GetAreasDelConocimientoQuery());
         return Results.Ok(list);
     }
 
-    private async Task<IResult> CreateAreaDelConocimiento(IAreaDelConocimientoService svc, CreateAreaDelConocimientoRequest body)
+    private async Task<IResult> CreateAreaDelConocimiento(ISender sender, CreateAreaDelConocimientoBody body)
     {
-        var (result, id) = await svc.CreateAsync(body);
+        var (result, id) = await sender.Send(new CreateAreaDelConocimientoCommand
+        {
+            Nombre = body.Nombre,
+            Descripcion = body.Descripcion,
+            LineasDeInvestigacionIds = body.LineasDeInvestigacionIds ?? [],
+        });
+
         if (!result.Succeeded)
             return Results.BadRequest(new { errors = result.Errors });
 
         return Results.Created($"/api/AreasDelConocimiento/{id}", new { id });
     }
 
-    private async Task<IResult> UpdateAreaDelConocimiento(IAreaDelConocimientoService svc, string id, UpdateAreaDelConocimientoRequest body)
+    private async Task<IResult> UpdateAreaDelConocimiento(ISender sender, string id, UpdateAreaDelConocimientoBody body)
     {
-        var result = await svc.UpdateAsync(id, body);
+        var result = await sender.Send(new UpdateAreaDelConocimientoCommand
+        {
+            Id = id,
+            Nombre = body.Nombre,
+            Descripcion = body.Descripcion,
+            LineasDeInvestigacionIds = body.LineasDeInvestigacionIds ?? [],
+        });
+
         if (!result.Succeeded)
             return result.Errors.Contains("Área del conocimiento no encontrada.")
                 ? Results.NotFound(new { errors = result.Errors })
@@ -62,9 +78,9 @@ public class AreasDelConocimiento : EndpointGroupBase
         return Results.Ok(new { message = "Área del conocimiento actualizada." });
     }
 
-    private async Task<IResult> DeleteAreaDelConocimiento(IAreaDelConocimientoService svc, string id)
+    private async Task<IResult> DeleteAreaDelConocimiento(ISender sender, string id)
     {
-        var result = await svc.DeleteAsync(id);
+        var result = await sender.Send(new DeleteAreaDelConocimientoCommand(id));
 
         if (!result.Succeeded)
             return Results.NotFound(new { errors = result.Errors });
@@ -73,4 +89,5 @@ public class AreasDelConocimiento : EndpointGroupBase
     }
 }
 
-// Request body types now use Application/AreasDelConocimiento request records
+public record CreateAreaDelConocimientoBody(string Nombre, string? Descripcion, IList<string>? LineasDeInvestigacionIds);
+public record UpdateAreaDelConocimientoBody(string Nombre, string? Descripcion, IList<string>? LineasDeInvestigacionIds);

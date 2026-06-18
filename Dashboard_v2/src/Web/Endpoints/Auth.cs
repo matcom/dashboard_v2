@@ -1,4 +1,7 @@
-using Dashboard_v2.Application.Auth;
+using Dashboard_v2.Application.Auth.Commands.Login;
+using Dashboard_v2.Application.Auth.Commands.Logout;
+using Dashboard_v2.Application.Auth.Commands.Register;
+using Dashboard_v2.Application.Auth.Queries.GetCurrentUser;
 using Dashboard_v2.Web.Infrastructure;
 
 namespace Dashboard_v2.Web.Endpoints;
@@ -31,7 +34,7 @@ public class Auth : EndpointGroupBase
 
         groupBuilder.MapGet("me", GetCurrentUser)
             .WithName("GetCurrentUser")
-            .Produces<CurrentUserDto>(200)
+            .Produces<UserDto>(200)
             .ProducesProblem(401);
     }
 
@@ -39,9 +42,9 @@ public class Auth : EndpointGroupBase
     /// POST /api/Auth/register — Registra un nuevo usuario. No requiere autenticación.<br/>
     /// Devuelve 200 con mensaje de éxito o 400 con lista de errores de validación.
     /// </summary>
-    private static async Task<IResult> Register(IAuthService authService, RegisterRequest request, CancellationToken ct)
+    private async Task<IResult> Register(ISender sender, RegisterCommand command)
     {
-        var result = await authService.RegisterAsync(request, ct);
+        var result = await sender.Send(command);
 
         if (!result.Succeeded)
         {
@@ -57,9 +60,9 @@ public class Auth : EndpointGroupBase
     /// • Múltiples roles, sin selectedRole → retorna <c>{ requiresRoleSelection: true, availableRoles: [...] }</c>.<br/>
     /// La cookie es HttpOnly (JavaScript no puede leerla) y SameSite=Strict (protección CSRF).
     /// </summary>
-    private static async Task<IResult> Login(IAuthService authService, LoginRequest request, HttpContext httpContext, CancellationToken ct)
+    private async Task<IResult> Login(ISender sender, LoginCommand command, HttpContext httpContext)
     {
-        var (result, response) = await authService.LoginAsync(request, ct);
+        var (result, response) = await sender.Send(command);
 
         if (!result.Succeeded)
         {
@@ -70,12 +73,6 @@ public class Auth : EndpointGroupBase
         if (response!.RequiresRoleSelection)
         {
             return Results.Ok(new { requiresRoleSelection = true, availableRoles = response.AvailableRoles });
-        }
-
-        // El usuario no pertenece a un Área y debe seleccionar una antes de obtener la cookie.
-        if (response!.RequiresAreaSelection)
-        {
-            return Results.Ok(new { requiresAreaSelection = true, availableAreas = response.AvailableAreas });
         }
 
         // Login completo: guardar el token en una cookie HttpOnly.
@@ -93,11 +90,11 @@ public class Auth : EndpointGroupBase
 
     /// <summary>
     /// POST /api/Auth/logout — Cierra la sesión eliminando la cookie <c>access_token</c>.<br/>
-    /// Requiere sesión activa y delega cualquier trabajo adicional de cierre de sesión al servicio de autenticación.
+    /// Requiere sesión activa. Ejecuta el LogoutCommand (puede limpiar estado de servidor si hace falta).
     /// </summary>
-    private static async Task<IResult> Logout(IAuthService authService, HttpContext httpContext, CancellationToken ct)
+    private async Task<IResult> Logout(ISender sender, HttpContext httpContext)
     {
-        await authService.LogoutAsync(ct);
+        await sender.Send(new LogoutCommand());
 
         httpContext.Response.Cookies.Delete("access_token");
 
@@ -106,12 +103,12 @@ public class Auth : EndpointGroupBase
 
     /// <summary>
     /// GET /api/Auth/me — Devuelve el DTO con los datos del usuario actualmente autenticado.<br/>
-    /// El servicio lee el claim <c>sub</c> del JWT para identificar al usuario.<br/>
+    /// El handler lee el claim <c>sub</c> del JWT para identificar al usuario.<br/>
     /// Retorna 401 si la cookie no existe o el JWT expirado/inválido.
     /// </summary>
-    private static async Task<IResult> GetCurrentUser(IAuthService authService, CancellationToken ct)
+    private async Task<IResult> GetCurrentUser(ISender sender)
     {
-        var user = await authService.GetCurrentUserAsync(ct);
+        var user = await sender.Send(new GetCurrentUserQuery());
 
         if (user == null)
         {

@@ -18,10 +18,6 @@ const profesorGroups = [
       { to: '/publications', icon: 'bi-journal-text', label: 'Mis publicaciones' },
       { to: '/awards', icon: 'bi-trophy', label: 'Mis premios' },
       { to: '/events', icon: 'bi-mic', label: 'Mis eventos' },
-      { to: '/mis-patentes',  icon: 'bi-lightbulb', label: 'Mis Patentes' },
-      { to: '/mis-registros', icon: 'bi-clipboard-check', label: 'Mis Registros' },
-      { to: '/mis-normas',    icon: 'bi-file-earmark-text', label: 'Mis Normas' },
-      { to: '/mis-productos', icon: 'bi-box-seam', label: 'Mis Productos' },
     ],
   },
 ];
@@ -30,18 +26,7 @@ const investigacionGroups = [
   {
     heading: 'Investigación',
     items: [
-      { to: '/mis-grupos',     icon: 'bi-people-fill', label: 'Mis Grupos de Investigación' },
-      { to: '/mis-proyectos',  icon: 'bi-kanban',      label: 'Mis Proyectos' },
-    ],
-  },
-];
-
-const coordinadorGroups = [
-  {
-    heading: 'Coordinación de Redes',
-    items: [
-      { to: '/mis-redes',               icon: 'bi-globe',        label: 'Mis Redes' },
-      { to: '/mis-redes-publicaciones', icon: 'bi-journal-text', label: 'Publicaciones de Redes' },
+      { to: '/mis-grupos', icon: 'bi-people-fill', label: 'Mis Grupos de Investigación' },
     ],
   },
 ];
@@ -51,45 +36,6 @@ const jefeGroups = [
     heading: 'Investigación',
     items: [
       { to: '/grupos-investigacion', icon: 'bi-people-fill', label: 'Grupos de Investigación' },
-    ],
-  },
-];
-
-const jefeRedesGroups = [
-  {
-    heading: 'Gestión de Redes',
-    items: [
-      { to: '/redes', icon: 'bi-globe', label: 'Redes' },
-      { to: '/mis-redes-publicaciones', icon: 'bi-journal-text', label: 'Publicaciones de Redes' },
-    ],
-  },
-];
-
-const jefeDeProyectoGroups = [
-  {
-    heading: 'Gestión de Proyectos',
-    items: [
-      { to: '/proyectos', icon: 'bi-kanban', label: 'Mis Proyectos' },
-      { to: '/publicaciones', icon: 'bi-journal-text', label: 'Publicaciones' },
-    ],
-  },
-];
-
-const vicedecanoGroups = [
-  {
-    heading: 'Actividad del Área',
-    items: [
-      { to: '/publicaciones-area',          icon: 'bi-journal-text',       label: 'Publicaciones del Área' },
-      { to: '/patentes-area',               icon: 'bi-lightbulb',          label: 'Patentes del Área' },
-      { to: '/registros-area',              icon: 'bi-clipboard-check',    label: 'Registros del Área' },
-      { to: '/normas-area',                 icon: 'bi-file-earmark-text',  label: 'Normas del Área' },
-      { to: '/productos-area',              icon: 'bi-box-seam',           label: 'Productos del Área' },
-      { to: '/proyectos-area',              icon: 'bi-kanban',             label: 'Proyectos del Área' },
-      { to: '/premios-area',                icon: 'bi-trophy',             label: 'Premios del Área' },
-      { to: '/grupos-investigacion-area',   icon: 'bi-people-fill',        label: 'Grupos de Inv. del Área' },
-      { to: '/grupos-estudiantiles-area',   icon: 'bi-people',             label: 'Grupos Estud. del Área' },
-      { to: '/redes-area',                  icon: 'bi-globe',              label: 'Redes del Área' },
-      { to: '/events',                      icon: 'bi-mic',                label: 'Eventos del Área' },
     ],
   },
 ];
@@ -107,25 +53,9 @@ const adminGroups = [
     items: [
       { to: '/universidades', icon: 'bi-building', label: 'Universidades' },
       { to: '/areas', icon: 'bi-diagram-3', label: 'Áreas' },
-      { to: '/grupos-estudiantiles', icon: 'bi-people', label: 'Grupos Estudiantiles' },
       { to: '/grupos-investigacion', icon: 'bi-people-fill', label: 'Grupos de Investigación' },
       { to: '/areas-conocimiento', icon: 'bi-book', label: 'Áreas del Conocimiento' },
       { to: '/lineas-investigacion', icon: 'bi-lightbulb', label: 'Líneas de Investigación' },
-    ],
-  },
-  {
-    heading: 'Gestión de Proyectos',
-    items: [
-      { to: '/awards', icon: 'bi-trophy', label: 'Premios' },
-      { to: '/events', icon: 'bi-mic', label: 'Eventos y presentaciones' },
-      { to: '/proyectos', icon: 'bi-kanban', label: 'Proyectos' },
-      { to: '/publicaciones', icon: 'bi-journal-text', label: 'Publicaciones' },
-      { to: '/clasificaciones', icon: 'bi-tags', label: 'Clasificaciones' },
-          { to: '/registros', icon: 'bi-file-earmark-text', label: 'Registros' },
-          { to: '/normas', icon: 'bi-book', label: 'Normas' },
-          { to: '/patentes', icon: 'bi-lightbulb', label: 'Patentes' },
-          { to: '/productos-comercializados', icon: 'bi-box-seam', label: 'Productos comercializados' },
-              { to: '/redes', icon: 'bi-globe', label: 'Redes' },
     ],
   },
   {
@@ -141,11 +71,8 @@ export default function Sidebar({ collapsed, onToggle }) {
 
   const groups = [
     ...baseGroups,
-    ...(user?.role === 'Profesor' ? [...profesorGroups, ...investigacionGroups, ...coordinadorGroups] : []),
+    ...(user?.role === 'Profesor' ? [...profesorGroups, ...investigacionGroups] : []),
     ...(user?.role === 'Jefe_de_Grupo_de_investigacion' ? jefeGroups : []),
-    ...(user?.role === 'Jefe_de_Redes' ? jefeRedesGroups : []),
-    ...(user?.role === 'Jefe_de_Proyecto' ? jefeDeProyectoGroups : []),
-    ...(user?.role === 'Vicedecano_de_investigacion' ? vicedecanoGroups : []),
     ...(user?.role === 'Superuser' ? adminGroups : []),
   ];
 
@@ -153,7 +80,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
       <div className="sidebar__brand">
         {!collapsed && (
-          <span className="sidebar__brand-name">SIGIP</span>
+          <span className="sidebar__brand-name">Dashboard v2</span>
         )}
         <button
           className="sidebar__toggle"

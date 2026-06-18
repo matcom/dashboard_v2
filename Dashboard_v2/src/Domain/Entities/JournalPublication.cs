@@ -7,10 +7,9 @@ namespace Dashboard_v2.Domain.Entities;
 public class JournalPublication
 {
     public string PublicationId { get; set; } = default!;
-    public int? BaseDeDatosId { get; set; }
+    public string DataBase { get; set; } = default!;
     public int Group { get; set; }
 
     public Publication Publication { get; set; } = default!;
-    public BaseDeDatosPublicacion? BaseDeDatos { get; set; }
     public JournalGroup1Publication? JournalGroup1Publication { get; set; }
 }

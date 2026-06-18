@@ -38,7 +38,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAreaRequest"
+                "$ref": "#/components/schemas/CreateAreaBody"
               }
             }
           },
@@ -84,7 +84,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAreaRequest"
+                "$ref": "#/components/schemas/UpdateAreaBody"
               }
             }
           },
@@ -182,7 +182,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAreaDelConocimientoRequest"
+                "$ref": "#/components/schemas/CreateAreaDelConocimientoBody"
               }
             }
           },
@@ -228,7 +228,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAreaDelConocimientoRequest"
+                "$ref": "#/components/schemas/UpdateAreaDelConocimientoBody"
               }
             }
           },
@@ -301,11 +301,11 @@
         ],
         "operationId": "Register",
         "requestBody": {
-          "x-name": "request",
+          "x-name": "command",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "$ref": "#/components/schemas/RegisterCommand"
               }
             }
           },
@@ -336,11 +336,11 @@
         ],
         "operationId": "Login",
         "requestBody": {
-          "x-name": "request",
+          "x-name": "command",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
+                "$ref": "#/components/schemas/LoginCommand"
               }
             }
           },
@@ -389,7 +389,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CurrentUserDto"
+                  "$ref": "#/components/schemas/UserDto"
                 }
               }
             }
@@ -529,41 +529,6 @@
         }
       }
     },
-    "/api/Authors/resolve-external": {
-      "post": {
-        "tags": [
-          "Authors"
-        ],
-        "operationId": "ResolveExternalAuthors",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResolveExternalAuthorsRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ExternalAuthorResolutionDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Awards": {
       "get": {
         "tags": [
@@ -578,7 +543,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AwardWithGrantingsDto"
+                    "$ref": "#/components/schemas/AwardDto"
                   }
                 }
               }
@@ -596,7 +561,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAwardRequest"
+                "$ref": "#/components/schemas/CreateAwardBody"
               }
             }
           },
@@ -613,75 +578,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Awards/catalogo": {
-      "get": {
-        "tags": [
-          "Awards"
-        ],
-        "operationId": "GetAwardCatalog",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AwardCatalogDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Awards/todas": {
-      "get": {
-        "tags": [
-          "Awards"
-        ],
-        "operationId": "GetAllAwards",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AwardWithGrantingsDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Awards/area": {
-      "get": {
-        "tags": [
-          "Awards"
-        ],
-        "operationId": "GetAreaAwards",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AwardWithGrantingsDto"
-                  }
                 }
               }
             }
@@ -712,7 +608,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAwardRequest"
+                "$ref": "#/components/schemas/UpdateAwardBody"
               }
             }
           },
@@ -789,232 +685,6 @@
         }
       }
     },
-    "/api/Clasificaciones": {
-      "get": {
-        "tags": [
-          "Clasificaciones"
-        ],
-        "operationId": "GetClasificaciones",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ClasificacionDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Clasificaciones"
-        ],
-        "operationId": "CreateClasificacion",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateClasificacionRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Clasificaciones/{id}": {
-      "put": {
-        "tags": [
-          "Clasificaciones"
-        ],
-        "operationId": "UpdateClasificacion",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateClasificacionRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Clasificaciones"
-        ],
-        "operationId": "DeleteClasificacion",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Documents/{reportName}": {
-      "get": {
-        "tags": [
-          "Documents"
-        ],
-        "operationId": "GetDocument",
-        "parameters": [
-          {
-            "name": "reportName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "from",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 2
-          },
-          {
-            "name": "to",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 3
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Events": {
       "get": {
         "tags": [
@@ -1047,7 +717,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateEventRequest"
+                "$ref": "#/components/schemas/CreateEventBody"
               }
             }
           },
@@ -1126,7 +796,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCountryRequest"
+                "$ref": "#/components/schemas/CreateCountryBody"
               }
             }
           },
@@ -1203,7 +873,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateEventRequest"
+                "$ref": "#/components/schemas/UpdateEventBody"
               }
             }
           },
@@ -1260,321 +930,6 @@
         }
       }
     },
-    "/api/FileStorage": {
-      "get": {
-        "tags": [
-          "FileStorage"
-        ],
-        "operationId": "GetStoredFiles",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StoredFileDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "FileStorage"
-        ],
-        "operationId": "UploadStoredFile",
-        "parameters": [
-          {
-            "name": "category",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary",
-                    "nullable": true
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StoredFileDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/FileStorage/{id}": {
-      "get": {
-        "tags": [
-          "FileStorage"
-        ],
-        "operationId": "GetStoredFileById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StoredFileDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "FileStorage"
-        ],
-        "operationId": "ReplaceStoredFile",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 2
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary",
-                    "nullable": true
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StoredFileDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "FileStorage"
-        ],
-        "operationId": "DeleteStoredFile",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/FileStorage/{id}/url": {
-      "get": {
-        "tags": [
-          "FileStorage"
-        ],
-        "operationId": "GetStoredFileDownloadUrl",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "expirySeconds",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 3600
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/FileStorage/{id}/download": {
-      "get": {
-        "tags": [
-          "FileStorage"
-        ],
-        "operationId": "DownloadStoredFile",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/GruposDeInvestigacion": {
       "get": {
         "tags": [
@@ -1607,7 +962,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateGrupoDeInvestigacionRequest"
+                "$ref": "#/components/schemas/CreateGrupoDeInvestigacionBody"
               }
             }
           },
@@ -1654,29 +1009,6 @@
         }
       }
     },
-    "/api/GruposDeInvestigacion/area": {
-      "get": {
-        "tags": [
-          "GruposDeInvestigacion"
-        ],
-        "operationId": "GetAreaGruposDeInvestigacion",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GrupoDeInvestigacionDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/GruposDeInvestigacion/{id}": {
       "put": {
         "tags": [
@@ -1699,7 +1031,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateGrupoDeInvestigacionRequest"
+                "$ref": "#/components/schemas/UpdateGrupoDeInvestigacionBody"
               }
             }
           },
@@ -1787,7 +1119,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetGrupoMiembrosRequest"
+                "$ref": "#/components/schemas/SetGrupoMiembrosBody"
               }
             }
           },
@@ -1809,229 +1141,6 @@
             }
           },
           "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/GruposEstudiantiles": {
-      "get": {
-        "tags": [
-          "GruposEstudiantiles"
-        ],
-        "operationId": "GetGruposEstudiantiles",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GrupoEstudiantilDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "GruposEstudiantiles"
-        ],
-        "operationId": "CreateGrupoEstudiantil",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateGrupoEstudiantilRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/GruposEstudiantiles/area": {
-      "get": {
-        "tags": [
-          "GruposEstudiantiles"
-        ],
-        "operationId": "GetAreaGruposEstudiantiles",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GrupoEstudiantilDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/GruposEstudiantiles/{id}": {
-      "put": {
-        "tags": [
-          "GruposEstudiantiles"
-        ],
-        "operationId": "UpdateGrupoEstudiantil",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGrupoEstudiantilRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "GruposEstudiantiles"
-        ],
-        "operationId": "DeleteGrupoEstudiantil",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Institutions": {
-      "get": {
-        "tags": [
-          "Institutions"
-        ],
-        "operationId": "GetInstitutions",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/InstitutionDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Institutions"
-        ],
-        "operationId": "CreateInstitution",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateInstitutionBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
             "description": "",
             "content": {
               "application/json": {
@@ -2076,7 +1185,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateLineaDeInvestigacionRequest"
+                "$ref": "#/components/schemas/CreateLineaDeInvestigacionBody"
               }
             }
           },
@@ -2122,7 +1231,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateLineaDeInvestigacionRequest"
+                "$ref": "#/components/schemas/UpdateLineaDeInvestigacionBody"
               }
             }
           },
@@ -2188,888 +1297,6 @@
         }
       }
     },
-    "/api/Nomencladores/estados": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetEstadosProyecto",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreateEstadoProyecto",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/situaciones": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetSituacionesProyecto",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreateSituacionProyecto",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/sectores": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetSectoresEstrategicos",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreateSectorEstrategico",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/ejes": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetEjesEstrategicos",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreateEjeEstrategico",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/fuentes": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetFuentesFinanciacion",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreateFuenteFinanciacion",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/programas": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetProgramas",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreatePrograma",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/provincias": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetProvincias",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/municipios": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetMunicipios",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/basesdedatos": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetBasesDeDatosPublicacion",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreateBaseDeDatosPublicacion",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/tiposnorma": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetTiposNorma",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreateTipoNorma",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Nomencladores/tiposproducto": {
-      "get": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "GetTiposProductoComercializado",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Nomencladores"
-        ],
-        "operationId": "CreateTipoProductoComercializado",
-        "requestBody": {
-          "x-name": "req",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NomencladorCreateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Normas": {
-      "get": {
-        "tags": [
-          "Normas"
-        ],
-        "operationId": "GetNormas",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NormaDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Normas"
-        ],
-        "operationId": "CreateNorma",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateNormaBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Normas/mis": {
-      "get": {
-        "tags": [
-          "Normas"
-        ],
-        "operationId": "GetMisNormas",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NormaDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Normas/{id}": {
-      "put": {
-        "tags": [
-          "Normas"
-        ],
-        "operationId": "UpdateNorma",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateNormaBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Normas"
-        ],
-        "operationId": "DeleteNorma",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Patentes": {
-      "get": {
-        "tags": [
-          "Patentes"
-        ],
-        "operationId": "GetPatentes",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PatenteDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Patentes"
-        ],
-        "operationId": "CreatePatente",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreatePatenteBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Patentes/mis": {
-      "get": {
-        "tags": [
-          "Patentes"
-        ],
-        "operationId": "GetMisPatentes",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PatenteDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Patentes/{id}/proyectos": {
-      "get": {
-        "tags": [
-          "Patentes"
-        ],
-        "operationId": "GetProyectosDePatente",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProyectoPatenteDto"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Patentes/{id}/proyectos/{proyectoId}": {
-      "post": {
-        "tags": [
-          "Patentes"
-        ],
-        "operationId": "LinkProyectoAPatente",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "proyectoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Patentes"
-        ],
-        "operationId": "UnlinkProyectoDePatente",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "proyectoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Patentes/{id}": {
-      "put": {
-        "tags": [
-          "Patentes"
-        ],
-        "operationId": "UpdatePatente",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePatenteBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Patentes"
-        ],
-        "operationId": "DeletePatente",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Presentations": {
       "get": {
         "tags": [
@@ -3102,7 +1329,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePresentationRequest"
+                "$ref": "#/components/schemas/CreatePresentationBody"
               }
             }
           },
@@ -3119,52 +1346,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Presentations/all": {
-      "get": {
-        "tags": [
-          "Presentations"
-        ],
-        "operationId": "GetAllPresentations",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PresentationDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Presentations/area": {
-      "get": {
-        "tags": [
-          "Presentations"
-        ],
-        "operationId": "GetAreaPresentations",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PresentationDto"
-                  }
                 }
               }
             }
@@ -3195,7 +1376,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePresentationRequest"
+                "$ref": "#/components/schemas/UpdatePresentationBody"
               }
             }
           },
@@ -3252,1564 +1433,6 @@
         }
       }
     },
-    "/api/ProductosComercializados": {
-      "get": {
-        "tags": [
-          "ProductosComercializados"
-        ],
-        "operationId": "GetProductosComercializados",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProductoDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "ProductosComercializados"
-        ],
-        "operationId": "CreateProductoComercializado",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateProductoBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/ProductosComercializados/mis": {
-      "get": {
-        "tags": [
-          "ProductosComercializados"
-        ],
-        "operationId": "GetMisProductosComercializados",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProductoDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/ProductosComercializados/{id}": {
-      "put": {
-        "tags": [
-          "ProductosComercializados"
-        ],
-        "operationId": "UpdateProductoComercializado",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProductoBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "ProductosComercializados"
-        ],
-        "operationId": "DeleteProductoComercializado",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectos",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProyectoResumenDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/tipos-ejecucion": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetTiposEjecucion",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/catalogo": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectosCatalogo",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProyectoCatalogoDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/participacion": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetMisProyectosParticipacion",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProyectoResumenDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/{id}/publicaciones": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetPublicacionesDelProyecto",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Proyectos/publicaciones-disponibles": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetPublicacionesDisponibles",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/Proyectos/{id}/publicaciones/{pubId}": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "LinkPublicacion",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "pubId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UnlinkPublicacion",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "pubId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/{id}/patentes": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetPatentesDelProyecto",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProyectoPatenteResumenDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/{id}/patentes/{patenteId}": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "LinkPatenteAProyecto",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "patenteId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UnlinkPatenteDeProyecto",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "patenteId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/{id}/participantes": {
-      "put": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "SetParticipantesProyecto",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetParticipantesRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/{id}": {
-      "delete": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "DeleteProyecto",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/en-revision/{id}": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectoEnRevision",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProyectoEnRevisionDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UpdateProyectoEnRevision",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoEnRevisionUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/en-revision": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "CreateProyectoEnRevision",
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoEnRevisionUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/empresariales/{id}": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectoEmpresarial",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProyectoEmpresarialDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UpdateProyectoEmpresarial",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoEmpresarialUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/empresariales": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "CreateProyectoEmpresarial",
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoEmpresarialUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/apoyo-programa/{id}": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectoApoyoPrograma",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProyectoApoyoProgramaDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UpdateProyectoApoyoPrograma",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoApoyoProgramaUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/apoyo-programa": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "CreateProyectoApoyoPrograma",
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoApoyoProgramaUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/desarrollo-local/{id}": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectoDesarrolloLocal",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProyectoDesarrolloLocalDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UpdateProyectoDesarrolloLocal",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoDesarrolloLocalUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/desarrollo-local": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "CreateProyectoDesarrolloLocal",
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoDesarrolloLocalUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/no-empresariales/{id}": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectoNoEmpresarial",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProyectoNoEmpresarialDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UpdateProyectoNoEmpresarial",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoNoEmpresarialUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/no-empresariales": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "CreateProyectoNoEmpresarial",
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoNoEmpresarialUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/colaboracion-internacional/{id}": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectoColabInternacional",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProyectoColabInternacionalDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UpdateProyectoColabInternacional",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoColabInternacionalUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/colaboracion-internacional": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "CreateProyectoColabInternacional",
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoColabInternacionalUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/pnap/{id}": {
-      "get": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "GetProyectoPNAP",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProyectoPNAPDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "UpdateProyectoPNAP",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoPNAPUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Proyectos/pnap": {
-      "post": {
-        "tags": [
-          "Proyectos"
-        ],
-        "operationId": "CreateProyectoPNAP",
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProyectoPNAPUpsertRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Publications/types": {
       "get": {
         "tags": [
@@ -4825,75 +1448,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/PublicationTypeDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Publications/todas": {
-      "get": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "GetTodasLasPublicaciones",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicationDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Publications/area": {
-      "get": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "GetAreaPublications",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicationDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Publications/redes": {
-      "get": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "GetMyRedPublications",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicationDto"
                   }
                 }
               }
@@ -4934,7 +1488,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePublicationRequest"
+                "$ref": "#/components/schemas/CreatePublicationCommand"
               }
             }
           },
@@ -5095,933 +1649,6 @@
         }
       }
     },
-    "/api/Publications/public/{id}": {
-      "get": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "GetPublicationPublicById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicationDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Publications/duplicates": {
-      "get": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "FindPublicationDuplicates",
-        "parameters": [
-          {
-            "name": "title",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 1
-          },
-          {
-            "name": "doi",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 2
-          },
-          {
-            "name": "url",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 3
-          },
-          {
-            "name": "excludeId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 4
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicationDuplicateDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Publications/crossref": {
-      "get": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "GetCrossRefCandidates",
-        "parameters": [
-          {
-            "name": "doi",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 1
-          },
-          {
-            "name": "title",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicationCrossRefDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Publications/openaire": {
-      "get": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "GetOpenAireCandidates",
-        "parameters": [
-          {
-            "name": "doi",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 1
-          },
-          {
-            "name": "title",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicationCrossRefDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Publications/resolve-database": {
-      "get": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "ResolvePublicationDatabaseFromCrossRef",
-        "parameters": [
-          {
-            "name": "doi",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 1
-          },
-          {
-            "name": "title",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 2
-          },
-          {
-            "name": "issns",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 3
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicationDatabaseMatchDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Publications/{id}/coauthors": {
-      "post": {
-        "tags": [
-          "Publications"
-        ],
-        "operationId": "AddCurrentUserAsCoauthor",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Redes": {
-      "get": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "GetRedes",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RedDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "CreateRed",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateRedBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Redes/mis-redes": {
-      "get": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "GetMisRedes",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RedConCoordinadorDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Redes/{id}/coordinador": {
-      "put": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "SetCoordinador",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetCoordinadorBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Redes/{id}/participantes": {
-      "get": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "GetParticipantesRed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ParticipanteRedDto"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Redes/{id}/participantes/{authorId}": {
-      "post": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "AddParticipanteRed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "authorId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "RemoveParticipanteRed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "authorId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Redes/{id}": {
-      "put": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "UpdateRed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateRedBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "DeleteRed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Redes/{id}/events": {
-      "get": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "GetEventsForRed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EventForRedDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Redes"
-        ],
-        "operationId": "SetEventsForRed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetEventsBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Registros": {
-      "get": {
-        "tags": [
-          "Registros"
-        ],
-        "operationId": "GetRegistros",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RegistroDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Registros"
-        ],
-        "operationId": "CreateRegistro",
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateRegistroBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Registros/mis": {
-      "get": {
-        "tags": [
-          "Registros"
-        ],
-        "operationId": "GetMisRegistros",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RegistroDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Registros/{id}": {
-      "put": {
-        "tags": [
-          "Registros"
-        ],
-        "operationId": "UpdateRegistro",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "body",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateRegistroBody"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Registros"
-        ],
-        "operationId": "DeleteRegistro",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Roles": {
       "get": {
         "tags": [
@@ -6037,29 +1664,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/RoleDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/TipoProductosComercializados": {
-      "get": {
-        "tags": [
-          "TipoProductosComercializados"
-        ],
-        "operationId": "GetTipoProductosComercializados",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TipoProductoDto"
                   }
                 }
               }
@@ -6323,29 +1927,6 @@
           }
         }
       }
-    },
-    "/api/Users/jefes-de-proyecto": {
-      "get": {
-        "tags": [
-          "Users"
-        ],
-        "operationId": "GetJefesDeProyecto",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/JefeDeProyectoDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
@@ -6409,7 +1990,7 @@
           }
         }
       },
-      "CreateAreaRequest": {
+      "CreateAreaBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -6426,13 +2007,14 @@
           },
           "areasDelConocimientoIds": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             }
           }
         }
       },
-      "UpdateAreaRequest": {
+      "UpdateAreaBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -6449,6 +2031,7 @@
           },
           "areasDelConocimientoIds": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             }
@@ -6477,7 +2060,7 @@
           }
         }
       },
-      "CreateAreaDelConocimientoRequest": {
+      "CreateAreaDelConocimientoBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -6490,13 +2073,14 @@
           },
           "lineasDeInvestigacionIds": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             }
           }
         }
       },
-      "UpdateAreaDelConocimientoRequest": {
+      "UpdateAreaDelConocimientoBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -6509,13 +2093,14 @@
           },
           "lineasDeInvestigacionIds": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             }
           }
         }
       },
-      "RegisterRequest": {
+      "RegisterCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -6605,7 +2190,7 @@
           4
         ]
       },
-      "LoginRequest": {
+      "LoginCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -6618,14 +2203,10 @@
           "selectedRole": {
             "type": "string",
             "nullable": true
-          },
-          "selectedAreaId": {
-            "type": "string",
-            "nullable": true
           }
         }
       },
-      "CurrentUserDto": {
+      "UserDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -6641,17 +2222,6 @@
           "role": {
             "type": "string",
             "nullable": true
-          },
-          "areaId": {
-            "type": "string",
-            "nullable": true
-          },
-          "areaNombre": {
-            "type": "string",
-            "nullable": true
-          },
-          "hasLinkedAuthor": {
-            "type": "boolean"
           }
         }
       },
@@ -6664,13 +2234,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string",
-            "nullable": true
           }
         }
       },
@@ -6686,67 +2249,6 @@
           },
           "type": {
             "type": "string"
-          },
-          "linkedUser": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/LinkedUserSummaryDto"
-              }
-            ]
-          }
-        }
-      },
-      "LinkedUserSummaryDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "userName": {
-            "type": "string"
-          },
-          "userLastName1": {
-            "type": "string"
-          },
-          "userLastName2": {
-            "type": "string",
-            "nullable": true
-          },
-          "email": {
-            "type": "string"
-          },
-          "isTrained": {
-            "type": "boolean"
-          },
-          "scientificCategory": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "teachingCategory": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "investigationCategory": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "areaId": {
-            "type": "string",
-            "nullable": true
-          },
-          "areaNombre": {
-            "type": "string",
-            "nullable": true
-          },
-          "universidadId": {
-            "type": "string",
-            "nullable": true
-          },
-          "universidadNombre": {
-            "type": "string",
-            "nullable": true
           }
         }
       },
@@ -6780,126 +2282,7 @@
           }
         }
       },
-      "ExternalAuthorResolutionDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "externalName": {
-            "type": "string"
-          },
-          "match": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/ExternalAuthorMatchDto"
-              }
-            ]
-          }
-        }
-      },
-      "ExternalAuthorMatchDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string",
-            "nullable": true
-          },
-          "linkedUser": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/LinkedUserSummaryDto"
-              }
-            ]
-          }
-        }
-      },
-      "ResolveExternalAuthorsRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "names": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "AwardWithGrantingsDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "awardId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "awardName": {
-            "type": "string"
-          },
-          "awardTypeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "awardTypeName": {
-            "type": "string"
-          },
-          "grantings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GrantingDto"
-            }
-          }
-        }
-      },
-      "GrantingDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "awardedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "recipients": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RecipientDto"
-            }
-          }
-        }
-      },
-      "RecipientDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "userDisplayName": {
-            "type": "string"
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          }
-        }
-      },
-      "AwardCatalogDto": {
+      "AwardDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -6916,98 +2299,56 @@
           },
           "awardTypeName": {
             "type": "string"
-          }
-        }
-      },
-      "CreateAwardRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "awardId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
           },
-          "newAwardName": {
-            "type": "string",
-            "nullable": true
-          },
-          "awardTypeId": {
+          "year": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "format": "int32"
           },
           "awardedAt": {
             "type": "string",
             "format": "date-time"
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "targetUserId": {
-            "type": "string",
-            "nullable": true
           }
         }
       },
-      "UpdateAwardRequest": {
+      "CreateAwardBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "awardId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+          "awardName": {
+            "type": "string"
           },
-          "newAwardName": {
-            "type": "string",
-            "nullable": true
-          },
-          "awardTypeId": {
+          "awardType": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "format": "int32"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
           },
           "awardedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UpdateAwardBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "awardName": {
+            "type": "string"
           },
-          "evidenceFileId": {
+          "awardType": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
-          }
-        }
-      },
-      "ClasificacionDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
+            "format": "int32"
           },
-          "nombre": {
-            "type": "string"
-          }
-        }
-      },
-      "CreateClasificacionRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "nombre": {
-            "type": "string"
-          }
-        }
-      },
-      "UpdateClasificacionRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "nombre": {
-            "type": "string"
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "awardedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -7045,25 +2386,6 @@
           "presentationCount": {
             "type": "integer",
             "format": "int32"
-          },
-          "redId": {
-            "type": "string",
-            "nullable": true
-          },
-          "redName": {
-            "type": "string",
-            "nullable": true
-          },
-          "organizadorIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
           }
         }
       },
@@ -7080,7 +2402,7 @@
           }
         }
       },
-      "CreateCountryRequest": {
+      "CreateCountryBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7102,7 +2424,7 @@
           }
         }
       },
-      "CreateEventRequest": {
+      "CreateEventBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7122,25 +2444,10 @@
             "items": {
               "type": "string"
             }
-          },
-          "redId": {
-            "type": "string",
-            "nullable": true
-          },
-          "organizadorIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
           }
         }
       },
-      "UpdateEventRequest": {
+      "UpdateEventBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7160,48 +2467,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "redId": {
-            "type": "string",
-            "nullable": true
-          },
-          "organizadorIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          }
-        }
-      },
-      "StoredFileDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "fileName": {
-            "type": "string"
-          },
-          "contentType": {
-            "type": "string"
-          },
-          "sizeBytes": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "uploadedById": {
-            "type": "string"
-          },
-          "created": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -7239,7 +2504,7 @@
           }
         }
       },
-      "CreateGrupoDeInvestigacionRequest": {
+      "CreateGrupoDeInvestigacionBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7251,13 +2516,14 @@
           },
           "lineasDeInvestigacionIds": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             }
           }
         }
       },
-      "UpdateGrupoDeInvestigacionRequest": {
+      "UpdateGrupoDeInvestigacionBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7269,102 +2535,23 @@
           },
           "lineasDeInvestigacionIds": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             }
           }
         }
       },
-      "SetGrupoMiembrosRequest": {
+      "SetGrupoMiembrosBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "usuariosIds": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             }
-          }
-        }
-      },
-      "GrupoEstudiantilDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nombre": {
-            "type": "string"
-          },
-          "areaId": {
-            "type": "string"
-          },
-          "areaNombre": {
-            "type": "string"
-          },
-          "lineasDeInvestigacionIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "CreateGrupoEstudiantilRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "nombre": {
-            "type": "string"
-          },
-          "areaId": {
-            "type": "string"
-          },
-          "lineasDeInvestigacionIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "UpdateGrupoEstudiantilRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "nombre": {
-            "type": "string"
-          },
-          "areaId": {
-            "type": "string"
-          },
-          "lineasDeInvestigacionIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "InstitutionDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nombre": {
-            "type": "string"
-          }
-        }
-      },
-      "CreateInstitutionBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "nombre": {
-            "type": "string"
           }
         }
       },
@@ -7396,7 +2583,7 @@
           }
         }
       },
-      "CreateLineaDeInvestigacionRequest": {
+      "CreateLineaDeInvestigacionBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7409,13 +2596,14 @@
           },
           "areasDelConocimientoIds": {
             "type": "array",
+            "nullable": true,
             "items": {
               "type": "string"
             }
           }
         }
       },
-      "UpdateLineaDeInvestigacionRequest": {
+      "UpdateLineaDeInvestigacionBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7427,260 +2615,6 @@
             "nullable": true
           },
           "areasDelConocimientoIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "NomencladorCreateRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "nombre": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "NormaDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          },
-          "tipoNormaId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "tipoNormaNombre": {
-            "type": "string",
-            "nullable": true
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "institutionNombre": {
-            "type": "string"
-          },
-          "creadores": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "creadoresDetalle": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreatorDto"
-            }
-          }
-        }
-      },
-      "CreatorDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "CreateNormaBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "tipoNormaId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "additionalAuthorIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalAuthorNames": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalUserIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "UpdateNormaBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "tipoNormaId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "additionalAuthorIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalAuthorNames": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalUserIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "PatenteDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          },
-          "numeroSolicitudConcesion": {
-            "type": "string"
-          },
-          "esNacional": {
-            "type": "boolean"
-          },
-          "creadores": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "creadoresDetalle": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreatorDto"
-            }
-          }
-        }
-      },
-      "ProyectoPatenteDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "proyectoId": {
-            "type": "string"
-          },
-          "proyectoTitulo": {
-            "type": "string"
-          }
-        }
-      },
-      "CreatePatenteBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "numeroSolicitudConcesion": {
-            "type": "string"
-          },
-          "esNacional": {
-            "type": "boolean"
-          },
-          "additionalAuthorIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalAuthorNames": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalUserIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "UpdatePatenteBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "numeroSolicitudConcesion": {
-            "type": "string"
-          },
-          "esNacional": {
-            "type": "boolean"
-          },
-          "additionalAuthorIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalAuthorNames": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalUserIds": {
             "type": "array",
             "nullable": true,
             "items": {
@@ -7707,24 +2641,15 @@
           "eventName": {
             "type": "string"
           },
-          "fecha": {
-            "type": "string",
-            "format": "date"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "user": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/LinkedUserSummaryDto"
-              }
-            ]
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
-      "CreatePresentationRequest": {
+      "CreatePresentationBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7735,17 +2660,21 @@
             "type": "integer",
             "format": "int32"
           },
-          "fecha": {
-            "type": "string",
-            "format": "date"
+          "coauthorIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
-          "targetUserId": {
-            "type": "string",
-            "nullable": true
+          "coauthorNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
-      "UpdatePresentationRequest": {
+      "UpdatePresentationBody": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -7756,799 +2685,19 @@
             "type": "integer",
             "format": "int32"
           },
-          "fecha": {
-            "type": "string",
-            "format": "date"
-          }
-        }
-      },
-      "ProductoDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          },
-          "tipoProductoComercializadoId": {
-            "type": "string"
-          },
-          "tipoProductoComercializadoNombre": {
-            "type": "string"
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "institutionNombre": {
-            "type": "string"
-          },
-          "creadores": {
+          "coauthorIds": {
             "type": "array",
             "items": {
               "type": "string"
             }
           },
-          "creadoresDetalle": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreatorDto"
-            }
-          }
-        }
-      },
-      "CreateProductoBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "tipoProductoComercializadoId": {
-            "type": "string"
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "additionalAuthorIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalAuthorNames": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalUserIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "UpdateProductoBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "tipoProductoComercializadoId": {
-            "type": "string"
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "additionalAuthorIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalAuthorNames": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalUserIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "ProyectoResumenDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          },
-          "jefeId": {
-            "type": "string"
-          },
-          "jefe": {
-            "type": "string"
-          },
-          "correoJefe": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "clasificacionNombre": {
-            "type": "string"
-          },
-          "participantes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRefDto"
-            }
-          },
-          "tipo": {
-            "type": "string"
-          },
-          "codigoProyecto": {
-            "type": "string",
-            "nullable": true
-          },
-          "estadosDeEjecucion": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "situaciones": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "publicacionesDerivadas": {
+          "coauthorNames": {
             "type": "array",
             "items": {
               "type": "string"
             }
           }
         }
-      },
-      "UserRefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nombreCompleto": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          }
-        }
-      },
-      "ProyectoCatalogoDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          }
-        }
-      },
-      "ProyectoPatenteResumenDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "patenteId": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          },
-          "numeroSolicitudConcesion": {
-            "type": "string"
-          },
-          "esNacional": {
-            "type": "boolean"
-          },
-          "creador": {
-            "type": "string",
-            "nullable": true
-          },
-          "creadores": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "SetParticipantesRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "participantesIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "ProyectoEnRevisionDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoBaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "situaciones": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NomencladorDto"
-                }
-              },
-              "tipo": {
-                "type": "string"
-              }
-            }
-          }
-        ]
-      },
-      "NomencladorDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "nombre": {
-            "type": "string"
-          }
-        }
-      },
-      "ProyectoBaseDto": {
-        "type": "object",
-        "x-abstract": true,
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          },
-          "jefeId": {
-            "type": "string"
-          },
-          "jefe": {
-            "type": "string"
-          },
-          "correoJefe": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadMiembrosUH": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantesContratados": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tributaFormacionDoctoral": {
-            "type": "boolean"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "clasificacionNombre": {
-            "type": "string"
-          },
-          "participantes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRefDto"
-            }
-          },
-          "publicacionesDerivadas": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "ProyectoEnRevisionUpsertRequest": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoUpsertRequestBase"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "situacionesIds": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "tipo": {
-                "type": "string"
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoUpsertRequestBase": {
-        "type": "object",
-        "x-abstract": true,
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "jefeId": {
-            "type": "string"
-          },
-          "numeroMiembros": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadMiembrosUH": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantes": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadEstudiantesContratados": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tributaFormacionDoctoral": {
-            "type": "boolean"
-          },
-          "clasificacionId": {
-            "type": "string"
-          },
-          "participantesIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "ProyectoEmpresarialDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionBaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "empresas": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/InstitutionRefDto"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "InstitutionRefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nombre": {
-            "type": "string"
-          }
-        }
-      },
-      "ProyectoEnEjecucionBaseDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoBaseDto"
-          },
-          {
-            "type": "object",
-            "x-abstract": true,
-            "additionalProperties": false,
-            "properties": {
-              "fechaInicio": {
-                "type": "string",
-                "format": "date"
-              },
-              "fechaCierre": {
-                "type": "string",
-                "format": "date",
-                "nullable": true
-              },
-              "codigoProyecto": {
-                "type": "string"
-              },
-              "tributaDesarrolloLocal": {
-                "type": "boolean"
-              },
-              "estadosDeEjecucion": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NomencladorDto"
-                }
-              },
-              "entidadesEjecutorasPrincipales": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/InstitutionRefDto"
-                }
-              },
-              "entidadesEjecutorasParticipantes": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/InstitutionRefDto"
-                }
-              },
-              "sectoresEstrategicos": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NomencladorDto"
-                }
-              },
-              "ejesEstrategicos": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NomencladorDto"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoEmpresarialUpsertRequest": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "empresasIds": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoEnEjecucionUpsertRequestBase": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoUpsertRequestBase"
-          },
-          {
-            "type": "object",
-            "x-abstract": true,
-            "additionalProperties": false,
-            "properties": {
-              "fechaInicio": {
-                "type": "string",
-                "format": "date"
-              },
-              "fechaCierre": {
-                "type": "string",
-                "format": "date",
-                "nullable": true
-              },
-              "codigoProyecto": {
-                "type": "string"
-              },
-              "tributaDesarrolloLocal": {
-                "type": "boolean"
-              },
-              "estadosDeEjecucionIds": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "entidadesEjecutorasPrincipalesIds": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "entidadesEjecutorasParticipantesIds": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "sectoresEstrategicosIds": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "ejesEstrategicosIds": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoApoyoProgramaDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionBaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "programas": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NomencladorDto"
-                }
-              },
-              "tipoPAP": {
-                "$ref": "#/components/schemas/TipoPAP"
-              }
-            }
-          }
-        ]
-      },
-      "TipoPAP": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Nacional",
-          "Sectorial",
-          "Territorial"
-        ],
-        "enum": [
-          1,
-          2,
-          3
-        ]
-      },
-      "ProyectoApoyoProgramaUpsertRequest": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "programasIds": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "tipoPAP": {
-                "$ref": "#/components/schemas/TipoPAP"
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoDesarrolloLocalDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionBaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "municipioId": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "municipioNombre": {
-                "type": "string"
-              },
-              "provinciaNombre": {
-                "type": "string",
-                "nullable": true
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoDesarrolloLocalUpsertRequest": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "municipioId": {
-                "type": "integer",
-                "format": "int32"
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoNoEmpresarialDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionBaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "entidades": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/InstitutionRefDto"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoNoEmpresarialUpsertRequest": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "entidadesIds": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoColabInternacionalDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionBaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "fuentesFinanciacion": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NomencladorDto"
-                }
-              },
-              "terminosReferencia": {
-                "type": "string"
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoColabInternacionalUpsertRequest": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "fuentesFinanciacionIds": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "terminosReferencia": {
-                "type": "string"
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoPNAPDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionBaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "fuentesFinanciacion": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NomencladorDto"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "ProyectoPNAPUpsertRequest": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ProyectoEnEjecucionUpsertRequestBase"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "fuentesFinanciacionIds": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              }
-            }
-          }
-        ]
       },
       "PublicationTypeDto": {
         "type": "object",
@@ -8580,9 +2729,6 @@
             "type": "string",
             "nullable": true
           },
-          "publishedDate": {
-            "type": "string"
-          },
           "publicationType": {
             "type": "integer",
             "format": "int32"
@@ -8608,27 +2754,6 @@
                 "$ref": "#/components/schemas/JournalPublicationDto"
               }
             ]
-          },
-          "proyectoId": {
-            "type": "string",
-            "nullable": true
-          },
-          "proyectoTitulo": {
-            "type": "string",
-            "nullable": true
-          },
-          "redId": {
-            "type": "string",
-            "nullable": true
-          },
-          "redNombre": {
-            "type": "string",
-            "nullable": true
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
           }
         }
       },
@@ -8642,24 +2767,9 @@
           "name": {
             "type": "string"
           },
-          "lastName": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string",
-            "nullable": true
-          },
           "userId": {
             "type": "string",
             "nullable": true
-          },
-          "linkedUser": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/LinkedUserSummaryDto"
-              }
-            ]
           }
         }
       },
@@ -8668,9 +2778,7 @@
         "additionalProperties": false,
         "properties": {
           "index": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "type": "string"
           }
         }
       },
@@ -8679,8 +2787,7 @@
         "additionalProperties": false,
         "properties": {
           "dataBase": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "group": {
             "type": "integer",
@@ -8692,7 +2799,7 @@
           }
         }
       },
-      "CreatePublicationRequest": {
+      "CreatePublicationCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -8708,9 +2815,6 @@
           "urlDoi": {
             "type": "string",
             "nullable": true
-          },
-          "publishedDate": {
-            "type": "string"
           },
           "additionalAuthorIds": {
             "type": "array",
@@ -8731,8 +2835,7 @@
             }
           },
           "index": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
             "nullable": true
           },
           "dataBase": {
@@ -8745,23 +2848,6 @@
             "nullable": true
           },
           "cuartil": {
-            "type": "string",
-            "nullable": true
-          },
-          "proyectoId": {
-            "type": "string",
-            "nullable": true
-          },
-          "redId": {
-            "type": "string",
-            "nullable": true
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "targetUserId": {
             "type": "string",
             "nullable": true
           }
@@ -8785,142 +2871,6 @@
           4
         ]
       },
-      "PublicationDuplicateDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "urlDoi": {
-            "type": "string",
-            "nullable": true
-          },
-          "matchType": {
-            "type": "string"
-          },
-          "score": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
-      "PublicationCrossRefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "doi": {
-            "type": "string",
-            "nullable": true
-          },
-          "url": {
-            "type": "string",
-            "nullable": true
-          },
-          "title": {
-            "type": "string",
-            "nullable": true
-          },
-          "publicationData": {
-            "type": "string",
-            "nullable": true
-          },
-          "suggestedPublicationType": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "authors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "containerTitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "issns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "isbns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "volume": {
-            "type": "string",
-            "nullable": true
-          },
-          "issue": {
-            "type": "string",
-            "nullable": true
-          },
-          "page": {
-            "type": "string",
-            "nullable": true
-          },
-          "published": {
-            "type": "string",
-            "nullable": true
-          },
-          "publisher": {
-            "type": "string",
-            "nullable": true
-          },
-          "type": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "PublicationDatabaseMatchDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "issns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "databaseName": {
-            "type": "string",
-            "nullable": true
-          },
-          "group": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "cuartil": {
-            "type": "string",
-            "nullable": true
-          },
-          "source": {
-            "type": "string",
-            "nullable": true
-          },
-          "confidence": {
-            "type": "number",
-            "format": "double"
-          },
-          "ambiguousGroup": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
       "UpdatePublicationBody": {
         "type": "object",
         "additionalProperties": false,
@@ -8938,9 +2888,6 @@
           "urlDoi": {
             "type": "string",
             "nullable": true
-          },
-          "publishedDate": {
-            "type": "string"
           },
           "additionalAuthorIds": {
             "type": "array",
@@ -8964,8 +2911,7 @@
             }
           },
           "index": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
             "nullable": true
           },
           "dataBase": {
@@ -8980,327 +2926,6 @@
           "cuartil": {
             "type": "string",
             "nullable": true
-          },
-          "proyectoId": {
-            "type": "string",
-            "nullable": true
-          },
-          "redId": {
-            "type": "string",
-            "nullable": true
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          }
-        }
-      },
-      "RedDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nombre": {
-            "type": "string"
-          },
-          "countryId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "countryName": {
-            "type": "string",
-            "nullable": true
-          },
-          "cantidadProfesores": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tipo": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "RedConCoordinadorDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nombre": {
-            "type": "string"
-          },
-          "tipo": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "countryName": {
-            "type": "string",
-            "nullable": true
-          },
-          "cantidadProfesores": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "coordinadorId": {
-            "type": "string",
-            "nullable": true
-          },
-          "coordinadorNombre": {
-            "type": "string",
-            "nullable": true
-          },
-          "coordinadorEmail": {
-            "type": "string",
-            "nullable": true
-          },
-          "participantes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ParticipanteRedDto"
-            }
-          }
-        }
-      },
-      "ParticipanteRedDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "authorId": {
-            "type": "string"
-          },
-          "authorNombre": {
-            "type": "string"
-          }
-        }
-      },
-      "SetCoordinadorBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "coordinadorId": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "CreateRedBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "nombre": {
-            "type": "string"
-          },
-          "countryId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadProfesores": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tipo": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "UpdateRedBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "nombre": {
-            "type": "string"
-          },
-          "countryId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cantidadProfesores": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tipo": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "EventForRedDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "name": {
-            "type": "string"
-          },
-          "assigned": {
-            "type": "boolean"
-          }
-        }
-      },
-      "SetEventsBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "eventIds": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        }
-      },
-      "RegistroDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "titulo": {
-            "type": "string"
-          },
-          "numeroCertificado": {
-            "type": "string"
-          },
-          "esInformatico": {
-            "type": "boolean"
-          },
-          "countryId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "countryName": {
-            "type": "string"
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "institutionNombre": {
-            "type": "string"
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "creadores": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "creadoresDetalle": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreatorDto"
-            }
-          }
-        }
-      },
-      "CreateRegistroBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "numeroCertificado": {
-            "type": "string"
-          },
-          "esInformatico": {
-            "type": "boolean"
-          },
-          "countryId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "additionalAuthorIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalAuthorNames": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalUserIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "UpdateRegistroBody": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "titulo": {
-            "type": "string"
-          },
-          "numeroCertificado": {
-            "type": "string"
-          },
-          "esInformatico": {
-            "type": "boolean"
-          },
-          "countryId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "institutionId": {
-            "type": "string"
-          },
-          "evidenceFileId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "additionalAuthorIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalAuthorNames": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "additionalUserIds": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -9309,18 +2934,6 @@
         "additionalProperties": false,
         "properties": {
           "name": {
-            "type": "string"
-          }
-        }
-      },
-      "TipoProductoDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nombre": {
             "type": "string"
           }
         }
@@ -9393,22 +3006,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "areaId": {
-            "type": "string",
-            "nullable": true
-          },
-          "areaNombre": {
-            "type": "string",
-            "nullable": true
-          },
-          "universidadId": {
-            "type": "string",
-            "nullable": true
-          },
-          "universidadNombre": {
-            "type": "string",
-            "nullable": true
-          },
           "roles": {
             "type": "array",
             "items": {
@@ -9422,21 +3019,6 @@
         "additionalProperties": false,
         "properties": {
           "roleName": {
-            "type": "string"
-          }
-        }
-      },
-      "JefeDeProyectoDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "nombreCompleto": {
-            "type": "string"
-          },
-          "email": {
             "type": "string"
           }
         }
