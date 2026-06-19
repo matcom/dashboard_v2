@@ -22,8 +22,9 @@ else
     app.UseHsts();
 }
 
-// Aplicar migraciones y seed siempre (tanto en desarrollo como en producción/Docker)
-await app.InitialiseDatabaseAsync();
+// En Testing el esquema ya fue creado por EnsureCreatedAsync en el test setup; saltar migraciones.
+if (!app.Environment.IsEnvironment("Testing"))
+    await app.InitialiseDatabaseAsync();
 
 await app.InitialiseMinioAsync();
 

@@ -26,5 +26,11 @@
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-w3x6-4m5h-cxqf" />
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-f32c-w444-8ppv" />
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-qj66-m88j-hmgj" />
+    <!--
+      System.Drawing.Common GHSA-rxg9-xrhp-64gj: RCE via malicious image files.
+      Dependencia transitiva de Testcontainers; en este proyecto nunca se procesan
+      imágenes externas no confiables. Solo afecta a tests.
+    -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rxg9-xrhp-64gj" />
   </ItemGroup>
 </Project>
