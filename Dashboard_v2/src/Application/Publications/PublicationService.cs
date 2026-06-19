@@ -107,7 +107,7 @@ public sealed partial class PublicationService : IPublicationService
                     : null
             };
         }
-        else
+        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Artículo_de_Divulgación)
         {
             publication.IndexedPublication = new IndexedPublication
             {
