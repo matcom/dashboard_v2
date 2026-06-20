@@ -3,9 +3,8 @@ using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Domain.Entities;
 
-public class Publication : IAuditableEntity
+public class Publication : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Title { get; set; } = default!;
     /// <summary>Versión normalizada del título (sin diacríticos, sin puntuación, lowercase) para búsqueda rápida.</summary>
     public string? NormalizedTitle { get; set; }
@@ -43,9 +42,4 @@ public class Publication : IAuditableEntity
     /// <summary>Archivo de evidencia/certificado adjunto (opcional).</summary>
     public int? EvidenceFileId { get; set; }
     public StoredFile? EvidenceFile { get; set; }
-
-    public DateTimeOffset Created { get; set; }
-    public string? CreatedBy { get; set; }
-    public DateTimeOffset LastModified { get; set; }
-    public string? LastModifiedBy { get; set; }
 }

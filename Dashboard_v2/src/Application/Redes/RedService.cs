@@ -88,7 +88,7 @@ public sealed class RedService : IRedService
 
     public async Task<Result> SetCoordinadorAsync(string redId, string? coordinadorId, CancellationToken ct = default)
     {
-        var red = await _context.Reds.FindAsync(new object[] { redId }, ct);
+        var red = await _context.Reds.FindAsync(redId, ct);
         if (red == null)
             return Result.Failure(["Red no encontrada."]);
 
@@ -169,14 +169,14 @@ public sealed class RedService : IRedService
         if (!Enum.IsDefined(typeof(TipoRed), body.Tipo))
             return Result.Failure(["Tipo de red no válido."]);
 
-        var e = await _context.Reds.FindAsync(new object[] { id }, ct);
-        if (e == null)
+        var red = await _context.Reds.FindAsync(id, ct);
+        if (red == null)
             return Result.Failure(["Red no encontrada."]);
 
-        e.Nombre = body.Nombre;
-        e.CountryId = body.CountryId;
-        e.CantidadProfesores = body.CantidadProfesores;
-        e.Tipo = (TipoRed)body.Tipo;
+        red.Nombre = body.Nombre;
+        red.CountryId = body.CountryId;
+        red.CantidadProfesores = body.CantidadProfesores;
+        red.Tipo = (TipoRed)body.Tipo;
 
         await _context.SaveChangesAsync(ct);
         return Result.Success();
@@ -184,11 +184,11 @@ public sealed class RedService : IRedService
 
     public async Task<Result> DeleteRedAsync(string id, CancellationToken ct = default)
     {
-        var e = await _context.Reds.FindAsync(new object[] { id }, ct);
-        if (e == null)
+        var red = await _context.Reds.FindAsync(id, ct);
+        if (red == null)
             return Result.Failure(["Red no encontrada."]);
 
-        _context.Reds.Remove(e);
+        _context.Reds.Remove(red);
         await _context.SaveChangesAsync(ct);
         return Result.Success();
     }
@@ -202,7 +202,7 @@ public sealed class RedService : IRedService
 
     public async Task<Result> SetEventsForRedAsync(string redId, List<int> eventIds, CancellationToken ct = default)
     {
-        var red = await _context.Reds.FindAsync(new object[] { redId }, ct);
+        var red = await _context.Reds.FindAsync(redId, ct);
         if (red == null)
             return Result.Failure(["Red no encontrada."]);
 

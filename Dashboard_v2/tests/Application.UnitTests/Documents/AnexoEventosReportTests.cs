@@ -397,4 +397,108 @@ public class AnexoEventosReportTests
         datos.ShouldContain(d => d.NombrePonencia == "Ponencia B");
         datos.ShouldContain(d => d.NombrePonencia == "Ponencia C");
     }
+
+    // ── filtro por área ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Cuando el solicitante tiene área, los eventos sin ningún organizador ni
+    /// participante de ese área no deben aparecer en ninguna lista.
+    /// </summary>
+    [Test]
+    public async Task GatherVariablesAsync_WithAreaFilter_ExcludesEventWithNoAreaConnection()
+    {
+        await using var db = BuildDb(nameof(GatherVariablesAsync_WithAreaFilter_ExcludesEventWithNoAreaConnection));
+
+        var cuba = new Country { Id = 1, Name = "Cuba" };
+        var areaA = new Area { Id = "area-a", Nombre = "Área A" };
+        var areaB = new Area { Id = "area-b", Nombre = "Área B" };
+        var reqUser = new User { Id = "req-ev1", UserName = "req", UserLastName1 = "R", Email = "r@t.cu", AreaId = areaA.Id };
+        var otherUser = new User { Id = "other-ev1", UserName = "other", UserLastName1 = "O", Email = "o@t.cu", AreaId = areaB.Id };
+        var ev = new Event { Name = "Evento Excluido", CountryId = cuba.Id, EventTypeId = Nacional };
+
+        db.Countries.Add(cuba);
+        db.Areas.AddRange(areaA, areaB);
+        db.Users.AddRange(reqUser, otherUser);
+        db.Events.Add(ev);
+        await db.SaveChangesAsync();
+
+        // Evento organizado solo por usuario de área-b
+        db.EventOrganizadores.Add(new EventOrganizador { EventId = ev.Id, UserId = otherUser.Id });
+        await db.SaveChangesAsync();
+
+        var report = BuildReport(db, reqUser.Id);
+        var variables = await report.GatherVariablesAsync(null, CancellationToken.None);
+
+        ((List<EventoNacionalRowDto>)variables["EventosNacionales"]).ShouldBeEmpty();
+    }
+
+    /// <summary>
+    /// Solo las ponencias de usuarios del área del solicitante deben aparecer
+    /// en DatosPonencias cuando el solicitante tiene área asignada.
+    /// </summary>
+    [Test]
+    public async Task GatherVariablesAsync_WithAreaFilter_IncludesPresentationsByAreaUser()
+    {
+        await using var db = BuildDb(nameof(GatherVariablesAsync_WithAreaFilter_IncludesPresentationsByAreaUser));
+
+        var cuba = new Country { Id = 1, Name = "Cuba" };
+        var areaA = new Area { Id = "area-a", Nombre = "Área A" };
+        var reqUser = new User { Id = "req-pr1", UserName = "req", UserLastName1 = "R", Email = "r@t.cu", AreaId = areaA.Id };
+        var ev = new Event { Name = "Evento A", CountryId = cuba.Id, EventTypeId = Nacional };
+
+        db.Countries.Add(cuba);
+        db.Areas.Add(areaA);
+        db.Users.Add(reqUser);
+        db.Events.Add(ev);
+        await db.SaveChangesAsync();
+
+        // El solicitante también organiza el evento (para que pase el filtro de área)
+        db.EventOrganizadores.Add(new EventOrganizador { EventId = ev.Id, UserId = reqUser.Id });
+        var fecha = DateOnly.FromDateTime(DateTime.UtcNow);
+        db.Presentations.Add(new Presentation { Name = "Ponencia Área A", EventId = ev.Id, UserId = reqUser.Id, Fecha = fecha });
+        await db.SaveChangesAsync();
+
+        var report = BuildReport(db, reqUser.Id);
+        var variables = await report.GatherVariablesAsync(null, CancellationToken.None);
+
+        var datos = (List<DatosPonenciaRowDto>)variables["DatosPonencias"];
+        datos.Count.ShouldBe(1);
+        datos[0].NombrePonencia.ShouldBe("Ponencia Área A");
+    }
+
+    /// <summary>
+    /// Las ponencias de usuarios de otras áreas no deben aparecer en DatosPonencias
+    /// aunque el evento en sí sí esté incluido (organizado por alguien del área A).
+    /// </summary>
+    [Test]
+    public async Task GatherVariablesAsync_WithAreaFilter_ExcludesPresentationsByOtherAreaUser()
+    {
+        await using var db = BuildDb(nameof(GatherVariablesAsync_WithAreaFilter_ExcludesPresentationsByOtherAreaUser));
+
+        var cuba = new Country { Id = 1, Name = "Cuba" };
+        var areaA = new Area { Id = "area-a", Nombre = "Área A" };
+        var areaB = new Area { Id = "area-b", Nombre = "Área B" };
+        var reqUser = new User { Id = "req-pr2", UserName = "req", UserLastName1 = "R", Email = "r@t.cu", AreaId = areaA.Id };
+        var otherUser = new User { Id = "other-pr2", UserName = "other", UserLastName1 = "O", Email = "o@t.cu", AreaId = areaB.Id };
+        var ev = new Event { Name = "Evento Mixto", CountryId = cuba.Id, EventTypeId = Nacional };
+
+        db.Countries.Add(cuba);
+        db.Areas.AddRange(areaA, areaB);
+        db.Users.AddRange(reqUser, otherUser);
+        db.Events.Add(ev);
+        await db.SaveChangesAsync();
+
+        // Evento organizado por req (área-a) → aparece en EventosNacionales
+        db.EventOrganizadores.Add(new EventOrganizador { EventId = ev.Id, UserId = reqUser.Id });
+        var fecha = DateOnly.FromDateTime(DateTime.UtcNow);
+        // Ponencia de otherUser (área-b) → debe excluirse de DatosPonencias
+        db.Presentations.Add(new Presentation { Name = "Ponencia Área B", EventId = ev.Id, UserId = otherUser.Id, Fecha = fecha });
+        await db.SaveChangesAsync();
+
+        var report = BuildReport(db, reqUser.Id);
+        var variables = await report.GatherVariablesAsync(null, CancellationToken.None);
+
+        ((List<EventoNacionalRowDto>)variables["EventosNacionales"]).Count.ShouldBe(1);
+        ((List<DatosPonenciaRowDto>)variables["DatosPonencias"]).ShouldBeEmpty();
+    }
 }

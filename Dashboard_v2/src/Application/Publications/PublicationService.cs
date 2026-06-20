@@ -6,6 +6,8 @@ using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
 using Dashboard_v2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using PublicationType = Dashboard_v2.Domain.Enums.PublicationType;
+using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Application.Publications;
 
@@ -17,6 +19,7 @@ public sealed partial class PublicationService : IPublicationService
     private readonly IOpenAireClient _openAireClient;
     private readonly IAuthorResolutionService _authorResolution;
     private readonly IAuthorCleanupService _authorCleanup;
+    private readonly IPublicationDatabaseResolver _databaseResolver;
 
     public PublicationService(
         IApplicationDbContext context,
@@ -24,7 +27,8 @@ public sealed partial class PublicationService : IPublicationService
         ICrossRefClient crossRefClient,
         IOpenAireClient openAireClient,
         IAuthorResolutionService authorResolution,
-        IAuthorCleanupService authorCleanup)
+        IAuthorCleanupService authorCleanup,
+        IPublicationDatabaseResolver databaseResolver)
     {
         _context = context;
         _currentUser = currentUser;
@@ -32,13 +36,14 @@ public sealed partial class PublicationService : IPublicationService
         _openAireClient = openAireClient;
         _authorResolution = authorResolution;
         _authorCleanup = authorCleanup;
+        _databaseResolver = databaseResolver;
     }
 
-    private bool IsSuperuser => _currentUser.Roles?.Contains("Superuser") == true;
+    private bool IsSuperuser => _currentUser.Roles?.Contains(nameof(RolesEnum.Superuser)) == true;
 
     public async Task<(Result Result, string? PublicationId)> CreateAsync(CreatePublicationRequest request, CancellationToken ct = default)
     {
-        if (!System.Enum.IsDefined(typeof(Dashboard_v2.Domain.Enums.PublicationType), request.PublicationType))
+        if (!Enum.IsDefined(typeof(PublicationType), request.PublicationType))
             return (Result.Failure(new[] { "Tipo de publicación no válido." }), null);
 
         if (string.IsNullOrWhiteSpace(request.PublishedDate) || !IsValidPartialDate(request.PublishedDate))
@@ -47,13 +52,13 @@ public sealed partial class PublicationService : IPublicationService
         var group = request.Group;
         var cuartil = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
 
-        if (request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario)
+        if (request.PublicationType == PublicationType.Diario)
         {
             if (group is null or < 1 or > 4)
                 return (Result.Failure(new[] { "El grupo de la revista es obligatorio (1–4)." }), null);
 
         }
-        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
+        else if (request.PublicationType != PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
                  && request.Index is null or < 1 or > 3)
         {
             return (Result.Failure(new[] { "La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)." }), null);
@@ -94,7 +99,7 @@ public sealed partial class PublicationService : IPublicationService
 
         await AddCoauthorsAsync(publication, author, request.AdditionalAuthorIds, request.AdditionalAuthorNames, request.AdditionalUserIds, ct);
 
-        if (request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario)
+        if (request.PublicationType == PublicationType.Diario)
         {
             var baseDeDatosId = await UpsertBaseDeDatosAsync(request.DataBase, ct);
             publication.JournalPublication = new JournalPublication
@@ -107,7 +112,7 @@ public sealed partial class PublicationService : IPublicationService
                     : null
             };
         }
-        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Artículo_de_Divulgación)
+        else if (request.PublicationType != PublicationType.Artículo_de_Divulgación)
         {
             publication.IndexedPublication = new IndexedPublication
             {
@@ -149,7 +154,7 @@ public sealed partial class PublicationService : IPublicationService
         if (publication == null)
             return Result.Failure(new[] { "Publicación no encontrada." });
 
-        if (!System.Enum.IsDefined(typeof(Dashboard_v2.Domain.Enums.PublicationType), request.PublicationType))
+        if (!Enum.IsDefined(typeof(PublicationType), request.PublicationType))
             return Result.Failure(new[] { "Tipo de publicación no válido." });
 
         if (string.IsNullOrWhiteSpace(request.PublishedDate) || !IsValidPartialDate(request.PublishedDate))
@@ -169,7 +174,7 @@ public sealed partial class PublicationService : IPublicationService
         var group    = request.Group;
         var cuartil  = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
 
-        var isNowJournal = request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario;
+        var isNowJournal = request.PublicationType == PublicationType.Diario;
         var wasJournal = publication.JournalPublication != null;
 
         if (isNowJournal)
@@ -177,7 +182,7 @@ public sealed partial class PublicationService : IPublicationService
             if (string.IsNullOrWhiteSpace(request.DataBase) || group is null or < 1 or > 4)
                 return Result.Failure(new[] { "Datos de la revista son obligatorios: base de datos y grupo (1–4)." });
         }
-        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
+        else if (request.PublicationType != PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
                  && request.Index is null or < 1 or > 3)
         {
             return Result.Failure(new[] { "La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)." });
@@ -649,7 +654,7 @@ public sealed partial class PublicationService : IPublicationService
 
     public async Task<List<PublicationDto>> GetMyRedPublicationsAsync(CancellationToken ct = default)
     {
-        var isJefe = _currentUser.Roles?.Contains(nameof(Dashboard_v2.Domain.Enums.Roles.Jefe_de_Redes)) == true
+        var isJefe = _currentUser.Roles?.Contains(nameof(RolesEnum.Jefe_de_Redes)) == true
                   || _currentUser.Roles?.Contains("Superuser") == true;
 
         if (isJefe)
@@ -681,7 +686,7 @@ public sealed partial class PublicationService : IPublicationService
 
     public Task<List<PublicationTypeDto>> GetPublicationTypesAsync()
     {
-        var types = System.Enum.GetValues<Dashboard_v2.Domain.Enums.PublicationType>()
+        var types = Enum.GetValues<PublicationType>()
             .Select(t => new PublicationTypeDto((int)t, t.ToString().Replace('_', ' ')))
             .ToList();
 
@@ -707,5 +712,57 @@ public sealed partial class PublicationService : IPublicationService
         _context.BasesDeDatosPublicacion.Add(entity);
         await _context.SaveChangesAsync(ct);
         return entity.Id;
+    }
+
+    public async Task<PublicationDatabaseMatchDto> ResolveDatabaseFromCrossRefAsync(
+        string? doi, string? title, string? issns, string? publishedDate, CancellationToken ct = default)
+    {
+        List<string> issnList;
+
+        if (!string.IsNullOrWhiteSpace(issns))
+        {
+            issnList = [.. issns.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+        }
+        else
+        {
+            PublicationCrossRefDto? cr = null;
+            if (!string.IsNullOrWhiteSpace(doi))
+                cr = await _crossRefClient.GetWorkByDoiAsync(doi, ct);
+
+            if (cr == null && !string.IsNullOrWhiteSpace(title))
+            {
+                var list = await _crossRefClient.SearchWorksByTitleAsync(title, rows: 1, ct: ct);
+                if (list?.Count > 0) cr = list[0];
+            }
+
+            if (cr == null)
+                return new PublicationDatabaseMatchDto
+                {
+                    Message = "CrossRef no encontró ninguna publicación con los parámetros dados. Por favor complete los campos manualmente."
+                };
+
+            if (cr.Issns == null || cr.Issns.Count == 0)
+                return new PublicationDatabaseMatchDto
+                {
+                    Message = "CrossRef encontró la publicación pero no devolvió ISSN (es un artículo de conferencias u otro tipo sin revista). Por favor complete los campos manualmente si corresponde."
+                };
+
+            issnList = [.. cr.Issns];
+        }
+
+        DateOnly? pubDate = null;
+        if (!string.IsNullOrWhiteSpace(publishedDate))
+        {
+            if (DateOnly.TryParseExact(publishedDate, ["yyyy-MM-dd", "yyyy-MM", "yyyy"],
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var parsed))
+                pubDate = parsed;
+        }
+
+        var match = await _databaseResolver.ResolveByIssnsAsync(issnList, pubDate, ct)
+            ?? new PublicationDatabaseMatchDto();
+
+        match.Issns = issnList;
+        return match;
     }
 }

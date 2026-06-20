@@ -2,10 +2,11 @@ using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
 using Dashboard_v2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Application.Events;
 
-public sealed class EventService : IEventService
+public sealed class EventService : IEventService, IPresentationService
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
@@ -16,16 +17,18 @@ public sealed class EventService : IEventService
         _currentUser = currentUser;
     }
 
-    private bool IsSuperuser => _currentUser.Roles?.Contains("Superuser") == true;
+    private bool IsSuperuser => _currentUser.Roles?.Contains(nameof(RolesEnum.Superuser)) == true;
+    private bool IsVicedecano => _currentUser.Roles?.Contains(nameof(RolesEnum.Vicedecano_de_investigacion)) == true;
 
     public async Task<List<EventDto>> GetMyEventsAsync(CancellationToken ct = default)
     {
         if (IsSuperuser) return await GetAllEventsAsync(ct);
+        if (IsVicedecano) return await GetAreaEventsAsync(ct);
         return await QueryEventsAsync(EventScope.ForUser(_currentUser.Id ?? string.Empty), ct);
     }
 
-    public Task<List<EventDto>> GetAllEventsAsync(CancellationToken ct = default)
-        => QueryEventsAsync(EventScope.All, ct);
+    public Task<List<EventDto>> GetAllEventsAsync(CancellationToken ct = default) =>
+        IsVicedecano ? GetAreaEventsAsync(ct) : QueryEventsAsync(EventScope.All, ct);
 
     public async Task<List<EventDto>> GetAreaEventsAsync(CancellationToken ct = default)
     {
@@ -176,14 +179,13 @@ public sealed class EventService : IEventService
             EvidenceFileId = request.EvidenceFileId,
         };
 
-        _context.Events.Add(ev);
-        await _context.SaveChangesAsync(ct);
-
         foreach (var userId in request.OrganizadorIds.Distinct().Where(id => !string.IsNullOrWhiteSpace(id)))
         {
             if (await _context.Users.AnyAsync(u => u.Id == userId, ct))
-                _context.EventOrganizadores.Add(new EventOrganizador { EventId = ev.Id, UserId = userId });
+                ev.Organizadores.Add(new EventOrganizador { UserId = userId });
         }
+
+        _context.Events.Add(ev);
         await _context.SaveChangesAsync(ct);
 
         return (Result.Success(), ev.Id);

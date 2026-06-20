@@ -71,6 +71,7 @@ public class PublicationServiceCrossRefTests
             crossRefClient.Object,
             new Mock<IOpenAireClient>().Object,
             new Mock<IAuthorResolutionService>().Object,
-            new Mock<IAuthorCleanupService>().Object);
+            new Mock<IAuthorCleanupService>().Object,
+            new Mock<IPublicationDatabaseResolver>().Object);
     }
 }

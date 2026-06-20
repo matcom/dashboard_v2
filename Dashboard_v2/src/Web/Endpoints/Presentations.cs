@@ -41,16 +41,16 @@ public class Presentations : EndpointGroupBase
             .Produces(200)
             .ProducesProblem(400);
     }
-    private async Task<IResult> GetMyPresentations(IEventService service)
+    private async Task<IResult> GetMyPresentations(IPresentationService service)
         => Results.Ok(await service.GetMyPresentationsAsync());
 
-    private async Task<IResult> GetAllPresentations(IEventService service)
+    private async Task<IResult> GetAllPresentations(IPresentationService service)
         => Results.Ok(await service.GetAllPresentationsAsync());
 
-    private async Task<IResult> GetAreaPresentations(IEventService service)
+    private async Task<IResult> GetAreaPresentations(IPresentationService service)
         => Results.Ok(await service.GetAreaPresentationsAsync());
 
-    private async Task<IResult> CreatePresentation(IEventService service, CreatePresentationRequest body)
+    private async Task<IResult> CreatePresentation(IPresentationService service, CreatePresentationRequest body)
     {
         var (result, id) = await service.CreatePresentationAsync(body);
 
@@ -60,7 +60,7 @@ public class Presentations : EndpointGroupBase
         return Results.Created($"/api/Presentations/{id}", new { id });
     }
 
-    private async Task<IResult> UpdatePresentation(IEventService service, int id, UpdatePresentationRequest body)
+    private async Task<IResult> UpdatePresentation(IPresentationService service, int id, UpdatePresentationRequest body)
     {
         var result = await service.UpdatePresentationAsync(id, body);
 
@@ -70,7 +70,7 @@ public class Presentations : EndpointGroupBase
         return Results.Ok(new { message = "Presentación actualizada." });
     }
 
-    private async Task<IResult> DeletePresentation(IEventService service, int id)
+    private async Task<IResult> DeletePresentation(IPresentationService service, int id)
     {
         var result = await service.DeletePresentationAsync(id);
 

@@ -27,8 +27,15 @@ public sealed class AwardService : IAwardService
         if (IsSuperuser)
             return await GetAllAwardsAsync(ct);
 
+        var myAwardIds = await _context.UserAwardeds
+            .Where(ua => ua.UserId == _currentUser.Id)
+            .Select(ua => ua.AwardId)
+            .Distinct()
+            .ToListAsync(ct);
+
         var userAwardeds = await _context.UserAwardeds
             .AsNoTracking()
+            .Where(ua => myAwardIds.Contains(ua.AwardId))
             .Include(ua => ua.Award)
                 .ThenInclude(a => a.AwardType)
             .Include(ua => ua.User)
@@ -58,7 +65,6 @@ public sealed class AwardService : IAwardService
                             .OrderBy(x => x.UserDisplayName)
                             .ToList()
                     })
-                    .Where(gr => gr.Recipients.Any(rr => rr.UserId == _currentUser.Id))
                     .OrderByDescending(gr => gr.AwardedAt)
                     .ToList()
             })

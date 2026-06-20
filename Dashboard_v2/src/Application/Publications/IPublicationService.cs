@@ -21,4 +21,5 @@ public interface IPublicationService
     Task<List<PublicationCrossRefDto>> SearchOpenAireCandidatesAsync(string? doi, string? title, CancellationToken ct = default);
     Task<List<PublicationDuplicateDto>> FindDuplicatesAsync(string? title, string? doi, string? url, string? excludePublicationId = null, CancellationToken ct = default);
     Task<Result> AddCurrentUserAsCoauthorAsync(string publicationId, CancellationToken ct = default);
+    Task<PublicationDatabaseMatchDto> ResolveDatabaseFromCrossRefAsync(string? doi, string? title, string? issns, string? publishedDate, CancellationToken ct = default);
 }
