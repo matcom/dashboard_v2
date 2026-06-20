@@ -15,6 +15,7 @@
 //   3. Registra la entrada en el diccionario 'templates' de este archivo
 
 using TemplateGen.Templates;
+using TemplateGen.Templates.Anexo1;
 
 // var templates = new Dictionary<string, (string Descripcion, Action Generate)>(StringComparer.OrdinalIgnoreCase)
 // {
@@ -34,6 +35,7 @@ var templates = new Dictionary<string, (string Descripcion, Action Generate)>(St
     ["registros"] = ("Anexo 7 — Patentes, Registros, Normas y Productos", () => new AnexoRegistrosTemplate().Generate()),
     ["redes-nac-inter"] = ("Anexo 6 — Redes Nacionales e Internacionales", () => new AnexoRedesNacInterTemplate().Generate()),
     ["redes-universitaria"] = ("Anexo 6 — Plantilla Red Universitaria (una por red)", () => new AnexoRedUniversitariaTemplate().Generate()),
+    ["resumen"] = ("Anexo 1 — Resumen Anual por Área", () => new Anexo1Template().Generate()),
 };
 
 // ─── Modo línea de comandos ────────────────────────────────────────────────
