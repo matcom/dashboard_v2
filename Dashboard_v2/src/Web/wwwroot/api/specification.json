@@ -9057,6 +9057,9 @@
           "message": {
             "type": "string",
             "nullable": true
+          },
+          "timedOut": {
+            "type": "boolean"
           }
         }
       },

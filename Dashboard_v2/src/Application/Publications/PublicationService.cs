@@ -548,20 +548,27 @@ public sealed partial class PublicationService : IPublicationService
 
     public async Task<List<PublicationCrossRefDto>> SearchCrossRefCandidatesAsync(string? doi, string? title, CancellationToken ct = default)
     {
-        if (!string.IsNullOrWhiteSpace(doi))
+        try
         {
-            var single = await _crossRefClient.GetWorkByDoiAsync(doi, ct);
-            if (single is not null)
-                return new List<PublicationCrossRefDto> { EnrichCrossRefCandidate(single) };
+            if (!string.IsNullOrWhiteSpace(doi))
+            {
+                var single = await _crossRefClient.GetWorkByDoiAsync(doi, ct);
+                if (single is not null)
+                    return [EnrichCrossRefCandidate(single)];
+            }
+
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                var items = await _crossRefClient.SearchWorksByTitleAsync(title, rows: 10, ct);
+                return [..items.Select(EnrichCrossRefCandidate)];
+            }
+        }
+        catch (CrossRefTimeoutException)
+        {
+            return [];
         }
 
-        if (!string.IsNullOrWhiteSpace(title))
-        {
-            var items = await _crossRefClient.SearchWorksByTitleAsync(title, rows: 10, ct);
-            return items.Select(EnrichCrossRefCandidate).ToList();
-        }
-
-        return new List<PublicationCrossRefDto>();
+        return [];
     }
 
     public async Task<List<PublicationCrossRefDto>> SearchOpenAireCandidatesAsync(string? doi, string? title, CancellationToken ct = default)

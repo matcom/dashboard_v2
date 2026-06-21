@@ -53,6 +53,11 @@ public class CrossRefClient : ICrossRefClient
         {
             throw;
         }
+        catch (OperationCanceledException ex)
+        {
+            _logger.LogWarning(ex, "CrossRef timed out for DOI {Doi}", doi);
+            throw new Dashboard_v2.Application.Publications.CrossRefTimeoutException("CrossRef did not respond in time", ex);
+        }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error fetching CrossRef work for DOI {Doi}", doi);
@@ -93,6 +98,11 @@ public class CrossRefClient : ICrossRefClient
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             throw;
+        }
+        catch (OperationCanceledException ex)
+        {
+            _logger.LogWarning(ex, "CrossRef timed out searching for title {Title}", title);
+            throw new Dashboard_v2.Application.Publications.CrossRefTimeoutException("CrossRef did not respond in time", ex);
         }
         catch (Exception ex)
         {

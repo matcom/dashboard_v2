@@ -205,13 +205,24 @@ public class Publications : EndpointGroupBase
         {
             // Slow path: ask CrossRef for the ISSNs.
             Dashboard_v2.Application.Publications.PublicationCrossRefDto? cr = null;
-            if (!string.IsNullOrWhiteSpace(doi))
-                cr = await crossRefClient.GetWorkByDoiAsync(doi);
-
-            if (cr == null && !string.IsNullOrWhiteSpace(title))
+            try
             {
-                var list = await crossRefClient.SearchWorksByTitleAsync(title, rows: 1);
-                if (list?.Count > 0) cr = list[0];
+                if (!string.IsNullOrWhiteSpace(doi))
+                    cr = await crossRefClient.GetWorkByDoiAsync(doi);
+
+                if (cr == null && !string.IsNullOrWhiteSpace(title))
+                {
+                    var list = await crossRefClient.SearchWorksByTitleAsync(title, rows: 1);
+                    if (list?.Count > 0) cr = list[0];
+                }
+            }
+            catch (Dashboard_v2.Application.Publications.CrossRefTimeoutException)
+            {
+                return Results.Ok(new Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto
+                {
+                    TimedOut = true,
+                    Message = "CrossRef no respondió a tiempo. Puedes ingresar los datos manualmente.",
+                });
             }
 
             if (cr == null)

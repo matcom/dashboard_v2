@@ -63,6 +63,36 @@ public class PublicationServiceCrossRefTests
         crossRefClient.Verify(x => x.SearchWorksByTitleAsync("fallback title", 10, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Test]
+    public async Task SearchCrossRefCandidatesAsyncReturnsEmptyWhenClientTimesOut()
+    {
+        var crossRefClient = new Mock<ICrossRefClient>();
+        crossRefClient
+            .Setup(x => x.GetWorkByDoiAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new CrossRefTimeoutException("timeout"));
+
+        var service = CreateService(crossRefClient);
+
+        var result = await service.SearchCrossRefCandidatesAsync("10.1000/any", null);
+
+        result.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task SearchCrossRefCandidatesAsyncReturnsEmptyWhenTitleSearchTimesOut()
+    {
+        var crossRefClient = new Mock<ICrossRefClient>();
+        crossRefClient
+            .Setup(x => x.SearchWorksByTitleAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new CrossRefTimeoutException("timeout"));
+
+        var service = CreateService(crossRefClient);
+
+        var result = await service.SearchCrossRefCandidatesAsync(null, "some title");
+
+        result.ShouldBeEmpty();
+    }
+
     private static PublicationService CreateService(Mock<ICrossRefClient> crossRefClient)
     {
         return new PublicationService(

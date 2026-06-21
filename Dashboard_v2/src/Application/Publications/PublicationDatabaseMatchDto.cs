@@ -61,4 +61,10 @@ public class PublicationDatabaseMatchDto
     /// unsuccessful (e.g. no ISSNs found for a proceedings article).
     /// </summary>
     public string? Message { get; set; }
+
+    /// <summary>
+    /// True when the resolution failed because CrossRef did not respond within the
+    /// configured timeout, as opposed to not finding the publication.
+    /// </summary>
+    public bool TimedOut { get; set; }
 }

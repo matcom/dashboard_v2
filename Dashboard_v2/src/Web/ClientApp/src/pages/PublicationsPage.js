@@ -618,6 +618,10 @@ export default function PublicationsPage() {
       }
       const res = await apiFetch(url);
       if (res) {
+        if (res.timedOut) {
+          setResolveError(res.message || 'CrossRef no respondió a tiempo. Puedes ingresar los datos manualmente.');
+          return;
+        }
         const resolved = !!res.databaseName;
         setForm(f => ({
           ...f,

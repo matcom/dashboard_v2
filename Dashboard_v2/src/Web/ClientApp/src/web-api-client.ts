@@ -13886,6 +13886,7 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
     ambiguousGroup?: boolean;
     promotionDate?: Date | undefined;
     message?: string | undefined;
+    timedOut?: boolean;
 
     constructor(data?: IPublicationDatabaseMatchDto) {
         if (data) {
@@ -13911,6 +13912,7 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
             this.ambiguousGroup = _data["ambiguousGroup"];
             this.promotionDate = _data["promotionDate"] ? new Date(_data["promotionDate"].toString()) : undefined as any;
             this.message = _data["message"];
+            this.timedOut = _data["timedOut"];
         }
     }
 
@@ -13936,6 +13938,7 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
         data["ambiguousGroup"] = this.ambiguousGroup;
         data["promotionDate"] = this.promotionDate ? formatDate(this.promotionDate) : undefined as any;
         data["message"] = this.message;
+        data["timedOut"] = this.timedOut;
         return data;
     }
 }
@@ -13950,6 +13953,7 @@ export interface IPublicationDatabaseMatchDto {
     ambiguousGroup?: boolean;
     promotionDate?: Date | undefined;
     message?: string | undefined;
+    timedOut?: boolean;
 }
 
 export class UpdatePublicationBody implements IUpdatePublicationBody {
