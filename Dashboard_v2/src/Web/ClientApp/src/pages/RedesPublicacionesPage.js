@@ -8,7 +8,7 @@ import {
 import { CertificateViewButton } from '../components/CertificateUpload';
 import { useAuth } from '../contexts/AuthContext';
 
-const PUB_TIPOS = ['Diario', 'Libro', 'Monografía', 'Capítulo', 'Artículo de Divulgación'];
+const PUB_TIPOS = ['Artículo en Revista Científica', 'Libro', 'Monografía', 'Capítulo', 'Artículo de Divulgación'];
 const TIPO_RED_LABELS = ['Universitaria', 'Nacional', 'Internacional'];
 const TIPO_RED_COLORS = ['primary', 'success', 'warning'];
 

@@ -8905,7 +8905,7 @@
         "type": "integer",
         "description": "",
         "x-enumNames": [
-          "Diario",
+          "Artículo_en_Revista_Científica",
           "Libro",
           "Monografía",
           "Capítulo",
@@ -9524,16 +9524,13 @@
             "type": "boolean"
           },
           "scientificCategory": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
           },
           "teachingCategory": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
           },
           "investigationCategory": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
           },
           "areaId": {
             "type": "string",

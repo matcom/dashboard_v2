@@ -71,7 +71,11 @@ const LABEL_ES = {
   userName:              'Nombre de usuario',
   userLastName1:         'Primer apellido',
   userLastName2:         'Segundo apellido',
-  isTrained:             'Capacitado',
+  isActive:              'Activo',
+  isTrained:             'Adiestrado',
+  scientificCategory:    'Categoría científica',
+  teachingCategory:      'Categoría docente',
+  investigationCategory: 'Categoría de investigación',
   universidadNombre:     'Universidad',
 };
 

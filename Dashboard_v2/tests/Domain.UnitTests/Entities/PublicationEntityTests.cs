@@ -90,7 +90,7 @@ public class PublicationEntityTests
 
     // ── PublicationType enum ──────────────────────────────────────────────────
 
-    [TestCase(PublicationType.Diario, 0)]
+    [TestCase(PublicationType.Artículo_en_Revista_Científica, 0)]
     [TestCase(PublicationType.Libro, 1)]
     [TestCase(PublicationType.Monografía, 2)]
     [TestCase(PublicationType.Capítulo, 3)]

@@ -10,9 +10,9 @@ public record UserWithRolesDto
     public string Email { get; init; } = default!;
     public bool IsActive { get; init; }
     public bool IsTrained { get; init; }
-    public int ScientificCategory { get; init; }
-    public int TeachingCategory { get; init; }
-    public int InvestigationCategory { get; init; }
+    public string ScientificCategory { get; init; } = string.Empty;
+    public string TeachingCategory { get; init; } = string.Empty;
+    public string InvestigationCategory { get; init; } = string.Empty;
     public string? AreaId { get; init; }
     public string? AreaNombre { get; init; }
     public string? UniversidadId { get; init; }

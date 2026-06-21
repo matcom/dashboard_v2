@@ -49,7 +49,7 @@ public class AnexoPublicacionesReportTests
             Title = title,
             PublicationData = $"Datos de {title}",
             PublishedDate = publishedDate,
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
         };
         var jp = new JournalPublication
         {
@@ -162,7 +162,7 @@ public class AnexoPublicacionesReportTests
             Title = "Pub Mixta",
             PublicationData = "Datos mixtos",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication { PublicationId = "pub-mixed", Group = 2, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "Scopus" } },
         };
         pub.AuthorPublications.Add(new AuthorPublication { AuthorId = authorA.Id, PublicationId = pub.Id, Author = authorA, Publication = pub });
@@ -442,7 +442,7 @@ public class AnexoPublicacionesReportTests
             Title = "Pub G1 con Cuartil",
             PublicationData = "Datos",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
@@ -535,7 +535,7 @@ public class AnexoPublicacionesReportTests
             Title = "Pub Multiautor",
             PublicationData = "Datos",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication { PublicationId = pubId, Group = 1, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" } },
         };
         // Z añadido antes de A para verificar que el reporte ordena alfabéticamente

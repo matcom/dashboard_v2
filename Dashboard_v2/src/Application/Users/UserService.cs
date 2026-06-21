@@ -19,30 +19,33 @@ public sealed class UserService : IUserService
         _context = context;
     }
 
-    public Task<List<UserWithRolesDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<List<UserWithRolesDto>> GetAllAsync(CancellationToken ct = default)
     {
-        return _context.Users
+        var users = await _context.Users
             .AsNoTracking()
-            .Select(u => new UserWithRolesDto
-            {
-                Id = u.Id,
-                UserName = u.UserName,
-                UserLastName1 = u.UserLastName1,
-                UserLastName2 = u.UserLastName2,
-                Email = u.Email,
-                IsActive = u.IsActive,
-                IsTrained = u.IsTrained,
-                ScientificCategory = (int)u.ScientificCategory,
-                TeachingCategory = (int)u.TeachingCategory,
-                InvestigationCategory = (int)u.InvestigationCategory,
-                AreaId = u.AreaId,
-                AreaNombre = u.Area != null ? u.Area.Nombre : null,
-                UniversidadId = u.Area != null ? u.Area.UniversidadId : null,
-                UniversidadNombre = u.Area != null && u.Area.Universidad != null ? u.Area.Universidad.Nombre : null,
-                Roles = u.UserRoles.Select(ur => ur.Role.ToString()).ToList()
-            })
+            .Include(u => u.Area).ThenInclude(a => a!.Universidad)
+            .Include(u => u.UserRoles)
             .OrderBy(u => u.UserName)
             .ToListAsync(ct);
+
+        return users.Select(u => new UserWithRolesDto
+        {
+            Id = u.Id,
+            UserName = u.UserName,
+            UserLastName1 = u.UserLastName1,
+            UserLastName2 = u.UserLastName2,
+            Email = u.Email,
+            IsActive = u.IsActive,
+            IsTrained = u.IsTrained,
+            ScientificCategory = u.ScientificCategory.ToDisplayString(),
+            TeachingCategory = u.TeachingCategory.ToDisplayString(),
+            InvestigationCategory = u.InvestigationCategory.ToDisplayString(),
+            AreaId = u.AreaId,
+            AreaNombre = u.Area?.Nombre,
+            UniversidadId = u.Area?.UniversidadId,
+            UniversidadNombre = u.Area?.Universidad?.Nombre,
+            Roles = u.UserRoles.Select(ur => ur.Role.ToString()).ToList()
+        }).ToList();
     }
 
     public Task<List<JefeDeProyectoDto>> GetJefesDeProyectoAsync(CancellationToken ct = default)

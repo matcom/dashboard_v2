@@ -14,7 +14,7 @@ import FilterableDataTable from '../components/FilterableDataTable';
 import { CertificateViewButton } from '../components/CertificateUpload';
 
 // Etiquetas correspondientes al enum PublicationType del backend (índice = valor entero)
-const PUB_TIPOS = ['Diario', 'Libro', 'Monografía', 'Capítulo', 'Artículo de Divulgación'];
+const PUB_TIPOS = ['Artículo en Revista Científica', 'Libro', 'Monografía', 'Capítulo', 'Artículo de Divulgación'];
 
 async function apiFetch(url) {
   const response = await fetch(url, { credentials: 'include' });

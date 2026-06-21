@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
 using Dashboard_v2.Domain.Entities;
+using Dashboard_v2.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard_v2.Application.Publications;
@@ -38,7 +39,7 @@ public sealed partial class PublicationService : IPublicationService
 
     public async Task<(Result Result, string? PublicationId)> CreateAsync(CreatePublicationRequest request, CancellationToken ct = default)
     {
-        if (!System.Enum.IsDefined(typeof(Dashboard_v2.Domain.Enums.PublicationType), request.PublicationType))
+        if (!System.Enum.IsDefined(typeof(PublicationType), request.PublicationType))
             return (Result.Failure(new[] { "Tipo de publicación no válido." }), null);
 
         if (string.IsNullOrWhiteSpace(request.PublishedDate) || !IsValidPartialDate(request.PublishedDate))
@@ -47,13 +48,13 @@ public sealed partial class PublicationService : IPublicationService
         var group = request.Group;
         var cuartil = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
 
-        if (request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario)
+        if (request.PublicationType == PublicationType.Artículo_en_Revista_Científica)
         {
             if (group is null or < 1 or > 4)
                 return (Result.Failure(new[] { "El grupo de la revista es obligatorio (1–4)." }), null);
 
         }
-        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
+        else if (request.PublicationType != PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
                  && request.Index is null or < 1 or > 3)
         {
             return (Result.Failure(new[] { "La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)." }), null);
@@ -94,7 +95,7 @@ public sealed partial class PublicationService : IPublicationService
 
         await AddCoauthorsAsync(publication, author, request.AdditionalAuthorIds, request.AdditionalAuthorNames, request.AdditionalUserIds, ct);
 
-        if (request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario)
+        if (request.PublicationType == PublicationType.Artículo_en_Revista_Científica)
         {
             var baseDeDatosId = await UpsertBaseDeDatosAsync(request.DataBase, ct);
             publication.JournalPublication = new JournalPublication
@@ -107,7 +108,7 @@ public sealed partial class PublicationService : IPublicationService
                     : null
             };
         }
-        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Artículo_de_Divulgación)
+        else if (request.PublicationType != PublicationType.Artículo_de_Divulgación)
         {
             publication.IndexedPublication = new IndexedPublication
             {
@@ -149,7 +150,7 @@ public sealed partial class PublicationService : IPublicationService
         if (publication == null)
             return Result.Failure(new[] { "Publicación no encontrada." });
 
-        if (!System.Enum.IsDefined(typeof(Dashboard_v2.Domain.Enums.PublicationType), request.PublicationType))
+        if (!System.Enum.IsDefined(typeof(PublicationType), request.PublicationType))
             return Result.Failure(new[] { "Tipo de publicación no válido." });
 
         if (string.IsNullOrWhiteSpace(request.PublishedDate) || !IsValidPartialDate(request.PublishedDate))
@@ -169,7 +170,7 @@ public sealed partial class PublicationService : IPublicationService
         var group    = request.Group;
         var cuartil  = string.IsNullOrWhiteSpace(request.Cuartil) ? null : request.Cuartil?.Trim();
 
-        var isNowJournal = request.PublicationType == Dashboard_v2.Domain.Enums.PublicationType.Diario;
+        var isNowJournal = request.PublicationType == PublicationType.Artículo_en_Revista_Científica;
         var wasJournal = publication.JournalPublication != null;
 
         if (isNowJournal)
@@ -177,7 +178,7 @@ public sealed partial class PublicationService : IPublicationService
             if (string.IsNullOrWhiteSpace(request.DataBase) || group is null or < 1 or > 4)
                 return Result.Failure(new[] { "Datos de la revista son obligatorios: base de datos y grupo (1–4)." });
         }
-        else if (request.PublicationType != Dashboard_v2.Domain.Enums.PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
+        else if (request.PublicationType != PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
                  && request.Index is null or < 1 or > 3)
         {
             return Result.Failure(new[] { "La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)." });
@@ -688,7 +689,7 @@ public sealed partial class PublicationService : IPublicationService
 
     public Task<List<PublicationTypeDto>> GetPublicationTypesAsync()
     {
-        var types = System.Enum.GetValues<Dashboard_v2.Domain.Enums.PublicationType>()
+        var types = System.Enum.GetValues<PublicationType>()
             .Select(t => new PublicationTypeDto((int)t, t.ToString().Replace('_', ' ')))
             .ToList();
 

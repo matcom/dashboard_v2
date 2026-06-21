@@ -242,7 +242,7 @@ public class PublicationServiceTests
             NormalizedTitle = "journal pub getbyid",
             PublishedDate = "2023",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
@@ -305,7 +305,7 @@ public class PublicationServiceTests
             NormalizedTitle = "public journal",
             PublishedDate = "2022",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
@@ -391,7 +391,7 @@ public class PublicationServiceTests
         {
             Title = "Test",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             Group = null,
             AdditionalAuthorIds = new List<string>(),
             AdditionalAuthorNames = new List<string>(),
@@ -615,7 +615,7 @@ public class PublicationServiceTests
             Id = "pub-upd-1",
             Title = "T",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             PublishedDate = "2024",
             DataBase = null,
             Group = null
@@ -680,7 +680,7 @@ public class PublicationServiceTests
             NormalizedTitle = "journal pub",
             PublishedDate = "2023",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             AuthorPublications = new List<AuthorPublication>
             {
                 new() { AuthorId = author.Id, PublicationId = pubId }
@@ -704,7 +704,7 @@ public class PublicationServiceTests
             Id = pubId,
             Title = "Journal Pub Updated",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             PublishedDate = "2024",
             DataBase = "WoS",
             Group = 3,
@@ -756,7 +756,7 @@ public class PublicationServiceTests
         {
             Title = "Revista Científica",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             Group = 2,
             DataBase = "Scopus",
             PublicationData = "{}",
@@ -1040,7 +1040,7 @@ public class PublicationServiceTests
             NormalizedTitle = "journal to libro",
             PublishedDate = "2023",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             AuthorPublications = new List<AuthorPublication> { new() { AuthorId = "a-tr", PublicationId = pubId } },
             JournalPublication = new JournalPublication { PublicationId = pubId, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "Scopus" }, Group = 2 }
         };
@@ -1080,7 +1080,7 @@ public class PublicationServiceTests
             Id = "pub-upd-1",
             Title = "Now Diario",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             PublishedDate = "2024",
             DataBase = "Scopus",
             Group = 2,
@@ -1107,7 +1107,7 @@ public class PublicationServiceTests
             NormalizedTitle = "group1 journal",
             PublishedDate = "2023",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             AuthorPublications = new List<AuthorPublication> { new() { AuthorId = "a-g1", PublicationId = pubId } },
             JournalPublication = new JournalPublication { PublicationId = pubId, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" }, Group = 2 }
         };
@@ -1123,7 +1123,7 @@ public class PublicationServiceTests
             Id = pubId,
             Title = "Group1 Journal Updated",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             PublishedDate = "2024",
             DataBase = "WoS",
             Group = 1,

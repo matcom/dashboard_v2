@@ -13701,7 +13701,7 @@ export interface ICreatePublicationRequest {
 }
 
 export enum PublicationType {
-    Diario = 0,
+    Artículo_en_Revista_Científica = 0,
     Libro = 1,
     Monografía = 2,
     Capítulo = 3,
@@ -14936,9 +14936,9 @@ export class UserWithRolesDto implements IUserWithRolesDto {
     email?: string;
     isActive?: boolean;
     isTrained?: boolean;
-    scientificCategory?: number;
-    teachingCategory?: number;
-    investigationCategory?: number;
+    scientificCategory?: string;
+    teachingCategory?: string;
+    investigationCategory?: string;
     areaId?: string | undefined;
     areaNombre?: string | undefined;
     universidadId?: string | undefined;
@@ -15018,9 +15018,9 @@ export interface IUserWithRolesDto {
     email?: string;
     isActive?: boolean;
     isTrained?: boolean;
-    scientificCategory?: number;
-    teachingCategory?: number;
-    investigationCategory?: number;
+    scientificCategory?: string;
+    teachingCategory?: string;
+    investigationCategory?: string;
     areaId?: string | undefined;
     areaNombre?: string | undefined;
     universidadId?: string | undefined;
