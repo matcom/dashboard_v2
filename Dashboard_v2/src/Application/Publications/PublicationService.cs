@@ -51,32 +51,31 @@ public sealed partial class PublicationService : IPublicationService
         if (request.PublicationType == PublicationType.Artículo_en_Revista_Científica)
         {
             if (group is null or < 1 or > 4)
-                return (Result.Failure(new[] { "El grupo de la revista es obligatorio (1–4)." }), null);
+                return (Result.Failure(["El grupo de la revista es obligatorio (1–4)."]), null);
 
         }
         else if (request.PublicationType != PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
                  && request.Index is null or < 1 or > 3)
         {
-            return (Result.Failure(new[] { "La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)." }), null);
+            return (Result.Failure(["La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)."]), null);
         }
 
-        string authorUserId;
+        Author? author = null;
         if (IsSuperuser)
         {
-            if (string.IsNullOrWhiteSpace(request.TargetUserId))
-                return (Result.Failure(new[] { "El Superuser debe especificar el usuario autor (TargetUserId)." }), null);
-            authorUserId = request.TargetUserId;
+            if (!string.IsNullOrWhiteSpace(request.TargetUserId))
+                author = await _authorResolution.GetOrCreateForUserAsync(request.TargetUserId, ct);
         }
         else
         {
-            authorUserId = _currentUser.Id!;
+            author = await _authorResolution.GetOrCreateForUserAsync(_currentUser.Id!, ct);
+            if (author == null)
+                return (Result.Failure(["Usuario no encontrado."]), null);
         }
 
-        var author = await _authorResolution.GetOrCreateForUserAsync(authorUserId, ct);
-        if (author == null)
-            return (Result.Failure(new[] { "Usuario no encontrado." }), null);
-
-        var initialAuthors = new List<AuthorPublication> { new() { AuthorId = author.Id } };
+        var initialAuthors = author != null
+            ? [new AuthorPublication { AuthorId = author.Id }]
+            : new List<AuthorPublication>();
 
         var publication = new Publication
         {
@@ -93,7 +92,8 @@ public sealed partial class PublicationService : IPublicationService
             AuthorPublications = initialAuthors
         };
 
-        await AddCoauthorsAsync(publication, author, request.AdditionalAuthorIds, request.AdditionalAuthorNames, request.AdditionalUserIds, ct);
+        if (author != null)
+            await AddCoauthorsAsync(publication, author, request.AdditionalAuthorIds, request.AdditionalAuthorNames, request.AdditionalUserIds, ct);
 
         if (request.PublicationType == PublicationType.Artículo_en_Revista_Científica)
         {
@@ -181,7 +181,7 @@ public sealed partial class PublicationService : IPublicationService
         else if (request.PublicationType != PublicationType.Art\u00edculo_de_Divulgaci\u00f3n
                  && request.Index is null or < 1 or > 3)
         {
-            return Result.Failure(new[] { "La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)." });
+            return Result.Failure(["La indexaci\u00f3n es obligatoria para este tipo de publicaci\u00f3n (1, 2 o 3)."]);
         }
 
         if (wasJournal && !isNowJournal)

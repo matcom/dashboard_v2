@@ -49,8 +49,8 @@ const AppRoutes = [
   {
     path: '/publications',
     element: <PublicationsPage />,
-    pageTitle: 'Mis publicaciones',
-    profesorOnly: true,
+    pageTitle: 'Publicaciones',
+    profesorOrAdminOnly: true,
   },
   {
     path: '/curriculum',

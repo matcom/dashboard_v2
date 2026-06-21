@@ -159,7 +159,7 @@ const adminGroups = [
   {
     heading: 'Publicaciones',
     items: [
-      { to: '/publicaciones', icon: 'bi-journal-text', label: 'Publicaciones' },
+      { to: '/publications', icon: 'bi-journal-text', label: 'Publicaciones' },
     ],
   },
   {

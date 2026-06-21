@@ -1244,11 +1244,11 @@ public class PublicationServiceTests
     }
 
     [Test]
-    public async Task CreateAsync_Superuser_WithoutTargetUserId_ReturnsFailure()
+    public async Task CreateAsync_Superuser_WithoutTargetUserId_CreatesPublicationWithNoAuthors()
     {
         SetupSuperuser();
 
-        var (result, _) = await _sut.CreateAsync(new CreatePublicationRequest
+        var (result, id) = await _sut.CreateAsync(new CreatePublicationRequest
         {
             Title = "Pub Sin Target",
             PublicationData = "{}",
@@ -1256,8 +1256,9 @@ public class PublicationServiceTests
             PublishedDate = "2024"
         });
 
-        result.Succeeded.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.Contains("TargetUserId"));
+        result.Succeeded.ShouldBeTrue();
+        var pub = await _db.Publications.Include(p => p.AuthorPublications).FirstAsync(p => p.Id == id);
+        pub.AuthorPublications.ShouldBeEmpty();
     }
 
     [Test]
