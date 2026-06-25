@@ -45,7 +45,8 @@ public class PublicationServiceEvidenceFileTests
             new Mock<ICrossRefClient>().Object,
             new Mock<IOpenAireClient>().Object,
             authorResolution.Object,
-            authorCleanup.Object);
+            authorCleanup.Object,
+            new Mock<IPublicationDatabaseResolver>().Object);
     }
 
     [Test]

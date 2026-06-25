@@ -26,8 +26,16 @@ using Minio;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Registers all Infrastructure layer services with the DI container: EF Core, identity,
+/// file storage, document generation, publication database providers, and dashboard.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Configures and registers Infrastructure services including database, authentication,
+    /// storage, and external API clients.
+    /// </summary>
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString("Dashboard_v2Db");
@@ -59,6 +67,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthorCleanupService, AuthorCleanupService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IAuthorResolutionService, Dashboard_v2.Application.Common.AuthorResolutionService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Common.Interfaces.IProductionCreatorService, Dashboard_v2.Application.Common.ProductionCreatorService>();
+        builder.Services.AddSingleton<ICustomDocumentRenderer, AnexoPremiosCustomRenderer>();
+        builder.Services.AddSingleton<ICustomDocumentRenderer, AnexoRegistrosCustomRenderer>();
         builder.Services.AddSingleton<IDocumentRenderer, DocumentRenderer>();
         // Servicios de aplicación (Service Layer)
         builder.Services.AddScoped<Dashboard_v2.Application.Universidades.IUniversidadService, Dashboard_v2.Application.Universidades.UniversidadService>();
@@ -69,7 +79,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.GruposDeInvestigacion.IGrupoDeInvestigacionService, Dashboard_v2.Application.GruposDeInvestigacion.GrupoDeInvestigacionService>();
         builder.Services.AddScoped<Dashboard_v2.Application.GruposEstudiantiles.IGrupoEstudiantilService, Dashboard_v2.Application.GruposEstudiantiles.GrupoEstudiantilService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Awards.IAwardService, Dashboard_v2.Application.Awards.AwardService>();
-        builder.Services.AddScoped<Dashboard_v2.Application.Events.IEventService, Dashboard_v2.Application.Events.EventService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Events.EventService>();
+        builder.Services.AddScoped<Dashboard_v2.Application.Events.IEventService>(sp => sp.GetRequiredService<Dashboard_v2.Application.Events.EventService>());
+        builder.Services.AddScoped<Dashboard_v2.Application.Events.IPresentationService>(sp => sp.GetRequiredService<Dashboard_v2.Application.Events.EventService>());
         builder.Services.AddScoped<Dashboard_v2.Application.Publications.IPublicationService, Dashboard_v2.Application.Publications.PublicationService>();
         builder.Services.AddCrossRefIntegration(builder.Configuration);
         builder.Services.AddOpenAireIntegration();
@@ -94,17 +106,14 @@ public static class DependencyInjection
         });
 
         // 2. WosExcel (Singleton — loads .xlsx change files once at startup)
+        var contentRoot = builder.Environment.ContentRootPath;
         builder.Services.AddSingleton<Dashboard_v2.Application.Common.Interfaces.IPublicationDatabaseProvider>(sp =>
         {
             var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<Dashboard_v2.Infrastructure.Configuration.PublicationDatabaseOptions>>().Value;
             var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Dashboard_v2.Infrastructure.Services.Providers.WosExcelPublicationDatabaseProvider>>();
-            // Resolve directory relative to content root when path is not absolute
             var dir = opts.WosDirectory;
             if (!string.IsNullOrWhiteSpace(dir) && !System.IO.Path.IsPathRooted(dir))
-            {
-                var env = sp.GetService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
-                if (env != null) dir = System.IO.Path.Combine(env.ContentRootPath, dir);
-            }
+                dir = System.IO.Path.Combine(contentRoot, dir);
             return new Dashboard_v2.Infrastructure.Services.Providers.WosExcelPublicationDatabaseProvider(dir, logger);
         });
 
@@ -143,7 +152,6 @@ public static class DependencyInjection
         builder.Services.AddScoped<Dashboard_v2.Application.Authors.IAuthorService, Dashboard_v2.Application.Authors.AuthorService>();
         builder.Services.AddScoped<Dashboard_v2.Application.Roles.IRoleService, Dashboard_v2.Application.Roles.RoleService>();
         builder.Services.AddScoped<ProyectoService>();
-        builder.Services.AddScoped<IProyectoService>(sp => sp.GetRequiredService<ProyectoService>());
         builder.Services.AddScoped<Dashboard_v2.Application.Proyectos.IProyectoQueryService>(sp => sp.GetRequiredService<ProyectoService>());
         builder.Services.AddScoped<Dashboard_v2.Application.Proyectos.IProyectoCommandService>(sp => sp.GetRequiredService<ProyectoService>());
         builder.Services.AddScoped<Dashboard_v2.Application.Redes.IRedService, Dashboard_v2.Application.Redes.RedService>();

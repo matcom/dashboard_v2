@@ -36,7 +36,7 @@ public class CrossRefToPublicationMapperTests
         result.ShouldContain("Authors: Ada Lovelace; Alan Turing");
     }
 
-    [TestCase("journal-article", PublicationType.Diario)]
+    [TestCase("journal-article", PublicationType.Artículo_en_Revista_Científica)]
     [TestCase("book", PublicationType.Libro)]
     [TestCase("monograph", PublicationType.Monografía)]
     [TestCase("book-chapter", PublicationType.Capítulo)]

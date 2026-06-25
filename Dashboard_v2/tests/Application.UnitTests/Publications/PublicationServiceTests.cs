@@ -19,6 +19,7 @@ public class PublicationServiceTests
     private Mock<IOpenAireClient> _openAireClient = null!;
     private Mock<IAuthorResolutionService> _authorResolution = null!;
     private Mock<IAuthorCleanupService> _authorCleanup = null!;
+    private Mock<IPublicationDatabaseResolver> _databaseResolver = null!;
     private PublicationService _sut = null!;
 
     [SetUp]
@@ -35,9 +36,10 @@ public class PublicationServiceTests
         _openAireClient = new Mock<IOpenAireClient>();
         _authorResolution = new Mock<IAuthorResolutionService>();
         _authorCleanup = new Mock<IAuthorCleanupService>();
+        _databaseResolver = new Mock<IPublicationDatabaseResolver>();
 
         _sut = new PublicationService(_db, _currentUser.Object, _crossRefClient.Object,
-            _openAireClient.Object, _authorResolution.Object, _authorCleanup.Object);
+            _openAireClient.Object, _authorResolution.Object, _authorCleanup.Object, _databaseResolver.Object);
     }
 
     [TearDown]
@@ -242,7 +244,7 @@ public class PublicationServiceTests
             NormalizedTitle = "journal pub getbyid",
             PublishedDate = "2023",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
@@ -305,7 +307,7 @@ public class PublicationServiceTests
             NormalizedTitle = "public journal",
             PublishedDate = "2022",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
@@ -391,7 +393,7 @@ public class PublicationServiceTests
         {
             Title = "Test",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             Group = null,
             AdditionalAuthorIds = new List<string>(),
             AdditionalAuthorNames = new List<string>(),
@@ -615,7 +617,7 @@ public class PublicationServiceTests
             Id = "pub-upd-1",
             Title = "T",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             PublishedDate = "2024",
             DataBase = null,
             Group = null
@@ -680,7 +682,7 @@ public class PublicationServiceTests
             NormalizedTitle = "journal pub",
             PublishedDate = "2023",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             AuthorPublications = new List<AuthorPublication>
             {
                 new() { AuthorId = author.Id, PublicationId = pubId }
@@ -704,7 +706,7 @@ public class PublicationServiceTests
             Id = pubId,
             Title = "Journal Pub Updated",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             PublishedDate = "2024",
             DataBase = "WoS",
             Group = 3,
@@ -756,7 +758,7 @@ public class PublicationServiceTests
         {
             Title = "Revista Científica",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             Group = 2,
             DataBase = "Scopus",
             PublicationData = "{}",
@@ -901,7 +903,7 @@ public class PublicationServiceTests
     {
         _currentUser.Setup(u => u.Roles).Returns(new List<string> { "Jefe_de_Redes" });
         _sut = new PublicationService(_db, _currentUser.Object, _crossRefClient.Object,
-            _openAireClient.Object, _authorResolution.Object, _authorCleanup.Object);
+            _openAireClient.Object, _authorResolution.Object, _authorCleanup.Object, _databaseResolver.Object);
 
         _db.Publications.Add(new Publication { Id = "p-red-1", Title = "Red Pub", NormalizedTitle = "red pub", PublishedDate = "2024", PublicationData = "{}", RedId = "red-1", AuthorPublications = new List<AuthorPublication>() });
         _db.Publications.Add(new Publication { Id = "p-no-red", Title = "No Red", NormalizedTitle = "no red", PublishedDate = "2024", PublicationData = "{}", AuthorPublications = new List<AuthorPublication>() });
@@ -1040,7 +1042,7 @@ public class PublicationServiceTests
             NormalizedTitle = "journal to libro",
             PublishedDate = "2023",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             AuthorPublications = new List<AuthorPublication> { new() { AuthorId = "a-tr", PublicationId = pubId } },
             JournalPublication = new JournalPublication { PublicationId = pubId, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "Scopus" }, Group = 2 }
         };
@@ -1080,7 +1082,7 @@ public class PublicationServiceTests
             Id = "pub-upd-1",
             Title = "Now Diario",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             PublishedDate = "2024",
             DataBase = "Scopus",
             Group = 2,
@@ -1107,7 +1109,7 @@ public class PublicationServiceTests
             NormalizedTitle = "group1 journal",
             PublishedDate = "2023",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             AuthorPublications = new List<AuthorPublication> { new() { AuthorId = "a-g1", PublicationId = pubId } },
             JournalPublication = new JournalPublication { PublicationId = pubId, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" }, Group = 2 }
         };
@@ -1123,7 +1125,7 @@ public class PublicationServiceTests
             Id = pubId,
             Title = "Group1 Journal Updated",
             PublicationData = "{}",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             PublishedDate = "2024",
             DataBase = "WoS",
             Group = 1,
@@ -1244,11 +1246,11 @@ public class PublicationServiceTests
     }
 
     [Test]
-    public async Task CreateAsync_Superuser_WithoutTargetUserId_ReturnsFailure()
+    public async Task CreateAsync_Superuser_WithoutTargetUserId_CreatesPublicationWithNoAuthors()
     {
         SetupSuperuser();
 
-        var (result, _) = await _sut.CreateAsync(new CreatePublicationRequest
+        var (result, id) = await _sut.CreateAsync(new CreatePublicationRequest
         {
             Title = "Pub Sin Target",
             PublicationData = "{}",
@@ -1256,8 +1258,9 @@ public class PublicationServiceTests
             PublishedDate = "2024"
         });
 
-        result.Succeeded.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.Contains("TargetUserId"));
+        result.Succeeded.ShouldBeTrue();
+        var pub = await _db.Publications.Include(p => p.AuthorPublications).FirstAsync(p => p.Id == id);
+        pub.AuthorPublications.ShouldBeEmpty();
     }
 
     [Test]

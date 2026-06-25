@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard_v2.Web.Endpoints;
 
 /// <summary>
-/// Endpoints de gestión de publicaciones académicas bajo /api/Publications.
-/// Todos requieren el rol "Profesor".
+/// API endpoints for managing academic publications: CRUD, CrossRef/OpenAire integration, and publication database resolution.
 /// </summary>
 public class Publications : EndpointGroupBase
 {
+    /// <summary>Registers the Publications route group with all publication endpoints.</summary>
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         // GET /api/Publications/types — lista los tipos disponibles (para el selector)
@@ -20,10 +20,16 @@ public class Publications : EndpointGroupBase
             .WithName("GetPublicationTypes")
             .Produces<List<PublicationTypeDto>>(200);
 
-        // GET /api/Publications/todas — todas las publicaciones con detalle completo
+        // GET /api/Publications/todas — todas las publicaciones (solo Superuser)
         groupBuilder.MapGet("todas", GetTodasLasPublicaciones)
-            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Proyecto)))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Superuser)))
             .WithName("GetTodasLasPublicaciones")
+            .Produces<List<PublicationDto>>(200);
+
+        // GET /api/Publications/proyecto — publicaciones vinculadas a los proyectos que lidera el jefe
+        groupBuilder.MapGet("proyecto", GetProyectoPublications)
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Jefe_de_Proyecto)))
+            .WithName("GetProyectoPublications")
             .Produces<List<PublicationDto>>(200);
 
         // GET /api/Publications/area — publicaciones del área del usuario (Vicedecano de investigación)
@@ -144,6 +150,12 @@ public class Publications : EndpointGroupBase
         return Results.Ok(pubs);
     }
 
+    private async Task<IResult> GetProyectoPublications(IPublicationService service)
+    {
+        var pubs = await service.GetProyectoPublicationsAsync();
+        return Results.Ok(pubs);
+    }
+
     private async Task<IResult> GetMyPublications(IPublicationService service)
     {
         var publications = await service.GetMyPublicationsAsync();
@@ -190,64 +202,11 @@ public class Publications : EndpointGroupBase
         return Results.Ok(items);
     }
 
-    private async Task<IResult> ResolveDatabaseFromCrossRef(ICrossRefClient crossRefClient, Application.Common.Interfaces.IPublicationDatabaseResolver resolver, string? doi, string? title, string? issns, string? publishedDate)
-    {
-        List<string> issnList;
-
-        // Fast path: client already has ISSNs from a previous metadata search.
-        if (!string.IsNullOrWhiteSpace(issns))
-        {
-            issnList = issns
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .ToList();
-        }
-        else
-        {
-            // Slow path: ask CrossRef for the ISSNs.
-            Dashboard_v2.Application.Publications.PublicationCrossRefDto? cr = null;
-            if (!string.IsNullOrWhiteSpace(doi))
-                cr = await crossRefClient.GetWorkByDoiAsync(doi);
-
-            if (cr == null && !string.IsNullOrWhiteSpace(title))
-            {
-                var list = await crossRefClient.SearchWorksByTitleAsync(title, rows: 1);
-                if (list?.Count > 0) cr = list[0];
-            }
-
-            if (cr == null)
-                return Results.Ok(new Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto
-                {
-                    Message = "CrossRef no encontró ninguna publicación con los parámetros dados. Por favor complete los campos manualmente."
-                });
-
-            if (cr.Issns == null || cr.Issns.Count == 0)
-                return Results.Ok(new Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto
-                {
-                    Message = "CrossRef encontró la publicación pero no devolvió ISSN (es un artículo de conferencias u otro tipo sin revista). Por favor complete los campos manualmente si corresponde."
-                });
-
-            issnList = cr.Issns.ToList();
-        }
-
-        // Parse the optional publication date for ambiguity resolution.
-        DateOnly? pubDate = null;
-        if (!string.IsNullOrWhiteSpace(publishedDate))
-        {
-            // Accept yyyy, yyyy-MM, or yyyy-MM-dd
-            if (DateOnly.TryParseExact(publishedDate, ["yyyy-MM-dd", "yyyy-MM", "yyyy"],
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    System.Globalization.DateTimeStyles.None, out var parsed))
-                pubDate = parsed;
-        }
-
-        // Try to resolve the database name from the ISSNs.
-        var match = await resolver.ResolveByIssnsAsync(issnList, pubDate) ?? new Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto();
-
-        // Always include the ISSNs so the client can display them.
-        match.Issns = issnList;
-
-        return Results.Ok(match);
-    }
+    /// <summary>
+    /// Fetches CrossRef metadata for the given DOI and resolves the best bibliographic database match.
+    /// </summary>
+    private async Task<IResult> ResolveDatabaseFromCrossRef(IPublicationService service, string? doi, string? title, string? issns, string? publishedDate)
+        => Results.Ok(await service.ResolveDatabaseFromCrossRefAsync(doi, title, issns, publishedDate));
 
     private async Task<IResult> AddCurrentUserAsCoauthor(IPublicationService service, string id)
     {

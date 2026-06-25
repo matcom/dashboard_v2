@@ -363,10 +363,6 @@ export default function PublicationsPage() {
       setFormError('El título y el tipo de publicación son obligatorios.');
       return;
     }
-    if (isSuperuser && !editing && !form.targetUserId) {
-      setFormError('Debes seleccionar el autor principal.');
-      return;
-    }
     if (!form.publishedDate.trim() || !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(form.publishedDate.trim())) {
       setFormError('La fecha de publicación es obligatoria. Use el formato AAAA, AAAA-MM o AAAA-MM-DD.');
       return;
@@ -618,6 +614,10 @@ export default function PublicationsPage() {
       }
       const res = await apiFetch(url);
       if (res) {
+        if (res.timedOut) {
+          setResolveError(res.message || 'CrossRef no respondió a tiempo. Puedes ingresar los datos manualmente.');
+          return;
+        }
         const resolved = !!res.databaseName;
         setForm(f => ({
           ...f,
@@ -964,9 +964,9 @@ export default function PublicationsPage() {
             {/* ══ Sección 1: datos principales ══════════════════════════ */}
             {isSuperuser && !editing && (
               <FormGroup>
-                <Label>Autor principal (usuario) <span className="text-danger">*</span></Label>
+                <Label>Autor principal (usuario) <span className="text-muted small">(opcional)</span></Label>
                 <small className="d-block text-muted mb-1">
-                  El usuario cuyo perfil de autor quedará vinculado como autor principal.
+                  El usuario cuyo perfil de autor quedará vinculado como autor principal. Si no se selecciona, la publicación se crea sin autor asignado.
                 </small>
                 <UserPicker
                   users={allUsers}

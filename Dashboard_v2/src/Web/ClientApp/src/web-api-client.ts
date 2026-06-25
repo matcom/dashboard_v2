@@ -6412,6 +6412,48 @@ export class PublicationsClient {
         return Promise.resolve<PublicationDto[]>(null as any);
     }
 
+    getProyectoPublications(): Promise<PublicationDto[]> {
+        let url_ = this.baseUrl + "/api/Publications/proyecto";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetProyectoPublications(_response);
+        });
+    }
+
+    protected processGetProyectoPublications(response: Response): Promise<PublicationDto[]> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PublicationDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PublicationDto[]>(null as any);
+    }
+
     getAreaPublications(): Promise<PublicationDto[]> {
         let url_ = this.baseUrl + "/api/Publications/area";
         url_ = url_.replace(/[?&]$/, "");
@@ -8127,6 +8169,48 @@ export class UsersClient {
         return Promise.resolve<UserWithRolesDto[]>(null as any);
     }
 
+    createUser(body: CreateUserRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateUser(_response);
+        });
+    }
+
+    protected processCreateUser(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     assignRole(userId: string, body: AssignRoleRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/Users/{userId}/roles";
         if (userId === undefined || userId === null)
@@ -8194,6 +8278,51 @@ export class UsersClient {
     }
 
     protected processRemoveRole(response: Response): Promise<void> {
+        followIfLoginRedirect(response);
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    setUserActive(userId: string, body: SetActiveRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/Users/{userId}/active";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSetUserActive(_response);
+        });
+    }
+
+    protected processSetUserActive(response: Response): Promise<void> {
         followIfLoginRedirect(response);
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
@@ -9699,6 +9828,7 @@ export interface IUpdateClasificacionRequest {
 }
 
 export class VicedecanoDashboardDto implements IVicedecanoDashboardDto {
+    totalUsuarios?: number;
     totalPremios?: number;
     totalPublicaciones?: number;
     totalProyectos?: number;
@@ -9710,13 +9840,24 @@ export class VicedecanoDashboardDto implements IVicedecanoDashboardDto {
     totalRegistros?: number;
     totalNormas?: number;
     totalProductos?: number;
-    premiosPorTipo?: DashboardSerieItemDto[];
+    plantilla?: PlantillaDto;
     publicacionesPorGrupo?: DashboardSerieItemDto[];
     publicacionesPorAno?: DashboardSerieItemDto[];
+    publicacionesPorTipo?: DashboardSerieItemDto[];
+    publicacionesPorProfesor?: DashboardSerieItemDto[];
     proyectosPorEstado?: DashboardSerieItemDto[];
-    redesPorTipo?: DashboardSerieItemDto[];
+    proyectosPorTipo?: DashboardSerieItemDto[];
+    premiosPorTipo?: DashboardSerieItemDto[];
+    premiosPorAno?: DashboardSerieItemDto[];
     eventosPorTipo?: DashboardSerieItemDto[];
+    eventosPorAno?: DashboardSerieItemDto[];
+    ponenciasPorAno?: DashboardSerieItemDto[];
+    redesPorTipo?: DashboardSerieItemDto[];
+    redesDelArea?: RedResumenDto[];
     patentesPorOrigen?: DashboardSerieItemDto[];
+    registrosPorTipo?: DashboardSerieItemDto[];
+    normasPorTipo?: DashboardSerieItemDto[];
+    productosPorTipo?: DashboardSerieItemDto[];
 
     constructor(data?: IVicedecanoDashboardDto) {
         if (data) {
@@ -9729,6 +9870,7 @@ export class VicedecanoDashboardDto implements IVicedecanoDashboardDto {
 
     init(_data?: any) {
         if (_data) {
+            this.totalUsuarios = _data["totalUsuarios"];
             this.totalPremios = _data["totalPremios"];
             this.totalPublicaciones = _data["totalPublicaciones"];
             this.totalProyectos = _data["totalProyectos"];
@@ -9740,11 +9882,7 @@ export class VicedecanoDashboardDto implements IVicedecanoDashboardDto {
             this.totalRegistros = _data["totalRegistros"];
             this.totalNormas = _data["totalNormas"];
             this.totalProductos = _data["totalProductos"];
-            if (Array.isArray(_data["premiosPorTipo"])) {
-                this.premiosPorTipo = [] as any;
-                for (let item of _data["premiosPorTipo"])
-                    this.premiosPorTipo!.push(DashboardSerieItemDto.fromJS(item));
-            }
+            this.plantilla = _data["plantilla"] ? PlantillaDto.fromJS(_data["plantilla"]) : undefined as any;
             if (Array.isArray(_data["publicacionesPorGrupo"])) {
                 this.publicacionesPorGrupo = [] as any;
                 for (let item of _data["publicacionesPorGrupo"])
@@ -9755,25 +9893,80 @@ export class VicedecanoDashboardDto implements IVicedecanoDashboardDto {
                 for (let item of _data["publicacionesPorAno"])
                     this.publicacionesPorAno!.push(DashboardSerieItemDto.fromJS(item));
             }
+            if (Array.isArray(_data["publicacionesPorTipo"])) {
+                this.publicacionesPorTipo = [] as any;
+                for (let item of _data["publicacionesPorTipo"])
+                    this.publicacionesPorTipo!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["publicacionesPorProfesor"])) {
+                this.publicacionesPorProfesor = [] as any;
+                for (let item of _data["publicacionesPorProfesor"])
+                    this.publicacionesPorProfesor!.push(DashboardSerieItemDto.fromJS(item));
+            }
             if (Array.isArray(_data["proyectosPorEstado"])) {
                 this.proyectosPorEstado = [] as any;
                 for (let item of _data["proyectosPorEstado"])
                     this.proyectosPorEstado!.push(DashboardSerieItemDto.fromJS(item));
             }
-            if (Array.isArray(_data["redesPorTipo"])) {
-                this.redesPorTipo = [] as any;
-                for (let item of _data["redesPorTipo"])
-                    this.redesPorTipo!.push(DashboardSerieItemDto.fromJS(item));
+            if (Array.isArray(_data["proyectosPorTipo"])) {
+                this.proyectosPorTipo = [] as any;
+                for (let item of _data["proyectosPorTipo"])
+                    this.proyectosPorTipo!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["premiosPorTipo"])) {
+                this.premiosPorTipo = [] as any;
+                for (let item of _data["premiosPorTipo"])
+                    this.premiosPorTipo!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["premiosPorAno"])) {
+                this.premiosPorAno = [] as any;
+                for (let item of _data["premiosPorAno"])
+                    this.premiosPorAno!.push(DashboardSerieItemDto.fromJS(item));
             }
             if (Array.isArray(_data["eventosPorTipo"])) {
                 this.eventosPorTipo = [] as any;
                 for (let item of _data["eventosPorTipo"])
                     this.eventosPorTipo!.push(DashboardSerieItemDto.fromJS(item));
             }
+            if (Array.isArray(_data["eventosPorAno"])) {
+                this.eventosPorAno = [] as any;
+                for (let item of _data["eventosPorAno"])
+                    this.eventosPorAno!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["ponenciasPorAno"])) {
+                this.ponenciasPorAno = [] as any;
+                for (let item of _data["ponenciasPorAno"])
+                    this.ponenciasPorAno!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["redesPorTipo"])) {
+                this.redesPorTipo = [] as any;
+                for (let item of _data["redesPorTipo"])
+                    this.redesPorTipo!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["redesDelArea"])) {
+                this.redesDelArea = [] as any;
+                for (let item of _data["redesDelArea"])
+                    this.redesDelArea!.push(RedResumenDto.fromJS(item));
+            }
             if (Array.isArray(_data["patentesPorOrigen"])) {
                 this.patentesPorOrigen = [] as any;
                 for (let item of _data["patentesPorOrigen"])
                     this.patentesPorOrigen!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["registrosPorTipo"])) {
+                this.registrosPorTipo = [] as any;
+                for (let item of _data["registrosPorTipo"])
+                    this.registrosPorTipo!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["normasPorTipo"])) {
+                this.normasPorTipo = [] as any;
+                for (let item of _data["normasPorTipo"])
+                    this.normasPorTipo!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["productosPorTipo"])) {
+                this.productosPorTipo = [] as any;
+                for (let item of _data["productosPorTipo"])
+                    this.productosPorTipo!.push(DashboardSerieItemDto.fromJS(item));
             }
         }
     }
@@ -9787,6 +9980,7 @@ export class VicedecanoDashboardDto implements IVicedecanoDashboardDto {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
+        data["totalUsuarios"] = this.totalUsuarios;
         data["totalPremios"] = this.totalPremios;
         data["totalPublicaciones"] = this.totalPublicaciones;
         data["totalProyectos"] = this.totalProyectos;
@@ -9798,11 +9992,7 @@ export class VicedecanoDashboardDto implements IVicedecanoDashboardDto {
         data["totalRegistros"] = this.totalRegistros;
         data["totalNormas"] = this.totalNormas;
         data["totalProductos"] = this.totalProductos;
-        if (Array.isArray(this.premiosPorTipo)) {
-            data["premiosPorTipo"] = [];
-            for (let item of this.premiosPorTipo)
-                data["premiosPorTipo"].push(item ? item.toJSON() : undefined as any);
-        }
+        data["plantilla"] = this.plantilla ? this.plantilla.toJSON() : undefined as any;
         if (Array.isArray(this.publicacionesPorGrupo)) {
             data["publicacionesPorGrupo"] = [];
             for (let item of this.publicacionesPorGrupo)
@@ -9813,31 +10003,87 @@ export class VicedecanoDashboardDto implements IVicedecanoDashboardDto {
             for (let item of this.publicacionesPorAno)
                 data["publicacionesPorAno"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.publicacionesPorTipo)) {
+            data["publicacionesPorTipo"] = [];
+            for (let item of this.publicacionesPorTipo)
+                data["publicacionesPorTipo"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.publicacionesPorProfesor)) {
+            data["publicacionesPorProfesor"] = [];
+            for (let item of this.publicacionesPorProfesor)
+                data["publicacionesPorProfesor"].push(item ? item.toJSON() : undefined as any);
+        }
         if (Array.isArray(this.proyectosPorEstado)) {
             data["proyectosPorEstado"] = [];
             for (let item of this.proyectosPorEstado)
                 data["proyectosPorEstado"].push(item ? item.toJSON() : undefined as any);
         }
-        if (Array.isArray(this.redesPorTipo)) {
-            data["redesPorTipo"] = [];
-            for (let item of this.redesPorTipo)
-                data["redesPorTipo"].push(item ? item.toJSON() : undefined as any);
+        if (Array.isArray(this.proyectosPorTipo)) {
+            data["proyectosPorTipo"] = [];
+            for (let item of this.proyectosPorTipo)
+                data["proyectosPorTipo"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.premiosPorTipo)) {
+            data["premiosPorTipo"] = [];
+            for (let item of this.premiosPorTipo)
+                data["premiosPorTipo"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.premiosPorAno)) {
+            data["premiosPorAno"] = [];
+            for (let item of this.premiosPorAno)
+                data["premiosPorAno"].push(item ? item.toJSON() : undefined as any);
         }
         if (Array.isArray(this.eventosPorTipo)) {
             data["eventosPorTipo"] = [];
             for (let item of this.eventosPorTipo)
                 data["eventosPorTipo"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.eventosPorAno)) {
+            data["eventosPorAno"] = [];
+            for (let item of this.eventosPorAno)
+                data["eventosPorAno"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.ponenciasPorAno)) {
+            data["ponenciasPorAno"] = [];
+            for (let item of this.ponenciasPorAno)
+                data["ponenciasPorAno"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.redesPorTipo)) {
+            data["redesPorTipo"] = [];
+            for (let item of this.redesPorTipo)
+                data["redesPorTipo"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.redesDelArea)) {
+            data["redesDelArea"] = [];
+            for (let item of this.redesDelArea)
+                data["redesDelArea"].push(item ? item.toJSON() : undefined as any);
+        }
         if (Array.isArray(this.patentesPorOrigen)) {
             data["patentesPorOrigen"] = [];
             for (let item of this.patentesPorOrigen)
                 data["patentesPorOrigen"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.registrosPorTipo)) {
+            data["registrosPorTipo"] = [];
+            for (let item of this.registrosPorTipo)
+                data["registrosPorTipo"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.normasPorTipo)) {
+            data["normasPorTipo"] = [];
+            for (let item of this.normasPorTipo)
+                data["normasPorTipo"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.productosPorTipo)) {
+            data["productosPorTipo"] = [];
+            for (let item of this.productosPorTipo)
+                data["productosPorTipo"].push(item ? item.toJSON() : undefined as any);
         }
         return data;
     }
 }
 
 export interface IVicedecanoDashboardDto {
+    totalUsuarios?: number;
     totalPremios?: number;
     totalPublicaciones?: number;
     totalProyectos?: number;
@@ -9849,13 +10095,100 @@ export interface IVicedecanoDashboardDto {
     totalRegistros?: number;
     totalNormas?: number;
     totalProductos?: number;
-    premiosPorTipo?: DashboardSerieItemDto[];
+    plantilla?: PlantillaDto;
     publicacionesPorGrupo?: DashboardSerieItemDto[];
     publicacionesPorAno?: DashboardSerieItemDto[];
+    publicacionesPorTipo?: DashboardSerieItemDto[];
+    publicacionesPorProfesor?: DashboardSerieItemDto[];
     proyectosPorEstado?: DashboardSerieItemDto[];
-    redesPorTipo?: DashboardSerieItemDto[];
+    proyectosPorTipo?: DashboardSerieItemDto[];
+    premiosPorTipo?: DashboardSerieItemDto[];
+    premiosPorAno?: DashboardSerieItemDto[];
     eventosPorTipo?: DashboardSerieItemDto[];
+    eventosPorAno?: DashboardSerieItemDto[];
+    ponenciasPorAno?: DashboardSerieItemDto[];
+    redesPorTipo?: DashboardSerieItemDto[];
+    redesDelArea?: RedResumenDto[];
     patentesPorOrigen?: DashboardSerieItemDto[];
+    registrosPorTipo?: DashboardSerieItemDto[];
+    normasPorTipo?: DashboardSerieItemDto[];
+    productosPorTipo?: DashboardSerieItemDto[];
+}
+
+export class PlantillaDto implements IPlantillaDto {
+    totalDocentes?: number;
+    totalInvestigadores?: number;
+    porCategoriaCientifica?: DashboardSerieItemDto[];
+    porCategoriaDocente?: DashboardSerieItemDto[];
+    porCategoriaInvestigacion?: DashboardSerieItemDto[];
+
+    constructor(data?: IPlantillaDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.totalDocentes = _data["totalDocentes"];
+            this.totalInvestigadores = _data["totalInvestigadores"];
+            if (Array.isArray(_data["porCategoriaCientifica"])) {
+                this.porCategoriaCientifica = [] as any;
+                for (let item of _data["porCategoriaCientifica"])
+                    this.porCategoriaCientifica!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["porCategoriaDocente"])) {
+                this.porCategoriaDocente = [] as any;
+                for (let item of _data["porCategoriaDocente"])
+                    this.porCategoriaDocente!.push(DashboardSerieItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["porCategoriaInvestigacion"])) {
+                this.porCategoriaInvestigacion = [] as any;
+                for (let item of _data["porCategoriaInvestigacion"])
+                    this.porCategoriaInvestigacion!.push(DashboardSerieItemDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): PlantillaDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PlantillaDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["totalDocentes"] = this.totalDocentes;
+        data["totalInvestigadores"] = this.totalInvestigadores;
+        if (Array.isArray(this.porCategoriaCientifica)) {
+            data["porCategoriaCientifica"] = [];
+            for (let item of this.porCategoriaCientifica)
+                data["porCategoriaCientifica"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.porCategoriaDocente)) {
+            data["porCategoriaDocente"] = [];
+            for (let item of this.porCategoriaDocente)
+                data["porCategoriaDocente"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.porCategoriaInvestigacion)) {
+            data["porCategoriaInvestigacion"] = [];
+            for (let item of this.porCategoriaInvestigacion)
+                data["porCategoriaInvestigacion"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IPlantillaDto {
+    totalDocentes?: number;
+    totalInvestigadores?: number;
+    porCategoriaCientifica?: DashboardSerieItemDto[];
+    porCategoriaDocente?: DashboardSerieItemDto[];
+    porCategoriaInvestigacion?: DashboardSerieItemDto[];
 }
 
 export class DashboardSerieItemDto implements IDashboardSerieItemDto {
@@ -9898,6 +10231,46 @@ export interface IDashboardSerieItemDto {
     cantidad?: number;
 }
 
+export class RedResumenDto implements IRedResumenDto {
+    nombre?: string;
+    tipo?: string;
+
+    constructor(data?: IRedResumenDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.nombre = _data["nombre"];
+            this.tipo = _data["tipo"];
+        }
+    }
+
+    static fromJS(data: any): RedResumenDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RedResumenDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["nombre"] = this.nombre;
+        data["tipo"] = this.tipo;
+        return data;
+    }
+}
+
+export interface IRedResumenDto {
+    nombre?: string;
+    tipo?: string;
+}
+
 export class EventDto implements IEventDto {
     id?: number;
     name?: string;
@@ -9911,6 +10284,8 @@ export class EventDto implements IEventDto {
     redName?: string | undefined;
     organizadorIds?: string[];
     evidenceFileId?: number | undefined;
+    fechaInicio?: Date | undefined;
+    fechaFin?: Date | undefined;
 
     constructor(data?: IEventDto) {
         if (data) {
@@ -9943,6 +10318,8 @@ export class EventDto implements IEventDto {
                     this.organizadorIds!.push(item);
             }
             this.evidenceFileId = _data["evidenceFileId"];
+            this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
+            this.fechaFin = _data["fechaFin"] ? new Date(_data["fechaFin"].toString()) : undefined as any;
         }
     }
 
@@ -9975,6 +10352,8 @@ export class EventDto implements IEventDto {
                 data["organizadorIds"].push(item);
         }
         data["evidenceFileId"] = this.evidenceFileId;
+        data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
+        data["fechaFin"] = this.fechaFin ? formatDate(this.fechaFin) : undefined as any;
         return data;
     }
 }
@@ -9992,6 +10371,8 @@ export interface IEventDto {
     redName?: string | undefined;
     organizadorIds?: string[];
     evidenceFileId?: number | undefined;
+    fechaInicio?: Date | undefined;
+    fechaFin?: Date | undefined;
 }
 
 export class CountryDto implements ICountryDto {
@@ -10118,6 +10499,8 @@ export class CreateEventRequest implements ICreateEventRequest {
     redId?: string | undefined;
     organizadorIds?: string[];
     evidenceFileId?: number | undefined;
+    fechaInicio?: Date | undefined;
+    fechaFin?: Date | undefined;
 
     constructor(data?: ICreateEventRequest) {
         if (data) {
@@ -10145,6 +10528,8 @@ export class CreateEventRequest implements ICreateEventRequest {
                     this.organizadorIds!.push(item);
             }
             this.evidenceFileId = _data["evidenceFileId"];
+            this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
+            this.fechaFin = _data["fechaFin"] ? new Date(_data["fechaFin"].toString()) : undefined as any;
         }
     }
 
@@ -10172,6 +10557,8 @@ export class CreateEventRequest implements ICreateEventRequest {
                 data["organizadorIds"].push(item);
         }
         data["evidenceFileId"] = this.evidenceFileId;
+        data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
+        data["fechaFin"] = this.fechaFin ? formatDate(this.fechaFin) : undefined as any;
         return data;
     }
 }
@@ -10184,6 +10571,8 @@ export interface ICreateEventRequest {
     redId?: string | undefined;
     organizadorIds?: string[];
     evidenceFileId?: number | undefined;
+    fechaInicio?: Date | undefined;
+    fechaFin?: Date | undefined;
 }
 
 export class UpdateEventRequest implements IUpdateEventRequest {
@@ -10194,6 +10583,8 @@ export class UpdateEventRequest implements IUpdateEventRequest {
     redId?: string | undefined;
     organizadorIds?: string[];
     evidenceFileId?: number | undefined;
+    fechaInicio?: Date | undefined;
+    fechaFin?: Date | undefined;
 
     constructor(data?: IUpdateEventRequest) {
         if (data) {
@@ -10221,6 +10612,8 @@ export class UpdateEventRequest implements IUpdateEventRequest {
                     this.organizadorIds!.push(item);
             }
             this.evidenceFileId = _data["evidenceFileId"];
+            this.fechaInicio = _data["fechaInicio"] ? new Date(_data["fechaInicio"].toString()) : undefined as any;
+            this.fechaFin = _data["fechaFin"] ? new Date(_data["fechaFin"].toString()) : undefined as any;
         }
     }
 
@@ -10248,6 +10641,8 @@ export class UpdateEventRequest implements IUpdateEventRequest {
                 data["organizadorIds"].push(item);
         }
         data["evidenceFileId"] = this.evidenceFileId;
+        data["fechaInicio"] = this.fechaInicio ? formatDate(this.fechaInicio) : undefined as any;
+        data["fechaFin"] = this.fechaFin ? formatDate(this.fechaFin) : undefined as any;
         return data;
     }
 }
@@ -10260,6 +10655,8 @@ export interface IUpdateEventRequest {
     redId?: string | undefined;
     organizadorIds?: string[];
     evidenceFileId?: number | undefined;
+    fechaInicio?: Date | undefined;
+    fechaFin?: Date | undefined;
 }
 
 export class StoredFileDto implements IStoredFileDto {
@@ -13701,7 +14098,7 @@ export interface ICreatePublicationRequest {
 }
 
 export enum PublicationType {
-    Diario = 0,
+    Artículo_en_Revista_Científica = 0,
     Libro = 1,
     Monografía = 2,
     Capítulo = 3,
@@ -13886,6 +14283,7 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
     ambiguousGroup?: boolean;
     promotionDate?: Date | undefined;
     message?: string | undefined;
+    timedOut?: boolean;
 
     constructor(data?: IPublicationDatabaseMatchDto) {
         if (data) {
@@ -13911,6 +14309,7 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
             this.ambiguousGroup = _data["ambiguousGroup"];
             this.promotionDate = _data["promotionDate"] ? new Date(_data["promotionDate"].toString()) : undefined as any;
             this.message = _data["message"];
+            this.timedOut = _data["timedOut"];
         }
     }
 
@@ -13936,6 +14335,7 @@ export class PublicationDatabaseMatchDto implements IPublicationDatabaseMatchDto
         data["ambiguousGroup"] = this.ambiguousGroup;
         data["promotionDate"] = this.promotionDate ? formatDate(this.promotionDate) : undefined as any;
         data["message"] = this.message;
+        data["timedOut"] = this.timedOut;
         return data;
     }
 }
@@ -13950,6 +14350,7 @@ export interface IPublicationDatabaseMatchDto {
     ambiguousGroup?: boolean;
     promotionDate?: Date | undefined;
     message?: string | undefined;
+    timedOut?: boolean;
 }
 
 export class UpdatePublicationBody implements IUpdatePublicationBody {
@@ -14932,9 +15333,9 @@ export class UserWithRolesDto implements IUserWithRolesDto {
     email?: string;
     isActive?: boolean;
     isTrained?: boolean;
-    scientificCategory?: number;
-    teachingCategory?: number;
-    investigationCategory?: number;
+    scientificCategory?: string;
+    teachingCategory?: string;
+    investigationCategory?: string;
     areaId?: string | undefined;
     areaNombre?: string | undefined;
     universidadId?: string | undefined;
@@ -15014,14 +15415,70 @@ export interface IUserWithRolesDto {
     email?: string;
     isActive?: boolean;
     isTrained?: boolean;
-    scientificCategory?: number;
-    teachingCategory?: number;
-    investigationCategory?: number;
+    scientificCategory?: string;
+    teachingCategory?: string;
+    investigationCategory?: string;
     areaId?: string | undefined;
     areaNombre?: string | undefined;
     universidadId?: string | undefined;
     universidadNombre?: string | undefined;
     roles?: string[];
+}
+
+export class CreateUserRequest implements ICreateUserRequest {
+    userName?: string;
+    userLastName1?: string;
+    userLastName2?: string | undefined;
+    email?: string;
+    roleName?: string;
+    areaId?: string | undefined;
+
+    constructor(data?: ICreateUserRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.userName = _data["userName"];
+            this.userLastName1 = _data["userLastName1"];
+            this.userLastName2 = _data["userLastName2"];
+            this.email = _data["email"];
+            this.roleName = _data["roleName"];
+            this.areaId = _data["areaId"];
+        }
+    }
+
+    static fromJS(data: any): CreateUserRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateUserRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["userName"] = this.userName;
+        data["userLastName1"] = this.userLastName1;
+        data["userLastName2"] = this.userLastName2;
+        data["email"] = this.email;
+        data["roleName"] = this.roleName;
+        data["areaId"] = this.areaId;
+        return data;
+    }
+}
+
+export interface ICreateUserRequest {
+    userName?: string;
+    userLastName1?: string;
+    userLastName2?: string | undefined;
+    email?: string;
+    roleName?: string;
+    areaId?: string | undefined;
 }
 
 export class AssignRoleRequest implements IAssignRoleRequest {
@@ -15058,6 +15515,42 @@ export class AssignRoleRequest implements IAssignRoleRequest {
 
 export interface IAssignRoleRequest {
     roleName?: string;
+}
+
+export class SetActiveRequest implements ISetActiveRequest {
+    active?: boolean;
+
+    constructor(data?: ISetActiveRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.active = _data["active"];
+        }
+    }
+
+    static fromJS(data: any): SetActiveRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new SetActiveRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["active"] = this.active;
+        return data;
+    }
+}
+
+export interface ISetActiveRequest {
+    active?: boolean;
 }
 
 export class JefeDeProyectoDto implements IJefeDeProyectoDto {

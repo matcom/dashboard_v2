@@ -9,7 +9,7 @@ namespace Dashboard_v2.Application.Proyectos;
 /// Implementa la lógica CRUD de proyectos y mantiene el detalle por subtipo dentro
 /// de una única capa de servicio coherente con el resto de la aplicación.
 /// </summary>
-public sealed class ProyectoService : IProyectoQueryService, IProyectoCommandService, IProyectoService
+public sealed class ProyectoService : IProyectoQueryService, IProyectoCommandService
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;

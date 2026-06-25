@@ -1,8 +1,10 @@
+using Dashboard_v2.Domain.Common;
+
 namespace Dashboard_v2.Domain.Entities;
 
-public class LineaDeInvestigacion
+/// <summary>Research line within a knowledge domain, studied by one or more research groups.</summary>
+public class LineaDeInvestigacion : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Nombre { get; set; } = default!;
     public string? Descripcion { get; set; }
 
@@ -11,4 +13,5 @@ public class LineaDeInvestigacion
 
     // una Línea de Investigación puede ser estudiada por 0 o muchos Grupos
     public ICollection<GrupoDeInvestigacion> GruposDeInvestigacion { get; set; } = new List<GrupoDeInvestigacion>();
+
 }

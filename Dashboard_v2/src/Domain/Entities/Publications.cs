@@ -1,10 +1,11 @@
+using Dashboard_v2.Domain.Common;
 using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Domain.Entities;
 
-public class Publication
+/// <summary>Academic publication. May specialize into JournalPublication (journal articles) or IndexedPublication (books/chapters). Tracks authors, evidence files, and links to projects or networks.</summary>
+public class Publication : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Title { get; set; } = default!;
     /// <summary>Versión normalizada del título (sin diacríticos, sin puntuación, lowercase) para búsqueda rápida.</summary>
     public string? NormalizedTitle { get; set; }

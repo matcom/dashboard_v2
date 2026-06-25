@@ -1,8 +1,10 @@
+using Dashboard_v2.Domain.Common;
+
 namespace Dashboard_v2.Domain.Entities;
 
-public class GrupoDeInvestigacion
+/// <summary>Formal research group within an academic area, led by a faculty member and studying defined research lines.</summary>
+public class GrupoDeInvestigacion : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Nombre { get; set; } = default!;
 
     // un Grupo de Investigación pertenece a un Área

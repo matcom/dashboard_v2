@@ -1,8 +1,10 @@
+using Dashboard_v2.Domain.Common;
+
 namespace Dashboard_v2.Domain.Entities;
 
-public class GrupoEstudiantil
+/// <summary>Student scientific group attached to a research group or area.</summary>
+public class GrupoEstudiantil : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Nombre { get; set; } = default!;
 
     // pertenece a un Área

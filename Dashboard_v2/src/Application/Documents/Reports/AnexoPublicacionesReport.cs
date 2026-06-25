@@ -103,12 +103,12 @@ public sealed class AnexoPublicacionesReport : IDocumentReport
             .ToList();
 
         var journalPublications = filtered
-            .Where(p => p.PublicationType == PublicationType.Diario && p.JournalPublication is not null)
+            .Where(p => p.PublicationType == PublicationType.Artículo_en_Revista_Científica && p.JournalPublication is not null)
             .OrderBy(p => p.Title)
             .ToList();
 
         var indexedPublications = filtered
-            .Where(p => p.PublicationType != PublicationType.Diario && p.IndexedPublication is not null)
+            .Where(p => p.PublicationType != PublicationType.Artículo_en_Revista_Científica && p.IndexedPublication is not null)
             .OrderBy(p => p.Title)
             .ToList();
 

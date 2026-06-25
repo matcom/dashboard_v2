@@ -14,6 +14,7 @@ namespace Dashboard_v2.Application.UnitTests.Documents.Reports;
 public class AnexoRedesUniversitariasReportTests
 {
     private ApplicationDbContext _db = null!;
+    private Mock<IUser> _userMock = null!;
     private Mock<IDocumentRenderer> _rendererMock = null!;
     private AnexoRedesUniversitariasReport _sut = null!;
 
@@ -24,11 +25,13 @@ public class AnexoRedesUniversitariasReportTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         _db = new ApplicationDbContext(options);
+        _userMock = new Mock<IUser>();
+        _userMock.Setup(u => u.Id).Returns((string?)null);
         _rendererMock = new Mock<IDocumentRenderer>();
         _rendererMock
             .Setup(r => r.Render(It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
             .Returns(new byte[] { 1, 2, 3 });
-        _sut = new AnexoRedesUniversitariasReport(_db);
+        _sut = new AnexoRedesUniversitariasReport(_db, _userMock.Object, _rendererMock.Object);
     }
 
     [TearDown]
@@ -43,7 +46,7 @@ public class AnexoRedesUniversitariasReportTests
     [Test]
     public async Task GenerateAsync_NoReds_ReturnsEmptyZip()
     {
-        var bytes = await _sut.GenerateAsync(_rendererMock.Object);
+        var bytes = await _sut.GenerateAsync();
         bytes.ShouldNotBeNull();
         bytes.Length.ShouldBeGreaterThan(0); // valid (empty) zip
         _rendererMock.Verify(r => r.Render(It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, object>>()), Times.Never);
@@ -55,7 +58,7 @@ public class AnexoRedesUniversitariasReportTests
         _db.Reds.Add(new Red { Nombre = "Red Univ 1", Tipo = TipoRed.Universitaria });
         await _db.SaveChangesAsync();
 
-        await _sut.GenerateAsync(_rendererMock.Object);
+        await _sut.GenerateAsync();
         _rendererMock.Verify(r => r.Render("AnexoRedUniversitaria", It.IsAny<IReadOnlyDictionary<string, object>>()), Times.Once);
     }
 
@@ -66,7 +69,7 @@ public class AnexoRedesUniversitariasReportTests
         _db.Reds.Add(new Red { Nombre = "Red Inter", Tipo = TipoRed.Internacional });
         await _db.SaveChangesAsync();
 
-        await _sut.GenerateAsync(_rendererMock.Object);
+        await _sut.GenerateAsync();
         _rendererMock.Verify(r => r.Render(It.IsAny<string>(), It.IsAny<IReadOnlyDictionary<string, object>>()), Times.Never);
     }
 
@@ -77,7 +80,7 @@ public class AnexoRedesUniversitariasReportTests
         _db.Reds.Add(new Red { Nombre = "Red Univ 2", Tipo = TipoRed.Universitaria });
         await _db.SaveChangesAsync();
 
-        await _sut.GenerateAsync(_rendererMock.Object);
+        await _sut.GenerateAsync();
         _rendererMock.Verify(r => r.Render("AnexoRedUniversitaria", It.IsAny<IReadOnlyDictionary<string, object>>()), Times.Exactly(2));
     }
 
@@ -87,7 +90,7 @@ public class AnexoRedesUniversitariasReportTests
         _db.Reds.Add(new Red { Nombre = "Red Univ 1", Tipo = TipoRed.Universitaria });
         await _db.SaveChangesAsync();
 
-        var result = await _sut.GenerateAsync(_rendererMock.Object);
+        var result = await _sut.GenerateAsync();
         // ZIP magic bytes: PK (0x50 0x4B)
         result[0].ShouldBe((byte)0x50);
         result[1].ShouldBe((byte)0x4B);
@@ -120,7 +123,7 @@ public class AnexoRedesUniversitariasReportTests
             .Callback<string, IReadOnlyDictionary<string, object>>((_, vars) => captured = vars)
             .Returns(new byte[] { 1, 2, 3 });
 
-        await _sut.GenerateAsync(_rendererMock.Object);
+        await _sut.GenerateAsync();
 
         captured.ShouldNotBeNull();
         var eventos = (List<AnexoEventoRedRowDto>)captured!["EventosRed"];
@@ -141,7 +144,7 @@ public class AnexoRedesUniversitariasReportTests
             .Callback<string, IReadOnlyDictionary<string, object>>((_, vars) => captured = vars)
             .Returns(new byte[] { 1, 2, 3 });
 
-        await _sut.GenerateAsync(_rendererMock.Object);
+        await _sut.GenerateAsync();
 
         captured.ShouldNotBeNull();
         var eventos = (List<AnexoEventoRedRowDto>)captured!["EventosRed"];
@@ -180,7 +183,7 @@ public class AnexoRedesUniversitariasReportTests
             .Callback<string, IReadOnlyDictionary<string, object>>((_, vars) => captured = vars)
             .Returns(new byte[] { 1, 2, 3 });
 
-        await _sut.GenerateAsync(_rendererMock.Object);
+        await _sut.GenerateAsync();
 
         captured.ShouldNotBeNull();
         var areasParticipantes = (List<AnexoAreaParticipanteRowDto>)captured!["AreasParticipantes"];
@@ -200,7 +203,7 @@ public class AnexoRedesUniversitariasReportTests
             .Callback<string, IReadOnlyDictionary<string, object>>((_, vars) => captured = vars)
             .Returns(new byte[] { 1, 2, 3 });
 
-        await _sut.GenerateAsync(_rendererMock.Object);
+        await _sut.GenerateAsync();
 
         captured.ShouldNotBeNull();
         captured!["NombreRed"].ShouldBe("Mi Red Universitaria");

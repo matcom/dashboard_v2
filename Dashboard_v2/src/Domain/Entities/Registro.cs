@@ -1,8 +1,10 @@
+using Dashboard_v2.Domain.Common;
+
 namespace Dashboard_v2.Domain.Entities;
 
-public class Registro
+/// <summary>Registered software, design, or intellectual work. Country-specific registration with a certificate number.</summary>
+public class Registro : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Titulo { get; set; } = default!;
     public string NumeroCertificado { get; set; } = default!;
     public bool EsInformatico { get; set; }

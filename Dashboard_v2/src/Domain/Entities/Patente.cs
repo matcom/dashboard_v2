@@ -1,8 +1,10 @@
+using Dashboard_v2.Domain.Common;
+
 namespace Dashboard_v2.Domain.Entities;
 
-public class Patente
+/// <summary>Patent or intellectual property filed by institution researchers.</summary>
+public class Patente : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Titulo { get; set; } = default!;
     public string NumeroSolicitudConcesion { get; set; } = default!;
     public bool EsNacional { get; set; }

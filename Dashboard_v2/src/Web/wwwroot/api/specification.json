@@ -4876,6 +4876,29 @@
         }
       }
     },
+    "/api/Publications/proyecto": {
+      "get": {
+        "tags": [
+          "Publications"
+        ],
+        "operationId": "GetProyectoPublications",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Publications/area": {
       "get": {
         "tags": [
@@ -6262,6 +6285,39 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "CreateUser",
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/Users/{userId}/roles": {
@@ -6336,6 +6392,52 @@
             "x-position": 2
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Users/{userId}/active": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "SetUserActive",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetActiveRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
         "responses": {
           "200": {
             "description": ""
@@ -7044,6 +7146,10 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "totalUsuarios": {
+            "type": "integer",
+            "format": "int32"
+          },
           "totalPremios": {
             "type": "integer",
             "format": "int32"
@@ -7088,11 +7194,8 @@
             "type": "integer",
             "format": "int32"
           },
-          "premiosPorTipo": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DashboardSerieItemDto"
-            }
+          "plantilla": {
+            "$ref": "#/components/schemas/PlantillaDto"
           },
           "publicacionesPorGrupo": {
             "type": "array",
@@ -7106,13 +7209,37 @@
               "$ref": "#/components/schemas/DashboardSerieItemDto"
             }
           },
+          "publicacionesPorTipo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "publicacionesPorProfesor": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
           "proyectosPorEstado": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DashboardSerieItemDto"
             }
           },
-          "redesPorTipo": {
+          "proyectosPorTipo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "premiosPorTipo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "premiosPorAno": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DashboardSerieItemDto"
@@ -7124,7 +7251,81 @@
               "$ref": "#/components/schemas/DashboardSerieItemDto"
             }
           },
+          "eventosPorAno": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "ponenciasPorAno": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "redesPorTipo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "redesDelArea": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RedResumenDto"
+            }
+          },
           "patentesPorOrigen": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "registrosPorTipo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "normasPorTipo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "productosPorTipo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          }
+        }
+      },
+      "PlantillaDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "totalDocentes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalInvestigadores": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "porCategoriaCientifica": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "porCategoriaDocente": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSerieItemDto"
+            }
+          },
+          "porCategoriaInvestigacion": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DashboardSerieItemDto"
@@ -7142,6 +7343,18 @@
           "cantidad": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "RedResumenDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
           }
         }
       },
@@ -7197,6 +7410,16 @@
           "evidenceFileId": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date",
             "nullable": true
           }
         }
@@ -7271,6 +7494,16 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
           }
         }
       },
@@ -7308,6 +7541,16 @@
           "evidenceFileId": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date",
             "nullable": true
           }
         }
@@ -8905,7 +9148,7 @@
         "type": "integer",
         "description": "",
         "x-enumNames": [
-          "Diario",
+          "Artículo_en_Revista_Científica",
           "Libro",
           "Monografía",
           "Capítulo",
@@ -9057,6 +9300,9 @@
           "message": {
             "type": "string",
             "nullable": true
+          },
+          "timedOut": {
+            "type": "boolean"
           }
         }
       },
@@ -9521,16 +9767,13 @@
             "type": "boolean"
           },
           "scientificCategory": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
           },
           "teachingCategory": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
           },
           "investigationCategory": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
           },
           "areaId": {
             "type": "string",
@@ -9556,12 +9799,47 @@
           }
         }
       },
+      "CreateUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userName": {
+            "type": "string"
+          },
+          "userLastName1": {
+            "type": "string"
+          },
+          "userLastName2": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string"
+          },
+          "roleName": {
+            "type": "string"
+          },
+          "areaId": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "AssignRoleRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "roleName": {
             "type": "string"
+          }
+        }
+      },
+      "SetActiveRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "type": "boolean"
           }
         }
       },

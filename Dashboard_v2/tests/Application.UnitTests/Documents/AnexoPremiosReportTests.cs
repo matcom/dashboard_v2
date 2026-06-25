@@ -1,7 +1,9 @@
+using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Documents.Reports;
 using Dashboard_v2.Domain.Entities;
 using Dashboard_v2.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using NUnit.Framework;
 using Shouldly;
 
@@ -11,6 +13,7 @@ namespace Dashboard_v2.Application.UnitTests.Documents.Reports;
 public class AnexoPremiosReportTests
 {
     private ApplicationDbContext _db = null!;
+    private Mock<IUser> _userMock = null!;
     private AnexoPremiosReport _sut = null!;
 
     [SetUp]
@@ -20,7 +23,9 @@ public class AnexoPremiosReportTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         _db = new ApplicationDbContext(options);
-        _sut = new AnexoPremiosReport(_db);
+        _userMock = new Mock<IUser>();
+        _userMock.Setup(u => u.Id).Returns((string?)null);
+        _sut = new AnexoPremiosReport(_db, _userMock.Object);
     }
 
     [TearDown]
@@ -91,5 +96,42 @@ public class AnexoPremiosReportTests
         var result = await _sut.GatherVariablesAsync(null, default);
         var tipos = result["TiposPremio"] as List<AnexoPremiosTipoRowDto>;
         tipos![0].Premios.Count.ShouldBe(1); // deduplicated
+    }
+
+    [Test]
+    public async Task GatherVariablesAsync_WithAreaFilter_IncludesAwardFromUserArea()
+    {
+        _db.Users.Add(new User { Id = "req-a1", AreaId = "area-a", Email = "r@t.cu", UserName = "req", UserLastName1 = "R" });
+        _db.Users.Add(new User { Id = "member-a1", AreaId = "area-a", Email = "m@t.cu", UserName = "mem", UserLastName1 = "M" });
+        _db.AwardTypes.Add(new AwardType { Id = 50, Name = "Nacional" });
+        _db.Awards.Add(new Award { Id = 50, Name = "Premio del Área", AwardTypeId = 50 });
+        _db.UserAwardeds.Add(new UserAwarded { UserId = "member-a1", AwardId = 50, AwardedAt = DateTime.Today });
+        await _db.SaveChangesAsync();
+
+        _userMock.Setup(u => u.Id).Returns("req-a1");
+
+        var result = await _sut.GatherVariablesAsync(null, default);
+        var tipos = result["TiposPremio"] as List<AnexoPremiosTipoRowDto>;
+        tipos.ShouldNotBeNull();
+        tipos![0].Premios.Count.ShouldBe(1);
+        tipos[0].Premios[0].Titulo.ShouldBe("Premio del Área");
+    }
+
+    [Test]
+    public async Task GatherVariablesAsync_WithAreaFilter_ExcludesAwardFromOtherArea()
+    {
+        _db.Users.Add(new User { Id = "req-a2", AreaId = "area-a", Email = "r2@t.cu", UserName = "req2", UserLastName1 = "R2" });
+        _db.Users.Add(new User { Id = "member-b1", AreaId = "area-b", Email = "mb@t.cu", UserName = "mb", UserLastName1 = "MB" });
+        _db.AwardTypes.Add(new AwardType { Id = 60, Name = "Internacional" });
+        _db.Awards.Add(new Award { Id = 60, Name = "Premio Otra Área", AwardTypeId = 60 });
+        _db.UserAwardeds.Add(new UserAwarded { UserId = "member-b1", AwardId = 60, AwardedAt = DateTime.Today });
+        await _db.SaveChangesAsync();
+
+        _userMock.Setup(u => u.Id).Returns("req-a2");
+
+        var result = await _sut.GatherVariablesAsync(null, default);
+        var tipos = result["TiposPremio"] as List<AnexoPremiosTipoRowDto>;
+        tipos.ShouldNotBeNull();
+        tipos![0].Premios.ShouldBeEmpty();
     }
 }

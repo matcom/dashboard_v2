@@ -1,9 +1,10 @@
+using Dashboard_v2.Domain.Common;
+
 namespace Dashboard_v2.Domain.Entities;
 
-public class UserAwarded
+/// <summary>Junction entity: records an award granted to a user on a specific date, with optional evidence.</summary>
+public class UserAwarded : BaseAuditableEntity
 {
-    public int Id { get; set; }
-
     // FK explícito para EF Core
     public string UserId { get; set; } = default!;
     public User User { get; set; } = null!;
@@ -17,4 +18,5 @@ public class UserAwarded
     /// <summary>Archivo de evidencia/certificado adjunto (opcional).</summary>
     public int? EvidenceFileId { get; set; }
     public StoredFile? EvidenceFile { get; set; }
+
 }

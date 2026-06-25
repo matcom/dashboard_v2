@@ -49,7 +49,7 @@ public class AnexoPublicacionesReportTests
             Title = title,
             PublicationData = $"Datos de {title}",
             PublishedDate = publishedDate,
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
         };
         var jp = new JournalPublication
         {
@@ -162,7 +162,7 @@ public class AnexoPublicacionesReportTests
             Title = "Pub Mixta",
             PublicationData = "Datos mixtos",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication { PublicationId = "pub-mixed", Group = 2, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "Scopus" } },
         };
         pub.AuthorPublications.Add(new AuthorPublication { AuthorId = authorA.Id, PublicationId = pub.Id, Author = authorA, Publication = pub });
@@ -351,6 +351,38 @@ public class AnexoPublicacionesReportTests
     }
 
     /// <summary>
+    /// Con solo el límite superior (to), deben incluirse solo las publicaciones
+    /// anteriores o iguales a esa fecha.
+    /// </summary>
+    [Test]
+    public async Task GatherVariablesAsync_WithOnlyTo_FiltersCorrectly()
+    {
+        await using var db = BuildDb(nameof(GatherVariablesAsync_WithOnlyTo_FiltersCorrectly));
+
+        var area = new Area { Id = "area-a", Nombre = "Área A" };
+        var user = new User { Id = "user-a", UserName = "u", UserLastName1 = "A", Email = "a@test.cu", AreaId = area.Id };
+        var author = new Author { Id = "auth-a", LastName = "A", Name = "A", SearchKey = "a", LastNameKey = "a", UserId = user.Id, User = user };
+
+        var before = CreateJournalPublication("Anterior al límite", 1, author, "2021-03");
+        var after  = CreateJournalPublication("Posterior al límite", 1, author, "2024-06");
+
+        db.Areas.Add(area);
+        db.Users.Add(user);
+        db.Authors.Add(author);
+        db.Publications.AddRange(before, after);
+        await db.SaveChangesAsync();
+
+        var parameters = new Dictionary<string, string> { ["to"] = "2022-12" };
+
+        var report = BuildReport(db, user.Id);
+        var variables = await report.GatherVariablesAsync(parameters, CancellationToken.None);
+
+        var g1 = (List<PublicacionG1RowDto>)variables["G1"];
+        g1.Count.ShouldBe(1);
+        g1[0].Titulo.ShouldBe("Anterior al límite");
+    }
+
+    /// <summary>
     /// Con solo el límite inferior (from), deben incluirse todas las publicaciones
     /// a partir de esa fecha.
     /// </summary>
@@ -442,7 +474,7 @@ public class AnexoPublicacionesReportTests
             Title = "Pub G1 con Cuartil",
             PublicationData = "Datos",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication
             {
                 PublicationId = pubId,
@@ -535,7 +567,7 @@ public class AnexoPublicacionesReportTests
             Title = "Pub Multiautor",
             PublicationData = "Datos",
             PublishedDate = "2024",
-            PublicationType = PublicationType.Diario,
+            PublicationType = PublicationType.Artículo_en_Revista_Científica,
             JournalPublication = new JournalPublication { PublicationId = pubId, Group = 1, BaseDeDatos = new BaseDeDatosPublicacion { Nombre = "WoS" } },
         };
         // Z añadido antes de A para verificar que el reporte ordena alfabéticamente

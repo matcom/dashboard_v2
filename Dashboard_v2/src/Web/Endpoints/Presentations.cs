@@ -4,8 +4,12 @@ using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Web.Endpoints;
 
+/// <summary>
+/// API endpoints for recording event oral presentations.
+/// </summary>
 public class Presentations : EndpointGroupBase
 {
+    /// <summary>Registers the Presentations route group with all presentation endpoints.</summary>
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetMyPresentations)
@@ -24,33 +28,33 @@ public class Presentations : EndpointGroupBase
             .Produces<List<PresentationDto>>(200);
 
         groupBuilder.MapPost("", CreatePresentation)
-            .RequireAuthorization(p => p.RequireRole("Profesor", "Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("CreatePresentation")
             .Produces(201)
             .ProducesProblem(400);
 
         groupBuilder.MapPut("{id}", UpdatePresentation)
-            .RequireAuthorization(p => p.RequireRole("Profesor", "Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("UpdatePresentation")
             .Produces(200)
             .ProducesProblem(400);
 
         groupBuilder.MapDelete("{id}", DeletePresentation)
-            .RequireAuthorization(p => p.RequireRole("Profesor", "Superuser"))
+            .RequireAuthorization(p => p.RequireRole(nameof(RolesEnum.Profesor), nameof(RolesEnum.Superuser)))
             .WithName("DeletePresentation")
             .Produces(200)
             .ProducesProblem(400);
     }
-    private async Task<IResult> GetMyPresentations(IEventService service)
+    private async Task<IResult> GetMyPresentations(IPresentationService service)
         => Results.Ok(await service.GetMyPresentationsAsync());
 
-    private async Task<IResult> GetAllPresentations(IEventService service)
+    private async Task<IResult> GetAllPresentations(IPresentationService service)
         => Results.Ok(await service.GetAllPresentationsAsync());
 
-    private async Task<IResult> GetAreaPresentations(IEventService service)
+    private async Task<IResult> GetAreaPresentations(IPresentationService service)
         => Results.Ok(await service.GetAreaPresentationsAsync());
 
-    private async Task<IResult> CreatePresentation(IEventService service, CreatePresentationRequest body)
+    private async Task<IResult> CreatePresentation(IPresentationService service, CreatePresentationRequest body)
     {
         var (result, id) = await service.CreatePresentationAsync(body);
 
@@ -60,7 +64,7 @@ public class Presentations : EndpointGroupBase
         return Results.Created($"/api/Presentations/{id}", new { id });
     }
 
-    private async Task<IResult> UpdatePresentation(IEventService service, int id, UpdatePresentationRequest body)
+    private async Task<IResult> UpdatePresentation(IPresentationService service, int id, UpdatePresentationRequest body)
     {
         var result = await service.UpdatePresentationAsync(id, body);
 
@@ -70,7 +74,7 @@ public class Presentations : EndpointGroupBase
         return Results.Ok(new { message = "Presentación actualizada." });
     }
 
-    private async Task<IResult> DeletePresentation(IEventService service, int id)
+    private async Task<IResult> DeletePresentation(IPresentationService service, int id)
     {
         var result = await service.DeletePresentationAsync(id);
 

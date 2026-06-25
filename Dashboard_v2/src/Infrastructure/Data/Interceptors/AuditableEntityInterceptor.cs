@@ -1,11 +1,16 @@
 ﻿using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Domain.Common;
+using Dashboard_v2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Dashboard_v2.Infrastructure.Data.Interceptors;
 
+/// <summary>
+/// EF Core interceptor that automatically populates audit fields (Created, CreatedBy,
+/// LastModified, LastModifiedBy) on <see cref="IAuditableEntity"/> instances before saving.
+/// </summary>
 public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
     private readonly IUser _user;
@@ -37,7 +42,7 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
     {
         if (context == null) return;
 
-        foreach (var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
+        foreach (var entry in context.ChangeTracker.Entries<IAuditableEntity>())
         {
             if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
             {

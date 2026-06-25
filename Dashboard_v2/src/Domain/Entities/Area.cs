@@ -1,8 +1,10 @@
+using Dashboard_v2.Domain.Common;
+
 namespace Dashboard_v2.Domain.Entities;
 
-public class Area
+/// <summary>Academic area (department/faculty) within a university, grouping research groups and users.</summary>
+public class Area : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Nombre { get; set; } = default!;
     public string? Descripcion { get; set; }
 
