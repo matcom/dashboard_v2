@@ -192,7 +192,7 @@ public sealed class PatenteService : IPatenteService
 
     public async Task<Result> DeleteAsync(string id, CancellationToken ct = default)
     {
-        var p = await _context.Patentes.FindAsync(new object[] { id }, ct);
+        var p = await _context.Patentes.FindAsync(id, ct);
         if (p == null)
             return Result.Failure(["Patente no encontrada."]);
 

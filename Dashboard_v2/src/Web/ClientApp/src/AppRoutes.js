@@ -1,4 +1,5 @@
 import DashboardHome from "./pages/DashboardHome";
+import GenerarAnexosPage from "./pages/GenerarAnexosPage";
 import UsersPage from "./pages/UsersPage";
 import PublicationsPage from "./pages/PublicationsPage";
 import CurriculumPage from "./pages/CurriculumPage";
@@ -33,12 +34,22 @@ import ProyectosPage from "./pages/ProyectosPage";
 import MisProyectosPage from "./pages/MisProyectosPage";
 import ClasificacionesPage from "./pages/ClasificacionesPage";
 import PublicacionesConsultaPage from "./pages/PublicacionesConsultaPage";
+import ProyectoPublicacionesPage from "./pages/ProyectoPublicacionesPage";
 
+// Route configuration: each entry defines a path, the page component, its title,
+// and optional role guards (adminOnly, profesorOrAdminOnly, etc.).
+// Guards are evaluated in App.js to wrap the element with the appropriate ProtectedRoute.
 const AppRoutes = [
   {
     index: true,
     element: <DashboardHome />,
     pageTitle: 'Inicio',
+  },
+  {
+    path: '/generar-anexos',
+    element: <GenerarAnexosPage />,
+    pageTitle: 'Generar Anexos',
+    vicedecanoOrProfesorOrAdminOnly: true,
   },
   {
     path: '/users',
@@ -49,8 +60,8 @@ const AppRoutes = [
   {
     path: '/publications',
     element: <PublicationsPage />,
-    pageTitle: 'Mis publicaciones',
-    profesorOnly: true,
+    pageTitle: 'Publicaciones',
+    profesorOrAdminOnly: true,
   },
   {
     path: '/curriculum',
@@ -125,8 +136,8 @@ const AppRoutes = [
   },
   {
     path: '/publicaciones',
-    element: <PublicacionesConsultaPage />,
-    pageTitle: 'Todas las publicaciones',
+    element: <ProyectoPublicacionesPage />,
+    pageTitle: 'Publicaciones de mis proyectos',
     jefeDeProyectoOrAdminOnly: true,
   },
   {

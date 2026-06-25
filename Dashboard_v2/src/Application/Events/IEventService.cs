@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Dashboard_v2.Application.Events;
 
+/// <summary>
+/// Application service for managing academic events: listing, creating, updating, and country/event-type lookups.
+/// </summary>
 public interface IEventService
 {
     Task<List<EventDto>> GetMyEventsAsync(CancellationToken ct = default);
@@ -17,10 +20,4 @@ public interface IEventService
     Task<Result> UpdateEventAsync(int id, UpdateEventRequest request, CancellationToken ct = default);
     Task<Result> DeleteEventAsync(int id, CancellationToken ct = default);
 
-    Task<List<PresentationDto>> GetMyPresentationsAsync(CancellationToken ct = default);
-    Task<List<PresentationDto>> GetAllPresentationsAsync(CancellationToken ct = default);
-    Task<List<PresentationDto>> GetAreaPresentationsAsync(CancellationToken ct = default);
-    Task<(Result Result, int? PresentationId)> CreatePresentationAsync(CreatePresentationRequest request, CancellationToken ct = default);
-    Task<Result> UpdatePresentationAsync(int id, UpdatePresentationRequest request, CancellationToken ct = default);
-    Task<Result> DeletePresentationAsync(int id, CancellationToken ct = default);
 }

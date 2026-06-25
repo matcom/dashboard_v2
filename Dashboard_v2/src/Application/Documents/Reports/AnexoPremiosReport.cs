@@ -12,14 +12,18 @@ namespace Dashboard_v2.Application.Documents.Reports;
 ///
 /// El cuerpo del documento se genera agrupando por tipo de premio y listando
 /// debajo cada premio del tipo con su relación de autores.
+/// Solo se incluyen premios en los que al menos un premiado pertenece
+/// al área del usuario que solicita el reporte.
 /// </summary>
 public sealed class AnexoPremiosReport : IDocumentReport
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _currentUser;
 
-    public AnexoPremiosReport(IApplicationDbContext context)
+    public AnexoPremiosReport(IApplicationDbContext context, IUser currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public string ReportName => "anexo-premios";
@@ -31,10 +35,12 @@ public sealed class AnexoPremiosReport : IDocumentReport
 
     public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)
     {
+        var requestingAreaId = await _context.GetUserAreaIdAsync(_currentUser.Id, ct);
+
         var awardTypes = await _context.AwardTypes
             .AsNoTracking()
             .Include(t => t.Awards)
-                .ThenInclude(a => a.UserAwardeds)
+                .ThenInclude(a => a.UserAwardees)
                     .ThenInclude(ua => ua.User)
             .OrderBy(t => t.Id)
             .ToListAsync(ct);
@@ -45,13 +51,14 @@ public sealed class AnexoPremiosReport : IDocumentReport
                 Numero = index + 1,
                 TipoPremio = type.Name,
                 Premios = type.Awards
+                    .Where(a => requestingAreaId == null || a.UserAwardees.Any(ua => ua.User?.AreaId == requestingAreaId))
                     .GroupBy(a => NormalizeAwardKey(a.Name))
                     .OrderBy(group => group.Min(a => a.Name))
                     .ThenBy(group => group.Min(a => a.Id))
                     .Select(group =>
                     {
                         var titulo = group.OrderBy(a => a.Id).Select(a => a.Name).First();
-                        var autores = BuildAuthorsSummary(group.SelectMany(a => a.UserAwardeds));
+                        var autores = BuildAuthorsSummary(group.SelectMany(a => a.UserAwardees), requestingAreaId);
                         return new AnexoPremioDetalleRowDto
                         {
                             Titulo = titulo,
@@ -69,10 +76,10 @@ public sealed class AnexoPremiosReport : IDocumentReport
         };
     }
 
-    private static string BuildAuthorsSummary(IEnumerable<UserAwarded> userAwardeds)
+    private static string BuildAuthorsSummary(IEnumerable<UserAwarded> userAwardeds, string? areaId)
     {
         return string.Join(", ", userAwardeds
-            .Where(ua => ua.User is not null)
+            .Where(ua => ua.User is not null && (areaId == null || ua.User.AreaId == areaId))
             .Select(ua => BuildUserDisplayName(ua.User))
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct(StringComparer.OrdinalIgnoreCase)

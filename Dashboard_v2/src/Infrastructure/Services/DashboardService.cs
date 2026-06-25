@@ -6,6 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard_v2.Infrastructure.Services;
 
+/// <summary>
+/// Aggregates research activity statistics for the Vicedecano dashboard. Queries publications,
+/// projects, events, awards, patents, networks, and groups filtered by academic area.
+/// </summary>
 public sealed class DashboardService : IDashboardService
 {
     private readonly IApplicationDbContext _context;
@@ -17,24 +21,31 @@ public sealed class DashboardService : IDashboardService
         _currentUser = currentUser;
     }
 
+    /// <summary>
+    /// Gathers and aggregates all research activity metrics for the current user's area.
+    /// Delegates to private Gather* helper methods for each entity type.
+    /// </summary>
     public async Task<VicedecanoDashboardDto> GetVicedecanoDashboardAsync(CancellationToken ct = default)
     {
         var areaId = await _context.GetUserAreaIdAsync(_currentUser.Id, ct) ?? string.Empty;
 
-        var (premiosTotales, premiosPorTipo)         = await GatherPremiosAsync(areaId, ct);
-        var (pubsTotales, pubsPorGrupo, pubsPorAno)  = await GatherPublicacionesAsync(areaId, ct);
-        var (proyTotales, proyPorEstado)             = await GatherProyectosAsync(areaId, ct);
-        var (eventosTotales, eventosPorTipo)         = await GatherEventosAsync(areaId, ct);
-        var (redesTotales, redesPorTipo)             = await GatherRedesAsync(areaId, ct);
-        var ponencias   = await GatherPonenciasAsync(areaId, ct);
-        var grupos      = await CountGruposAsync(areaId, ct);
-        var (patenteTotal, patentesPorOrigen) = await GatherPatentesAsync(areaId, ct);
-        var registros   = await CountAsync(_context.Registros,  r => r.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId), ct);
-        var normas      = await CountAsync(_context.Normas,     n => n.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId), ct);
-        var productos   = await CountAsync(_context.ProductosComercializados, p => p.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId), ct);
+        var (totalUsuarios, plantilla)                      = await GatherPlantillaAsync(areaId, ct);
+        var (premiosTotales, premiosPorTipo, premiosPorAno) = await GatherPremiosAsync(areaId, ct);
+        var (pubsTotales, pubsPorGrupo, pubsPorAno, pubsPorTipo, pubsPorProfesor)
+                                                            = await GatherPublicacionesAsync(areaId, ct);
+        var (proyTotales, proyPorEstado, proyPorTipo)       = await GatherProyectosAsync(areaId, ct);
+        var (eventosTotales, eventosPorTipo, eventosPorAno) = await GatherEventosAsync(areaId, ct);
+        var (ponencias, ponenciasPorAno)                    = await GatherPonenciasAsync(areaId, ct);
+        var (redesTotales, redesPorTipo, redesDelArea)      = await GatherRedesAsync(areaId, ct);
+        var grupos                                          = await CountGruposAsync(areaId, ct);
+        var (patenteTotal, patentesPorOrigen)               = await GatherPatentesAsync(areaId, ct);
+        var (registrosTotal, registrosPorTipo)              = await GatherRegistrosAsync(areaId, ct);
+        var (normasTotal, normasPorTipo)                    = await GatherNormasAsync(areaId, ct);
+        var (productosTotal, productosPorTipo)              = await GatherProductosAsync(areaId, ct);
 
         return new VicedecanoDashboardDto
         {
+            TotalUsuarios      = totalUsuarios,
             TotalPremios       = premiosTotales,
             TotalPublicaciones = pubsTotales,
             TotalProyectos     = proyTotales,
@@ -43,25 +54,92 @@ public sealed class DashboardService : IDashboardService
             TotalRedes         = redesTotales,
             TotalGrupos        = grupos,
             TotalPatentes      = patenteTotal,
-            TotalRegistros     = registros,
-            TotalNormas        = normas,
-            TotalProductos     = productos,
+            TotalRegistros     = registrosTotal,
+            TotalNormas        = normasTotal,
+            TotalProductos     = productosTotal,
 
-            PremiosPorTipo        = premiosPorTipo,
-            PublicacionesPorGrupo = pubsPorGrupo,
-            PublicacionesPorAno   = pubsPorAno,
-            ProyectosPorEstado    = proyPorEstado,
-            RedesPorTipo          = redesPorTipo,
-            EventosPorTipo        = eventosPorTipo,
-            PatentesPorOrigen     = patentesPorOrigen,
+            Plantilla = plantilla,
+
+            PublicacionesPorGrupo    = pubsPorGrupo,
+            PublicacionesPorAno      = pubsPorAno,
+            PublicacionesPorTipo     = pubsPorTipo,
+            PublicacionesPorProfesor = pubsPorProfesor,
+
+            ProyectosPorEstado = proyPorEstado,
+            ProyectosPorTipo   = proyPorTipo,
+
+            PremiosPorTipo = premiosPorTipo,
+            PremiosPorAno  = premiosPorAno,
+
+            EventosPorTipo  = eventosPorTipo,
+            EventosPorAno   = eventosPorAno,
+            PonenciasPorAno = ponenciasPorAno,
+
+            RedesPorTipo = redesPorTipo,
+            RedesDelArea = redesDelArea,
+
+            PatentesPorOrigen = patentesPorOrigen,
+            RegistrosPorTipo  = registrosPorTipo,
+            NormasPorTipo     = normasPorTipo,
+            ProductosPorTipo  = productosPorTipo,
         };
+    }
+
+    // ── Plantilla / Personal ──────────────────────────────────────────────────
+
+    // Collects active user counts and category breakdowns (scientific, teaching, research) for the area.
+    private async Task<(int TotalUsuarios, PlantillaDto Plantilla)> GatherPlantillaAsync(string areaId, CancellationToken ct)
+    {
+        var users = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.AreaId == areaId && u.IsActive)
+            .Select(u => new
+            {
+                u.ScientificCategory,
+                u.TeachingCategory,
+                u.InvestigationCategory,
+            })
+            .ToListAsync(ct);
+
+        var porCientifica = users
+            .GroupBy(u => u.ScientificCategory.ToDisplayString())
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderByDescending(x => x.Cantidad)
+            .ToList();
+
+        var porDocente = users
+            .Where(u => u.TeachingCategory != TeachingCategory.None)
+            .GroupBy(u => u.TeachingCategory.ToDisplayString())
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderByDescending(x => x.Cantidad)
+            .ToList();
+
+        var porInvestigacion = users
+            .Where(u => u.InvestigationCategory != InvestigationCategory.None)
+            .GroupBy(u => u.InvestigationCategory.ToDisplayString())
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderByDescending(x => x.Cantidad)
+            .ToList();
+
+        var plantilla = new PlantillaDto
+        {
+            TotalDocentes        = users.Count(u => u.TeachingCategory != TeachingCategory.None),
+            TotalInvestigadores  = users.Count(u => u.InvestigationCategory != InvestigationCategory.None),
+            PorCategoriaCientifica    = porCientifica,
+            PorCategoriaDocente       = porDocente,
+            PorCategoriaInvestigacion = porInvestigacion,
+        };
+
+        return (users.Count, plantilla);
     }
 
     // ── Premios ──────────────────────────────────────────────────────────────
 
-    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo)> GatherPremiosAsync(string areaId, CancellationToken ct)
+    // Collects awards received by users in the area, grouped by award type and year.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo, List<DashboardSerieItemDto> PorAno)>
+        GatherPremiosAsync(string areaId, CancellationToken ct)
     {
-        var rows = await _context.UserAwardeds
+        var rows = await _context.UserAwardees
             .AsNoTracking()
             .Where(ua => ua.User != null && ua.User.AreaId == areaId)
             .Include(ua => ua.Award).ThenInclude(a => a.AwardType)
@@ -73,12 +151,20 @@ public sealed class DashboardService : IDashboardService
             .OrderByDescending(x => x.Cantidad)
             .ToList();
 
-        return (rows.Count, porTipo);
+        var porAno = rows
+            .GroupBy(ua => ua.AwardedAt.Year.ToString())
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderBy(x => x.Label)
+            .ToList();
+
+        return (rows.Count, porTipo, porAno);
     }
 
     // ── Publicaciones ────────────────────────────────────────────────────────
 
-    private async Task<(int Total, List<DashboardSerieItemDto> PorGrupo, List<DashboardSerieItemDto> PorAno)>
+    // Collects publications co-authored by users in the area, grouped by bibliographic group, year, type, and author.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorGrupo, List<DashboardSerieItemDto> PorAno,
+        List<DashboardSerieItemDto> PorTipo, List<DashboardSerieItemDto> PorProfesor)>
         GatherPublicacionesAsync(string areaId, CancellationToken ct)
     {
         var pubs = await _context.Publications
@@ -88,6 +174,7 @@ public sealed class DashboardService : IDashboardService
             .Include(p => p.IndexedPublication)
             .ToListAsync(ct);
 
+        // PorGrupo
         var porGrupo = new List<DashboardSerieItemDto>();
         for (int g = 1; g <= 4; g++)
         {
@@ -97,24 +184,74 @@ public sealed class DashboardService : IDashboardService
         var divulgacion = pubs.Count(p => p.PublicationType == PublicationType.Artículo_de_Divulgación);
         if (divulgacion > 0) porGrupo.Add(new DashboardSerieItemDto("Divulgación", divulgacion));
 
+        // PorAno
         var porAno = pubs
             .GroupBy(p => p.PublishedDate.Length >= 4 ? p.PublishedDate[..4] : p.PublishedDate)
             .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
             .OrderBy(x => x.Label)
             .ToList();
 
-        return (pubs.Count, porGrupo, porAno);
+        // PorTipo
+        var tipoNames = new Dictionary<PublicationType, string>
+        {
+            [PublicationType.Artículo_en_Revista_Científica] = "Artículo en Revista",
+            [PublicationType.Libro]                          = "Libro",
+            [PublicationType.Monografía]                     = "Monografía",
+            [PublicationType.Capítulo]                       = "Capítulo de libro",
+            [PublicationType.Artículo_de_Divulgación]        = "Divulgación",
+        };
+
+        var porTipo = pubs
+            .GroupBy(p => tipoNames.TryGetValue(p.PublicationType, out var n) ? n : p.PublicationType.ToString())
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderByDescending(x => x.Cantidad)
+            .ToList();
+
+        // PorProfesor — nombre del Author vinculado a un User del área
+        var authorNames = await _context.AuthorPublications
+            .AsNoTracking()
+            .Where(ap => ap.Author.UserId != null && ap.Author.User!.AreaId == areaId)
+            .Select(ap => ap.Author.Name)
+            .ToListAsync(ct);
+
+        var porProfesor = authorNames
+            .GroupBy(name => name)
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderByDescending(x => x.Cantidad)
+            .ToList();
+
+        return (pubs.Count, porGrupo, porAno, porTipo, porProfesor);
     }
 
     // ── Proyectos ────────────────────────────────────────────────────────────
 
-    private async Task<(int Total, List<DashboardSerieItemDto> PorEstado)> GatherProyectosAsync(string areaId, CancellationToken ct)
+    // Collects all projects in which area members participate (as leader or collaborator), grouped by type and execution state.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorEstado, List<DashboardSerieItemDto> PorTipo)>
+        GatherProyectosAsync(string areaId, CancellationToken ct)
     {
-        var total = await _context.Proyectos
+        // Cargar todos los proyectos del área para clasificarlos por tipo
+        var todos = await _context.Proyectos
             .AsNoTracking()
-            .CountAsync(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId), ct);
+            .Where(p => p.JefeUsuario.AreaId == areaId || p.Participantes.Any(u => u.AreaId == areaId))
+            .ToListAsync(ct);
 
-        // EstadosDeEjecucion only exists on ProyectoEnEjecucion subtypes
+        var porTipo = todos
+            .GroupBy(p => p switch
+            {
+                ProyectoEmpresarial        => "Empresarial",
+                ProyectoNoEmpresarial      => "No Empresarial",
+                ProyectoDesarrolloLocal    => "Desarrollo Local",
+                ProyectoPNAP               => "PNAP",
+                ProyectoApoyoPrograma      => "Apoyo a Programa",
+                ProyectoColabInternacional => "Colab. Internacional",
+                ProyectoEnRevision         => "En Revisión",
+                _                          => "Otro"
+            })
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderByDescending(x => x.Cantidad)
+            .ToList();
+
+        // Cargar estados de ejecución (sólo ProyectoEnEjecucion)
         var enEjecucion = await _context.Proyectos
             .OfType<ProyectoEnEjecucion>()
             .AsNoTracking()
@@ -129,12 +266,14 @@ public sealed class DashboardService : IDashboardService
             .OrderByDescending(x => x.Cantidad)
             .ToList();
 
-        return (total, porEstado);
+        return (todos.Count, porEstado, porTipo);
     }
 
     // ── Eventos ──────────────────────────────────────────────────────────────
 
-    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo)> GatherEventosAsync(string areaId, CancellationToken ct)
+    // Collects events organized or attended by area users, grouped by event type and year.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo, List<DashboardSerieItemDto> PorAno)>
+        GatherEventosAsync(string areaId, CancellationToken ct)
     {
         var eventos = await _context.Events
             .AsNoTracking()
@@ -150,19 +289,41 @@ public sealed class DashboardService : IDashboardService
             .OrderByDescending(x => x.Cantidad)
             .ToList();
 
-        return (eventos.Count, porTipo);
+        var porAno = eventos
+            .Where(e => e.FechaInicio.HasValue)
+            .GroupBy(e => e.FechaInicio!.Value.Year.ToString())
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderBy(x => x.Label)
+            .ToList();
+
+        return (eventos.Count, porTipo, porAno);
     }
 
     // ── Ponencias ────────────────────────────────────────────────────────────
 
-    private Task<int> GatherPonenciasAsync(string areaId, CancellationToken ct) =>
-        _context.Presentations
+    // Collects paper/poster presentations by area users, grouped by year.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorAno)> GatherPonenciasAsync(string areaId, CancellationToken ct)
+    {
+        var fechas = await _context.Presentations
             .AsNoTracking()
-            .CountAsync(p => p.User != null && p.User.AreaId == areaId, ct);
+            .Where(p => p.User != null && p.User.AreaId == areaId)
+            .Select(p => p.Fecha.Year.ToString())
+            .ToListAsync(ct);
+
+        var porAno = fechas
+            .GroupBy(year => year)
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderBy(x => x.Label)
+            .ToList();
+
+        return (fechas.Count, porAno);
+    }
 
     // ── Redes ────────────────────────────────────────────────────────────────
 
-    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo)> GatherRedesAsync(string areaId, CancellationToken ct)
+    // Collects scientific networks coordinated by or with participation from area users, grouped by network type.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo, List<RedResumenDto> Detalle)>
+        GatherRedesAsync(string areaId, CancellationToken ct)
     {
         var redes = await _context.Reds
             .AsNoTracking()
@@ -173,22 +334,31 @@ public sealed class DashboardService : IDashboardService
 
         var tipoNames = new Dictionary<TipoRed, string>
         {
-            [TipoRed.Universitaria]    = "Universitaria",
-            [TipoRed.Nacional]         = "Nacional",
-            [TipoRed.Internacional]    = "Internacional",
+            [TipoRed.Universitaria] = "Universitaria",
+            [TipoRed.Nacional]      = "Nacional",
+            [TipoRed.Internacional] = "Internacional",
         };
 
+        string TipoLabel(TipoRed t) => tipoNames.TryGetValue(t, out var n) ? n : t.ToString();
+
         var porTipo = redes
-            .GroupBy(r => tipoNames.TryGetValue(r.Tipo, out var n) ? n : r.Tipo.ToString())
+            .GroupBy(r => TipoLabel(r.Tipo))
             .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
             .OrderByDescending(x => x.Cantidad)
             .ToList();
 
-        return (redes.Count, porTipo);
+        var detalle = redes
+            .Select(r => new RedResumenDto(r.Nombre, TipoLabel(r.Tipo)))
+            .OrderBy(r => r.Tipo)
+            .ThenBy(r => r.Nombre)
+            .ToList();
+
+        return (redes.Count, porTipo, detalle);
     }
 
     // ── Grupos de Investigación ───────────────────────────────────────────────
 
+    // Counts research groups directly affiliated with the area.
     private Task<int> CountGruposAsync(string areaId, CancellationToken ct) =>
         _context.GruposDeInvestigacion
             .AsNoTracking()
@@ -196,6 +366,7 @@ public sealed class DashboardService : IDashboardService
 
     // ── Patentes ─────────────────────────────────────────────────────────────
 
+    // Collects patents by area users, grouped by origin (national vs. foreign).
     private async Task<(int Total, List<DashboardSerieItemDto> PorOrigen)> GatherPatentesAsync(string areaId, CancellationToken ct)
     {
         var flags = await _context.Patentes
@@ -206,18 +377,70 @@ public sealed class DashboardService : IDashboardService
 
         var porOrigen = new List<DashboardSerieItemDto>
         {
-            new("Cuba (nacional)",     flags.Count(f => f)),
-            new("Extranjero",          flags.Count(f => !f)),
+            new("Cuba (nacional)", flags.Count(f => f)),
+            new("Extranjero",      flags.Count(f => !f)),
         }.Where(x => x.Cantidad > 0).ToList();
 
         return (flags.Count, porOrigen);
     }
 
-    // ── Genérico ─────────────────────────────────────────────────────────────
+    // ── Registros ────────────────────────────────────────────────────────────
 
-    private static Task<int> CountAsync<T>(
-        IQueryable<T> set,
-        System.Linq.Expressions.Expression<Func<T, bool>> predicate,
-        CancellationToken ct) where T : class =>
-        set.AsNoTracking().CountAsync(predicate, ct);
+    // Collects registerable intellectual property (software, other) by area users, grouped by type.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo)> GatherRegistrosAsync(string areaId, CancellationToken ct)
+    {
+        var flags = await _context.Registros
+            .AsNoTracking()
+            .Where(r => r.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId))
+            .Select(r => r.EsInformatico)
+            .ToListAsync(ct);
+
+        var porTipo = new List<DashboardSerieItemDto>
+        {
+            new("Software/Informático", flags.Count(f => f)),
+            new("Otro",                 flags.Count(f => !f)),
+        }.Where(x => x.Cantidad > 0).ToList();
+
+        return (flags.Count, porTipo);
+    }
+
+    // ── Normas ───────────────────────────────────────────────────────────────
+
+    // Collects technical standards authored by area users, grouped by standard type.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo)> GatherNormasAsync(string areaId, CancellationToken ct)
+    {
+        var normas = await _context.Normas
+            .AsNoTracking()
+            .Where(n => n.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId))
+            .Include(n => n.TipoNorma)
+            .ToListAsync(ct);
+
+        var porTipo = normas
+            .GroupBy(n => n.TipoNorma?.Nombre ?? "Sin tipo")
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderByDescending(x => x.Cantidad)
+            .ToList();
+
+        return (normas.Count, porTipo);
+    }
+
+    // ── Productos Comercializados ─────────────────────────────────────────────
+
+    // Collects commercialized products and services by area users, grouped by product type.
+    private async Task<(int Total, List<DashboardSerieItemDto> PorTipo)> GatherProductosAsync(string areaId, CancellationToken ct)
+    {
+        var productos = await _context.ProductosComercializados
+            .AsNoTracking()
+            .Where(p => p.Creadores.Any(c => c.Author.User != null && c.Author.User.AreaId == areaId))
+            .Include(p => p.TipoProductoComercializado)
+            .ToListAsync(ct);
+
+        var porTipo = productos
+            .GroupBy(p => p.TipoProductoComercializado?.Nombre ?? "Sin tipo")
+            .Select(g => new DashboardSerieItemDto(g.Key, g.Count()))
+            .OrderByDescending(x => x.Cantidad)
+            .ToList();
+
+        return (productos.Count, porTipo);
+    }
 }

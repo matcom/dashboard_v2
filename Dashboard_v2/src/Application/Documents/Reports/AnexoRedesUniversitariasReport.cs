@@ -9,10 +9,14 @@ namespace Dashboard_v2.Application.Documents.Reports;
 public sealed class AnexoRedesUniversitariasReport : IZipDocumentReport
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _currentUser;
+    private readonly IDocumentRenderer _renderer;
 
-    public AnexoRedesUniversitariasReport(IApplicationDbContext context)
+    public AnexoRedesUniversitariasReport(IApplicationDbContext context, IUser currentUser, IDocumentRenderer renderer)
     {
         _context = context;
+        _currentUser = currentUser;
+        _renderer = renderer;
     }
 
     public string ReportName => "anexo-redes-universitarias";
@@ -21,11 +25,16 @@ public sealed class AnexoRedesUniversitariasReport : IZipDocumentReport
         [nameof(RolesEnum.Superuser), nameof(RolesEnum.Jefe_de_Grupo_de_investigacion),
          nameof(RolesEnum.Vicedecano_de_investigacion), nameof(RolesEnum.Jefe_de_Redes)];
 
-    public async Task<byte[]> GenerateAsync(IDocumentRenderer renderer, CancellationToken ct = default)
+    public async Task<byte[]> GenerateAsync(CancellationToken ct = default)
     {
+        var requestingAreaId = await _context.GetUserAreaIdAsync(_currentUser.Id, ct);
+
         var redes = await _context.Reds
             .AsNoTracking()
-            .Where(r => r.Tipo == TipoRed.Universitaria)
+            .Where(r => r.Tipo == TipoRed.Universitaria
+                && (requestingAreaId == null
+                    || r.Coordinador!.AreaId == requestingAreaId
+                    || r.Participaciones.Any(p => p.Author.UserId != null && p.Author.User!.AreaId == requestingAreaId)))
             .Include(r => r.Participaciones)
                 .ThenInclude(p => p.Author)
                     .ThenInclude(a => a.User)
@@ -46,7 +55,7 @@ public sealed class AnexoRedesUniversitariasReport : IZipDocumentReport
             foreach (var red in redes)
             {
                 var variables = BuildVariables(red);
-                var xlsxBytes = renderer.Render("AnexoRedUniversitaria", variables);
+                var xlsxBytes = _renderer.Render("AnexoRedUniversitaria", variables);
 
                 var safeFileName = $"Anexo6_Red_{index:D2}.xlsx";
                 var entry = zip.CreateEntry(safeFileName, CompressionLevel.Fastest);

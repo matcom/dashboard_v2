@@ -46,7 +46,7 @@ public static class CrossRefToPublicationMapper
 
         return crossrefType switch
         {
-            "journal-article" => Dashboard_v2.Domain.Enums.PublicationType.Diario,
+            "journal-article" => Dashboard_v2.Domain.Enums.PublicationType.Artículo_en_Revista_Científica,
             "book" => Dashboard_v2.Domain.Enums.PublicationType.Libro,
             "monograph" => Dashboard_v2.Domain.Enums.PublicationType.Monografía,
             "book-chapter" => Dashboard_v2.Domain.Enums.PublicationType.Capítulo,

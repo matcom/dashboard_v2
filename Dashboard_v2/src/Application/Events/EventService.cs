@@ -2,10 +2,16 @@ using Dashboard_v2.Application.Common.Interfaces;
 using Dashboard_v2.Application.Common.Models;
 using Dashboard_v2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Application.Events;
 
-public sealed class EventService : IEventService
+/// <summary>
+/// Application service implementing event and presentation (ponencia) management.
+/// Implements both <see cref="IEventService"/> and <see cref="IPresentationService"/> since
+/// presentations are always scoped to an event.
+/// </summary>
+public sealed class EventService : IEventService, IPresentationService
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
@@ -16,16 +22,18 @@ public sealed class EventService : IEventService
         _currentUser = currentUser;
     }
 
-    private bool IsSuperuser => _currentUser.Roles?.Contains("Superuser") == true;
+    private bool IsSuperuser => _currentUser.Roles?.Contains(nameof(RolesEnum.Superuser)) == true;
+    private bool IsVicedecano => _currentUser.Roles?.Contains(nameof(RolesEnum.Vicedecano_de_investigacion)) == true;
 
     public async Task<List<EventDto>> GetMyEventsAsync(CancellationToken ct = default)
     {
         if (IsSuperuser) return await GetAllEventsAsync(ct);
+        if (IsVicedecano) return await GetAreaEventsAsync(ct);
         return await QueryEventsAsync(EventScope.ForUser(_currentUser.Id ?? string.Empty), ct);
     }
 
-    public Task<List<EventDto>> GetAllEventsAsync(CancellationToken ct = default)
-        => QueryEventsAsync(EventScope.All, ct);
+    public Task<List<EventDto>> GetAllEventsAsync(CancellationToken ct = default) =>
+        IsVicedecano ? GetAreaEventsAsync(ct) : QueryEventsAsync(EventScope.All, ct);
 
     public async Task<List<EventDto>> GetAreaEventsAsync(CancellationToken ct = default)
     {
@@ -49,6 +57,8 @@ public sealed class EventService : IEventService
                 RedName = e.Red != null ? e.Red.Nombre : null,
                 OrganizadorIds = e.Organizadores.Select(o => o.UserId).ToList(),
                 e.EvidenceFileId,
+                e.FechaInicio,
+                e.FechaFin,
             })
             .ToListAsync(ct);
 
@@ -68,6 +78,8 @@ public sealed class EventService : IEventService
             RedName = e.RedName,
             OrganizadorIds = e.OrganizadorIds,
             EvidenceFileId = e.EvidenceFileId,
+            FechaInicio = e.FechaInicio,
+            FechaFin = e.FechaFin,
         }).ToList();
     }
 
@@ -174,16 +186,17 @@ public sealed class EventService : IEventService
             Institutions = institutions,
             RedId = string.IsNullOrWhiteSpace(request.RedId) ? null : request.RedId,
             EvidenceFileId = request.EvidenceFileId,
+            FechaInicio = request.FechaInicio,
+            FechaFin = request.FechaFin,
         };
-
-        _context.Events.Add(ev);
-        await _context.SaveChangesAsync(ct);
 
         foreach (var userId in request.OrganizadorIds.Distinct().Where(id => !string.IsNullOrWhiteSpace(id)))
         {
             if (await _context.Users.AnyAsync(u => u.Id == userId, ct))
-                _context.EventOrganizadores.Add(new EventOrganizador { EventId = ev.Id, UserId = userId });
+                ev.Organizadores.Add(new EventOrganizador { UserId = userId });
         }
+
+        _context.Events.Add(ev);
         await _context.SaveChangesAsync(ct);
 
         return (Result.Success(), ev.Id);
@@ -213,6 +226,8 @@ public sealed class EventService : IEventService
         ev.EventTypeId = request.EventType;
         ev.RedId = string.IsNullOrWhiteSpace(request.RedId) ? null : request.RedId;
         ev.EvidenceFileId = request.EvidenceFileId;
+        ev.FechaInicio = request.FechaInicio;
+        ev.FechaFin = request.FechaFin;
 
         var updatedInstitutions = new List<Institution>();
         foreach (var iname in request.Institutions

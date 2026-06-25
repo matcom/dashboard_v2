@@ -25,6 +25,15 @@ sn: Perez
 mail: jperez@matcom.uh.cu
 userPassword: Profesor1!
 
+# Profesor
+dn: uid=pgonsalez,ou=people,dc=matcom,dc=uh,dc=cu
+objectClass: inetOrgPerson
+uid: pgonsalez
+cn: Paco Gonsalez
+sn: Gonsalez
+mail: pgonsalez@matcom.uh.cu
+userPassword: Profesor1!
+
 # Vicedecano de investigación
 dn: uid=lrodriguez,ou=people,dc=matcom,dc=uh,dc=cu
 objectClass: inetOrgPerson

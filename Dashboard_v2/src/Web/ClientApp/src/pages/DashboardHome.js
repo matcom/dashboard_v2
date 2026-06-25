@@ -317,7 +317,7 @@ function AdminHome() {
           label="Publicaciones"
           value={data.totalPublicaciones}
           color="stat-purple"
-          link="/publicaciones"
+          link="/publications"
         />
       </div>
     </>

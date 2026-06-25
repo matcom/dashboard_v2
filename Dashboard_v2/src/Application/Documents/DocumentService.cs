@@ -7,6 +7,10 @@ using Dashboard_v2.Application.Common.Interfaces;
 
 namespace Dashboard_v2.Application.Documents;
 
+/// <summary>
+/// Orchestrates document report generation by dispatching to the appropriate
+/// <see cref="IDocumentReport"/> (single .xlsx) or <see cref="IZipDocumentReport"/> (ZIP bundle).
+/// </summary>
 public sealed class DocumentService : IDocumentService
 {
     private readonly IReadOnlyDictionary<string, IDocumentReport> _reports;
@@ -41,7 +45,7 @@ public sealed class DocumentService : IDocumentService
         CancellationToken ct = default)
     {
         if (_zipReports.TryGetValue(reportName, out var zipReport))
-            return await zipReport.GenerateAsync(_renderer, ct);
+            return await zipReport.GenerateAsync(ct);
 
         if (!_reports.TryGetValue(reportName, out var report))
             throw new KeyNotFoundException($"No existe un reporte registrado con el nombre '{reportName}'.");

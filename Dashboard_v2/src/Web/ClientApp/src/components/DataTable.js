@@ -71,7 +71,11 @@ const LABEL_ES = {
   userName:              'Nombre de usuario',
   userLastName1:         'Primer apellido',
   userLastName2:         'Segundo apellido',
-  isTrained:             'Capacitado',
+  isActive:              'Activo',
+  isTrained:             'Adiestrado',
+  scientificCategory:    'Categoría científica',
+  teachingCategory:      'Categoría docente',
+  investigationCategory: 'Categoría de investigación',
   universidadNombre:     'Universidad',
 };
 
@@ -233,6 +237,11 @@ export default function DataTable({
     }
   }
 
+  /**
+   * Sorts displayed data by the active sort column.
+   * Uses the column's sortValue() callback if defined (for custom sort logic like case-insensitive strings).
+   * Falls back to direct value comparison.
+   */
   const sortedData = useMemo(() => {
     if (!sortKey) return data;
     const col = columns.find(c => c.key === sortKey);
@@ -346,20 +355,22 @@ export default function DataTable({
                     }
 
                     const isDisabled = action.disabled ? action.disabled(item) : false;
+                    const actionColor = typeof action.color === 'function' ? action.color(item) : (action.color ?? 'outline-secondary');
+                    const actionLabel = typeof action.label === 'function' ? action.label(item) : action.label;
 
                     return (
                       <Button
                         key={action.key}
                         size="sm"
-                        color={action.color ?? 'outline-secondary'}
+                        color={actionColor}
                         className="ms-1"
-                        aria-label={action.label}
+                        aria-label={actionLabel}
                         disabled={isDisabled}
                         onClick={() => action.onClick(item)}
                       >
                         {action.icon
                           ? <i className={`bi ${action.icon}`} />
-                          : action.label}
+                          : actionLabel}
                       </Button>
                     );
                   })}

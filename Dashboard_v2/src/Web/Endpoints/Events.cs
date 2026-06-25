@@ -3,8 +3,12 @@ using RolesEnum = Dashboard_v2.Domain.Enums.Roles;
 
 namespace Dashboard_v2.Web.Endpoints;
 
+/// <summary>
+/// API endpoints for academic events: CRUD, organizer and participant management.
+/// </summary>
 public class Events : EndpointGroupBase
 {
+    /// <summary>Registers the Events route group with all event and country endpoints.</summary>
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet("", GetMyEvents)
@@ -52,19 +56,11 @@ public class Events : EndpointGroupBase
             .ProducesProblem(400);
     }
 
-    private async Task<IResult> GetMyEvents(IEventService service, HttpContext http)
-    {
-        if (http.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
-            return Results.Ok(await service.GetAreaEventsAsync());
-        return Results.Ok(await service.GetMyEventsAsync());
-    }
+    private async Task<IResult> GetMyEvents(IEventService service)
+        => Results.Ok(await service.GetMyEventsAsync());
 
-    private async Task<IResult> GetAllEvents(IEventService service, HttpContext http)
-    {
-        if (http.User.IsInRole(nameof(RolesEnum.Vicedecano_de_investigacion)))
-            return Results.Ok(await service.GetAreaEventsAsync());
-        return Results.Ok(await service.GetAllEventsAsync());
-    }
+    private async Task<IResult> GetAllEvents(IEventService service)
+        => Results.Ok(await service.GetAllEventsAsync());
 
     private async Task<IResult> GetCountries(IEventService service)
         => Results.Ok(await service.GetCountriesAsync());

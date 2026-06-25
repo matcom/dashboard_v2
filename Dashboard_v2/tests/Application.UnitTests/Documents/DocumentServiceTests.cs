@@ -29,7 +29,7 @@ public class DocumentServiceTests
         _zipReportMock.Setup(r => r.ReportName).Returns("zip-report");
         _zipReportMock.Setup(r => r.AllowedRoles).Returns(["Superuser", "Jefe_de_Redes"]);
         _zipReportMock
-            .Setup(r => r.GenerateAsync(It.IsAny<IDocumentRenderer>(), default))
+            .Setup(r => r.GenerateAsync(default))
             .ReturnsAsync(new byte[] { 1, 2, 3 });
 
         _rendererMock = new Mock<IDocumentRenderer>();
@@ -66,7 +66,7 @@ public class DocumentServiceTests
     {
         var result = await _sut.GenerateAsync("zip-report");
         result.ShouldBe(new byte[] { 1, 2, 3 });
-        _zipReportMock.Verify(r => r.GenerateAsync(_rendererMock.Object, default), Times.Once);
+        _zipReportMock.Verify(r => r.GenerateAsync(default), Times.Once);
     }
 
     [Test]

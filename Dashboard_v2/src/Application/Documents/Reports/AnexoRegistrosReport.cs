@@ -8,10 +8,12 @@ namespace Dashboard_v2.Application.Documents.Reports;
 public sealed class AnexoRegistrosReport : IDocumentReport
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _currentUser;
 
-    public AnexoRegistrosReport(IApplicationDbContext context)
+    public AnexoRegistrosReport(IApplicationDbContext context, IUser currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public string ReportName => "anexo-registros";
@@ -23,8 +25,28 @@ public sealed class AnexoRegistrosReport : IDocumentReport
 
     public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)
     {
-        var patentes = await _context.Patentes
+        var areaId = await _context.GetUserAreaIdAsync(_currentUser.Id, ct);
+
+        var patentes = await GatherPatentesAsync(areaId, ct);
+        var registros = await GatherRegistrosAsync(areaId, ct);
+        var normas = await GatherNormasAsync(areaId, ct);
+        var tiposProducto = await GatherProductosAsync(areaId, ct);
+
+        return new Dictionary<string, object>
+        {
+            ["Patentes"] = patentes,
+            ["RegistrosInformaticos"] = registros.Where(r => r.EsInformatico).ToList(),
+            ["RegistrosNoInformaticos"] = registros.Where(r => !r.EsInformatico).ToList(),
+            ["Normas"] = normas,
+            ["ProductosTipos"] = tiposProducto,
+        };
+    }
+
+    private async Task<List<AnexoRegistrosPatenteRowDto>> GatherPatentesAsync(string? areaId, CancellationToken ct) =>
+        await _context.Patentes
             .AsNoTracking()
+            .Where(p => areaId == null
+                || p.Creadores.Any(c => c.Author.UserId != null && c.Author.User!.AreaId == areaId))
             .OrderBy(p => p.Titulo)
             .Select(p => new AnexoRegistrosPatenteRowDto
             {
@@ -34,10 +56,11 @@ public sealed class AnexoRegistrosReport : IDocumentReport
             })
             .ToListAsync(ct);
 
-        var registros = await _context.Registros
+    private async Task<List<AnexoRegistroRowDto>> GatherRegistrosAsync(string? areaId, CancellationToken ct) =>
+        await _context.Registros
             .AsNoTracking()
-            .Include(r => r.Institution)
-            .Include(r => r.Country)
+            .Where(r => areaId == null
+                || r.Creadores.Any(c => c.Author.UserId != null && c.Author.User!.AreaId == areaId))
             .OrderBy(r => r.Titulo)
             .Select(r => new AnexoRegistroRowDto
             {
@@ -49,13 +72,11 @@ public sealed class AnexoRegistrosReport : IDocumentReport
             })
             .ToListAsync(ct);
 
-        var registrosInformaticos = registros.Where(r => r.EsInformatico).ToList();
-        var registrosNoInformaticos = registros.Where(r => !r.EsInformatico).ToList();
-
-        var normas = await _context.Normas
+    private async Task<List<AnexoNormaRowDto>> GatherNormasAsync(string? areaId, CancellationToken ct) =>
+        await _context.Normas
             .AsNoTracking()
-            .Include(n => n.TipoNorma)
-            .Include(n => n.Institution)
+            .Where(n => areaId == null
+                || n.Creadores.Any(c => c.Author.UserId != null && c.Author.User!.AreaId == areaId))
             .OrderBy(n => n.Titulo)
             .Select(n => new AnexoNormaRowDto
             {
@@ -65,18 +86,26 @@ public sealed class AnexoRegistrosReport : IDocumentReport
             })
             .ToListAsync(ct);
 
+    private async Task<List<AnexoProductoTipoRowDto>> GatherProductosAsync(string? areaId, CancellationToken ct)
+    {
         var tipos = await _context.TipoProductosComercializados
             .AsNoTracking()
             .Include(t => t.Productos)
                 .ThenInclude(p => p.Institution)
+            .Include(t => t.Productos)
+                .ThenInclude(p => p.Creadores)
+                    .ThenInclude(c => c.Author)
+                        .ThenInclude(a => a.User)
             .OrderBy(t => t.Nombre)
             .ToListAsync(ct);
 
-        var tiposDto = tipos
+        return tipos
             .Select(t => new AnexoProductoTipoRowDto
             {
                 TipoProductoComercializadoNombre = t.Nombre,
                 Productos = t.Productos
+                    .Where(p => areaId == null
+                        || p.Creadores.Any(c => c.Author.UserId != null && c.Author.User?.AreaId == areaId))
                     .OrderBy(p => p.Titulo)
                     .Select(p => new AnexoProductoRowDto
                     {
@@ -85,16 +114,8 @@ public sealed class AnexoRegistrosReport : IDocumentReport
                     })
                     .ToList()
             })
+            .Where(t => t.Productos.Count > 0)
             .ToList();
-
-        return new Dictionary<string, object>
-        {
-            ["Patentes"] = patentes,
-            ["RegistrosInformaticos"] = registrosInformaticos,
-            ["RegistrosNoInformaticos"] = registrosNoInformaticos,
-            ["Normas"] = normas,
-            ["ProductosTipos"] = tiposDto,
-        };
     }
 }
 

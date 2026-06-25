@@ -1,17 +1,11 @@
+using Dashboard_v2.Domain.Common;
 using Dashboard_v2.Domain.Enums;
 
 namespace Dashboard_v2.Domain.Entities;
 
-/// <summary>
-/// Representa una red (colaborativa/profesional).
-/// Una red pertenece a un país (relación obligatoria conceptualmente).
-/// </summary>
-public class Red
+/// <summary>Research network (university, national, or international). Coordinates events, publications, and member participation.</summary>
+public class Red : StringAuditableEntity
 {
-    /// <summary>
-    /// Identificador único de la red (GUID como cadena).
-    /// </summary>
-    public string Id { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
     /// Nombre de la red.
