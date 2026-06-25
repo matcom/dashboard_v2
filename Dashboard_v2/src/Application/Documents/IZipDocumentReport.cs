@@ -23,5 +23,5 @@ public interface IZipDocumentReport
     /// <summary>
     /// Genera el ZIP con todos los archivos Excel y lo devuelve como bytes.
     /// </summary>
-    Task<byte[]> GenerateAsync(IDocumentRenderer renderer, CancellationToken ct = default);
+    Task<byte[]> GenerateAsync(CancellationToken ct = default);
 }

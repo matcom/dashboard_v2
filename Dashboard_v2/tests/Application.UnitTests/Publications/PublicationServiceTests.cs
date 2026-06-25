@@ -19,6 +19,7 @@ public class PublicationServiceTests
     private Mock<IOpenAireClient> _openAireClient = null!;
     private Mock<IAuthorResolutionService> _authorResolution = null!;
     private Mock<IAuthorCleanupService> _authorCleanup = null!;
+    private Mock<IPublicationDatabaseResolver> _databaseResolver = null!;
     private PublicationService _sut = null!;
 
     [SetUp]
@@ -35,9 +36,10 @@ public class PublicationServiceTests
         _openAireClient = new Mock<IOpenAireClient>();
         _authorResolution = new Mock<IAuthorResolutionService>();
         _authorCleanup = new Mock<IAuthorCleanupService>();
+        _databaseResolver = new Mock<IPublicationDatabaseResolver>();
 
         _sut = new PublicationService(_db, _currentUser.Object, _crossRefClient.Object,
-            _openAireClient.Object, _authorResolution.Object, _authorCleanup.Object);
+            _openAireClient.Object, _authorResolution.Object, _authorCleanup.Object, _databaseResolver.Object);
     }
 
     [TearDown]
@@ -901,7 +903,7 @@ public class PublicationServiceTests
     {
         _currentUser.Setup(u => u.Roles).Returns(new List<string> { "Jefe_de_Redes" });
         _sut = new PublicationService(_db, _currentUser.Object, _crossRefClient.Object,
-            _openAireClient.Object, _authorResolution.Object, _authorCleanup.Object);
+            _openAireClient.Object, _authorResolution.Object, _authorCleanup.Object, _databaseResolver.Object);
 
         _db.Publications.Add(new Publication { Id = "p-red-1", Title = "Red Pub", NormalizedTitle = "red pub", PublishedDate = "2024", PublicationData = "{}", RedId = "red-1", AuthorPublications = new List<AuthorPublication>() });
         _db.Publications.Add(new Publication { Id = "p-no-red", Title = "No Red", NormalizedTitle = "no red", PublishedDate = "2024", PublicationData = "{}", AuthorPublications = new List<AuthorPublication>() });

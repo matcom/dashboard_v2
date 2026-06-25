@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Dashboard_v2.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260619213707_AddAuditMetadata")]
+    [Migration("20260625034821_AddAuditMetadata")]
     partial class AddAuditMetadata
     {
         /// <inheritdoc />
@@ -434,6 +434,12 @@ namespace Dashboard_v2.Infrastructure.Data.Migrations
 
                     b.Property<int?>("EvidenceFileId")
                         .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("FechaFin")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaInicio")
+                        .HasColumnType("date");
 
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("timestamp with time zone");

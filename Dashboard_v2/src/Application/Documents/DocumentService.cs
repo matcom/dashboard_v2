@@ -41,7 +41,7 @@ public sealed class DocumentService : IDocumentService
         CancellationToken ct = default)
     {
         if (_zipReports.TryGetValue(reportName, out var zipReport))
-            return await zipReport.GenerateAsync(_renderer, ct);
+            return await zipReport.GenerateAsync(ct);
 
         if (!_reports.TryGetValue(reportName, out var report))
             throw new KeyNotFoundException($"No existe un reporte registrado con el nombre '{reportName}'.");

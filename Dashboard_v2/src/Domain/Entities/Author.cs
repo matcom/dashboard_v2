@@ -2,10 +2,8 @@ using Dashboard_v2.Domain.Common;
 
 namespace Dashboard_v2.Domain.Entities;
 
-public class Author : IAuditableEntity
+public class Author : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-
     /// <summary>Apellido(s) del autor. Campo prioritario en el ámbito científico-académico.</summary>
     public string LastName { get; set; } = default!;
 
@@ -44,11 +42,6 @@ public class Author : IAuditableEntity
     public ICollection<AuthorNorma> AuthorNormas { get; set; } = new List<AuthorNorma>();
     public ICollection<AuthorProductoComercializado> AuthorProductosComercializados { get; set; } = new List<AuthorProductoComercializado>();
     public ICollection<ParticipacionEnRed> ParticipacionesEnRedes { get; set; } = new List<ParticipacionEnRed>();
-
-    public DateTimeOffset Created { get; set; }
-    public string? CreatedBy { get; set; }
-    public DateTimeOffset LastModified { get; set; }
-    public string? LastModifiedBy { get; set; }
 
     /// <summary>
     /// Crea un autor a partir de apellidos y nombres de pila.

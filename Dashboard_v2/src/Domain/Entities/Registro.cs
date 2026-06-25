@@ -2,9 +2,8 @@ using Dashboard_v2.Domain.Common;
 
 namespace Dashboard_v2.Domain.Entities;
 
-public class Registro : IAuditableEntity
+public class Registro : StringAuditableEntity
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Titulo { get; set; } = default!;
     public string NumeroCertificado { get; set; } = default!;
     public bool EsInformatico { get; set; }
@@ -23,9 +22,4 @@ public class Registro : IAuditableEntity
 
     /// <summary>Autores que son creadores de este registro (N:M).</summary>
     public ICollection<AuthorRegistro> Creadores { get; set; } = new List<AuthorRegistro>();
-
-    public DateTimeOffset Created { get; set; }
-    public string? CreatedBy { get; set; }
-    public DateTimeOffset LastModified { get; set; }
-    public string? LastModifiedBy { get; set; }
 }

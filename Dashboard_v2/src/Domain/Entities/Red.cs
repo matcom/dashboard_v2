@@ -7,12 +7,8 @@ namespace Dashboard_v2.Domain.Entities;
 /// Representa una red (colaborativa/profesional).
 /// Una red pertenece a un país (relación obligatoria conceptualmente).
 /// </summary>
-public class Red : IAuditableEntity
+public class Red : StringAuditableEntity
 {
-    /// <summary>
-    /// Identificador único de la red (GUID como cadena).
-    /// </summary>
-    public string Id { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
     /// Nombre de la red.
@@ -64,9 +60,4 @@ public class Red : IAuditableEntity
     /// Publicaciones generadas por esta red.
     /// </summary>
     public ICollection<Publication> Publications { get; set; } = new List<Publication>();
-
-    public DateTimeOffset Created { get; set; }
-    public string? CreatedBy { get; set; }
-    public DateTimeOffset LastModified { get; set; }
-    public string? LastModifiedBy { get; set; }
 }

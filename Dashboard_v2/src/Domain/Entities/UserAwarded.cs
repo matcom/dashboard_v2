@@ -2,10 +2,8 @@ using Dashboard_v2.Domain.Common;
 
 namespace Dashboard_v2.Domain.Entities;
 
-public class UserAwarded : IAuditableEntity
+public class UserAwarded : BaseAuditableEntity
 {
-    public int Id { get; set; }
-
     // FK explícito para EF Core
     public string UserId { get; set; } = default!;
     public User User { get; set; } = null!;
@@ -20,8 +18,4 @@ public class UserAwarded : IAuditableEntity
     public int? EvidenceFileId { get; set; }
     public StoredFile? EvidenceFile { get; set; }
 
-    public DateTimeOffset Created { get; set; }
-    public string? CreatedBy { get; set; }
-    public DateTimeOffset LastModified { get; set; }
-    public string? LastModifiedBy { get; set; }
 }

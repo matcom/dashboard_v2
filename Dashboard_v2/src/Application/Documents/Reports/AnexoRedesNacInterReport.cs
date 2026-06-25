@@ -8,10 +8,12 @@ namespace Dashboard_v2.Application.Documents.Reports;
 public sealed class AnexoRedesNacInterReport : IDocumentReport
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _currentUser;
 
-    public AnexoRedesNacInterReport(IApplicationDbContext context)
+    public AnexoRedesNacInterReport(IApplicationDbContext context, IUser currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public string ReportName => "anexo-redes-nac-inter";
@@ -24,11 +26,17 @@ public sealed class AnexoRedesNacInterReport : IDocumentReport
     public async Task<IReadOnlyDictionary<string, object>> GatherVariablesAsync(
         IReadOnlyDictionary<string, string>? parameters, CancellationToken ct)
     {
+        var requestingAreaId = await _context.GetUserAreaIdAsync(_currentUser.Id, ct);
+
         var redes = await _context.Reds
             .AsNoTracking()
             .Include(r => r.Country)
             .Include(r => r.Coordinador).ThenInclude(u => u!.Area)
-            .Where(r => r.Tipo == TipoRed.Nacional || r.Tipo == TipoRed.Internacional)
+            .Include(r => r.Participaciones).ThenInclude(p => p.Author).ThenInclude(a => a.User)
+            .Where(r => (r.Tipo == TipoRed.Nacional || r.Tipo == TipoRed.Internacional)
+                && (requestingAreaId == null
+                    || r.Coordinador!.AreaId == requestingAreaId
+                    || r.Participaciones.Any(p => p.Author.UserId != null && p.Author.User!.AreaId == requestingAreaId)))
             .OrderBy(r => r.Nombre)
             .ToListAsync(ct);
 

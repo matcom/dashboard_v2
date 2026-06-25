@@ -190,75 +190,8 @@ public class Publications : EndpointGroupBase
         return Results.Ok(items);
     }
 
-    private async Task<IResult> ResolveDatabaseFromCrossRef(ICrossRefClient crossRefClient, Application.Common.Interfaces.IPublicationDatabaseResolver resolver, string? doi, string? title, string? issns, string? publishedDate)
-    {
-        List<string> issnList;
-
-        // Fast path: client already has ISSNs from a previous metadata search.
-        if (!string.IsNullOrWhiteSpace(issns))
-        {
-            issnList = issns
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .ToList();
-        }
-        else
-        {
-            // Slow path: ask CrossRef for the ISSNs.
-            Dashboard_v2.Application.Publications.PublicationCrossRefDto? cr = null;
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(doi))
-                    cr = await crossRefClient.GetWorkByDoiAsync(doi);
-
-                if (cr == null && !string.IsNullOrWhiteSpace(title))
-                {
-                    var list = await crossRefClient.SearchWorksByTitleAsync(title, rows: 1);
-                    if (list?.Count > 0) cr = list[0];
-                }
-            }
-            catch (Dashboard_v2.Application.Publications.CrossRefTimeoutException)
-            {
-                return Results.Ok(new Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto
-                {
-                    TimedOut = true,
-                    Message = "CrossRef no respondió a tiempo. Puedes ingresar los datos manualmente.",
-                });
-            }
-
-            if (cr == null)
-                return Results.Ok(new Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto
-                {
-                    Message = "CrossRef no encontró ninguna publicación con los parámetros dados. Por favor complete los campos manualmente."
-                });
-
-            if (cr.Issns == null || cr.Issns.Count == 0)
-                return Results.Ok(new Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto
-                {
-                    Message = "CrossRef encontró la publicación pero no devolvió ISSN (es un artículo de conferencias u otro tipo sin revista). Por favor complete los campos manualmente si corresponde."
-                });
-
-            issnList = cr.Issns.ToList();
-        }
-
-        // Parse the optional publication date for ambiguity resolution.
-        DateOnly? pubDate = null;
-        if (!string.IsNullOrWhiteSpace(publishedDate))
-        {
-            // Accept yyyy, yyyy-MM, or yyyy-MM-dd
-            if (DateOnly.TryParseExact(publishedDate, ["yyyy-MM-dd", "yyyy-MM", "yyyy"],
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    System.Globalization.DateTimeStyles.None, out var parsed))
-                pubDate = parsed;
-        }
-
-        // Try to resolve the database name from the ISSNs.
-        var match = await resolver.ResolveByIssnsAsync(issnList, pubDate) ?? new Dashboard_v2.Application.Publications.PublicationDatabaseMatchDto();
-
-        // Always include the ISSNs so the client can display them.
-        match.Issns = issnList;
-
-        return Results.Ok(match);
-    }
+    private async Task<IResult> ResolveDatabaseFromCrossRef(IPublicationService service, string? doi, string? title, string? issns, string? publishedDate)
+        => Results.Ok(await service.ResolveDatabaseFromCrossRefAsync(doi, title, issns, publishedDate));
 
     private async Task<IResult> AddCurrentUserAsCoauthor(IPublicationService service, string id)
     {

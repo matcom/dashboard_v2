@@ -47,10 +47,20 @@ public sealed class AnexoEventosReport : IDocumentReport
     {
         var userAreaId = await _context.GetUserAreaIdAsync(_currentUser.Id, ct);
 
+        // Todos los listados de eventos se filtran al área del usuario solicitante.
+        // Un evento pertenece al área si algún organizador o participante es de ese área.
+        var areaFilter = string.IsNullOrWhiteSpace(userAreaId)
+            ? (System.Linq.Expressions.Expression<Func<Event, bool>>)(_ => true)
+            : e => e.Organizadores.Any(o => o.User.AreaId == userAreaId)
+                || e.Participaciones.Any(p => p.User.AreaId == userAreaId);
+
         var events = await _context.Events
             .AsNoTracking()
             .Include(e => e.Country)
             .Include(e => e.Institutions)
+            .Include(e => e.Organizadores).ThenInclude(o => o.User)
+            .Include(e => e.Participaciones).ThenInclude(p => p.User)
+            .Where(areaFilter)
             .OrderBy(e => e.Name)
             .ToListAsync(ct);
 
@@ -58,22 +68,16 @@ public sealed class AnexoEventosReport : IDocumentReport
             .AsNoTracking()
             .Include(p => p.Event).ThenInclude(e => e.Country)
             .Include(p => p.User)
+            .Where(p => string.IsNullOrWhiteSpace(userAreaId) || p.User.AreaId == userAreaId)
             .OrderBy(p => p.Event.Name)
             .ThenBy(p => p.Name)
             .ToListAsync(ct);
 
-        // Eventos coauspiciados = al menos un organizador pertenece al area del usuario actual
-        List<Event> eventosCoauspiciados = [];
-        if (!string.IsNullOrWhiteSpace(userAreaId))
-        {
-            eventosCoauspiciados = await _context.Events
-                .AsNoTracking()
-                .Include(e => e.Country)
-                .Include(e => e.Institutions)
-                .Where(e => e.Organizadores.Any(o => o.User.AreaId == userAreaId))
-                .OrderBy(e => e.Name)
-                .ToListAsync(ct);
-        }
+        // Eventos coauspiciados = al menos un organizador pertenece al área del usuario actual
+        var eventosCoauspiciados = events
+            .Where(e => !string.IsNullOrWhiteSpace(userAreaId)
+                && e.Organizadores.Any(o => o.User?.AreaId == userAreaId))
+            .ToList();
 
         var ponenciasInternacionalesExtranjero = presentations.Count(p =>
             p.Event.EventTypeId == InternacionalEventTypeId && !IsHeldInCuba(p.Event));
