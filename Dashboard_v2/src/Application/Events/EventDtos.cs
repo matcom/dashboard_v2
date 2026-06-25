@@ -21,6 +21,8 @@ public record EventDto
     public List<string> OrganizadorIds { get; init; } = [];
     /// <summary>ID del archivo de evidencia/certificado adjunto. Null si no tiene.</summary>
     public int? EvidenceFileId { get; init; }
+    public DateOnly? FechaInicio { get; init; }
+    public DateOnly? FechaFin { get; init; }
 }
 
 public record PresentationDto

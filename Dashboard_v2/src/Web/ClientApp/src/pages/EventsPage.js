@@ -42,7 +42,7 @@ function ddmmToISO(v) {
 }
 
 const EMPTY_PRES = { name: '', eventId: '', fecha: '', targetUserId: '' };
-const EMPTY_EVENT = { name: '', countryId: '', eventType: '', institutions: [], redId: '', organizadorIds: [], evidenceFileId: null };
+const EMPTY_EVENT = { name: '', countryId: '', eventType: '', institutions: [], redId: '', organizadorIds: [], evidenceFileId: null, fechaInicio: '', fechaCierre: '' };
 
 const EVENT_TYPE_LABELS = { 0: 'Internacional', 1: 'Nacional', 2: 'De área', 3: 'Local' };
 
@@ -288,6 +288,8 @@ export default function EventsPage() {
       redId: ev.redId ?? ev.RedId ?? '',
       organizadorIds: [...(ev.organizadorIds ?? [])],
       evidenceFileId: ev.evidenceFileId ?? null,
+      fechaInicio: ev.fechaInicio ? String(ev.fechaInicio).substring(0, 10) : '',
+      fechaCierre: ev.fechaFin   ? String(ev.fechaFin).substring(0, 10)   : '',
     });
     setSelectedInstId('');
     setSelectedOrganizadorId('');
@@ -374,6 +376,8 @@ export default function EventsPage() {
       redId: evForm.redId && evForm.redId.length > 0 ? evForm.redId : null,
       organizadorIds: evForm.organizadorIds,
       evidenceFileId: evForm.evidenceFileId ?? null,
+      fechaInicio: evForm.fechaInicio || null,
+      fechaFin:    evForm.fechaCierre || null,
     };
 
     try {
@@ -542,6 +546,18 @@ export default function EventsPage() {
                       render: (v, ev) => <Badge color="info" pill>{EVENT_TYPE_LABELS[v] ?? ev.eventTypeName ?? ev.eventType}</Badge>,
                     },
                     {
+                      key: 'fechaInicio',
+                      label: 'Inicio',
+                      sortable: true,
+                      render: v => v ? String(v).substring(0, 10).split('-').reverse().join('/') : '—',
+                    },
+                    {
+                      key: 'fechaFin',
+                      label: 'Cierre',
+                      sortable: true,
+                      render: v => v ? String(v).substring(0, 10).split('-').reverse().join('/') : '—',
+                    },
+                    {
                       key: 'institutions',
                       label: 'Instituciones',
                       render: insts => (insts || []).map((inst, i) => (
@@ -655,6 +671,20 @@ export default function EventsPage() {
                 onChange={e => setEvForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="Nombre del evento científico" />
             </FormGroup>
+
+            <div className="row g-3 mb-3">
+              <div className="col-sm-6">
+                <Label for="evFechaInicio">Fecha de inicio</Label>
+                <Input type="date" id="evFechaInicio" value={evForm.fechaInicio}
+                  onChange={e => setEvForm(f => ({ ...f, fechaInicio: e.target.value }))} />
+              </div>
+              <div className="col-sm-6">
+                <Label for="evFechaCierre">Fecha de cierre <span className="text-muted fw-normal">(opcional)</span></Label>
+                <Input type="date" id="evFechaCierre" value={evForm.fechaCierre}
+                  min={evForm.fechaInicio || undefined}
+                  onChange={e => setEvForm(f => ({ ...f, fechaCierre: e.target.value }))} />
+              </div>
+            </div>
 
             <FormGroup>
               <Label for="evCountry">País *</Label>

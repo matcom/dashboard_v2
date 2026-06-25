@@ -49,6 +49,8 @@ public sealed class EventService : IEventService
                 RedName = e.Red != null ? e.Red.Nombre : null,
                 OrganizadorIds = e.Organizadores.Select(o => o.UserId).ToList(),
                 e.EvidenceFileId,
+                e.FechaInicio,
+                e.FechaFin,
             })
             .ToListAsync(ct);
 
@@ -68,6 +70,8 @@ public sealed class EventService : IEventService
             RedName = e.RedName,
             OrganizadorIds = e.OrganizadorIds,
             EvidenceFileId = e.EvidenceFileId,
+            FechaInicio = e.FechaInicio,
+            FechaFin = e.FechaFin,
         }).ToList();
     }
 
@@ -174,6 +178,8 @@ public sealed class EventService : IEventService
             Institutions = institutions,
             RedId = string.IsNullOrWhiteSpace(request.RedId) ? null : request.RedId,
             EvidenceFileId = request.EvidenceFileId,
+            FechaInicio = request.FechaInicio,
+            FechaFin = request.FechaFin,
         };
 
         _context.Events.Add(ev);
@@ -213,6 +219,8 @@ public sealed class EventService : IEventService
         ev.EventTypeId = request.EventType;
         ev.RedId = string.IsNullOrWhiteSpace(request.RedId) ? null : request.RedId;
         ev.EvidenceFileId = request.EvidenceFileId;
+        ev.FechaInicio = request.FechaInicio;
+        ev.FechaFin = request.FechaFin;
 
         var updatedInstitutions = new List<Institution>();
         foreach (var iname in request.Institutions

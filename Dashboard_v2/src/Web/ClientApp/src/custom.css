@@ -1364,6 +1364,39 @@ a:hover { color: var(--primary-hover); }
   border-bottom: none;
 }
 
+.vd-grid-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+.vd-group-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: .5rem 0 -.25rem;
+  padding-bottom: .5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.stats-grid--sm .stat-card {
+  padding: .65rem 1rem;
+}
+
+.stats-grid--sm .stat-card__value {
+  font-size: 1.6rem;
+}
+
+.vd-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: .75rem;
+  font-size: .85rem;
+  color: #475569;
+}
+
 @media (max-width: 900px) {
   .vd-grid-2,
   .vd-grid-3 {

@@ -28,6 +28,12 @@ public class Event
     /// <summary>Participaciones de usuarios en este evento (incluye ponencias).</summary>
     public ICollection<ParticipacionEnEvento> Participaciones { get; set; } = new List<ParticipacionEnEvento>();
 
+    /// <summary>Fecha de inicio del evento.</summary>
+    public DateOnly? FechaInicio { get; set; }
+
+    /// <summary>Fecha de cierre/fin del evento (opcional).</summary>
+    public DateOnly? FechaFin { get; set; }
+
     /// <summary>Archivo de evidencia/certificado adjunto (opcional).</summary>
     public int? EvidenceFileId { get; set; }
     public StoredFile? EvidenceFile { get; set; }
